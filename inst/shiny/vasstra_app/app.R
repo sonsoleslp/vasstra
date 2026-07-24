@@ -427,8 +427,8 @@ ui <- fluidPage(
           selectInput(
             "sequence_plot_type",
             "View",
-            choices = c("distribution", "index", "heatmap"),
-            selected = "distribution",
+            choices = c("heatmap", "distribution", "index"),
+            selected = "heatmap",
             width = "220px"
           ),
           plotOutput("sequence_plot", height = "560px")

@@ -210,8 +210,8 @@ plot(states, type = "profile", scale = "original")
 Every plot containing state sequences is rendered by `Nestimate`:
 
 ```r
+plot(sequences)                          # heatmap of every aligned sequence
 plot(sequences, type = "distribution")
-plot(sequences, type = "index")
 plot(trajectories, type = "index")
 plot(trajectories, type = "heatmap")
 ```

@@ -6,9 +6,9 @@
 \usage{
 \method{plot}{vasstra_sequences}(
   x,
-  type = c("distribution", "index", "heatmap"),
+  type = c("heatmap", "distribution", "index"),
   colors = NULL,
-  main = "State distribution over time",
+  main = NULL,
   sort = "lcs",
   na = x$diagnostics$n_missing > 0L,
   ...
@@ -17,12 +17,15 @@
 \arguments{
 \item{x}{A \code{vasstra_sequences} object.}
 
-\item{type}{One of \code{"distribution"} (default), \code{"index"}, or \code{"heatmap"}.}
+\item{type}{One of \code{"heatmap"} (default), \code{"distribution"}, or
+\code{"index"}. The heatmap shows every aligned sequence at full
+resolution and is the most informative single view of the complete
+cohort.}
 
 \item{colors}{Optional colors, one per state, passed to Nestimate as
 \code{state_colors}.}
 
-\item{main}{Plot title.}
+\item{main}{Plot title. A type-specific title is used by default.}
 
 \item{sort}{Sequence ordering passed to \code{\link[Nestimate:sequence_plot]{Nestimate::sequence_plot()}}.}
 

@@ -742,10 +742,13 @@ plot.vasstra_trajectory_choices <- function(
 #' [Nestimate::sequence_plot()].
 #'
 #' @param x A `vasstra_sequences` object.
-#' @param type One of `"distribution"` (default), `"index"`, or `"heatmap"`.
+#' @param type One of `"heatmap"` (default), `"distribution"`, or
+#'   `"index"`. The heatmap shows every aligned sequence at full
+#'   resolution and is the most informative single view of the complete
+#'   cohort.
 #' @param colors Optional colors, one per state, passed to Nestimate as
 #'   `state_colors`.
-#' @param main Plot title.
+#' @param main Plot title. A type-specific title is used by default.
 #' @param sort Sequence ordering passed to [Nestimate::sequence_plot()].
 #' @param na Show missing cells as a separate distribution band. By default,
 #'   this is `TRUE` only when the sequence data contain `NA`.
@@ -755,14 +758,22 @@ plot.vasstra_trajectory_choices <- function(
 #' @export
 plot.vasstra_sequences <- function(
     x,
-    type = c("distribution", "index", "heatmap"),
+    type = c("heatmap", "distribution", "index"),
     colors = NULL,
-    main = "State distribution over time",
+    main = NULL,
     sort = "lcs",
     na = x$diagnostics$n_missing > 0L,
     ...) {
   stopifnot(inherits(x, "vasstra_sequences"))
   type <- match.arg(type)
+  if (is.null(main)) {
+    main <- switch(
+      type,
+      heatmap = "State sequences (all subjects)",
+      distribution = "State distribution over time",
+      index = "State sequences"
+    )
+  }
   sort <- match.arg(
     sort,
     c(

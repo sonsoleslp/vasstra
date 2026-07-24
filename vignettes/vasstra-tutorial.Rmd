@@ -167,11 +167,20 @@ is rare enough to question.
 
 ## 4. Sequences: how states unfold over time
 
-Two Nestimate-rendered views split the temporal question in two. The
-distribution answers the *aggregate* question — does the composition of
-the cohort drift over the eight positions — while the index plot
-answers the *individual* one — do students stay in their state or move.
-The distinction matters because a flat distribution can hide heavy
+The default sequence view is the heatmap: every aligned sequence as one
+row, rows ordered by similarity, so persistence shows as long unbroken
+bands and instability as speckle — the one view that keeps all 142
+individual journeys visible at once.
+
+```{r sequences-heatmap, fig.height = 5.5}
+plot(fit, which = "sequences")
+```
+
+Two further views split the temporal question the heatmap compresses.
+The distribution answers the *aggregate* question — does the
+composition of the cohort drift over the eight positions — while the
+index plot answers the *individual* one on a fixed subject order. The
+distinction matters because a flat distribution can hide heavy
 individual churn.
 
 ```{r sequences, fig.height = 5.5}

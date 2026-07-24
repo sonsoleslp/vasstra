@@ -75,14 +75,20 @@ test_that("plot methods render and return Nestimate plot data", {
 
   states_plot <- plot(fit, which = "states")
   sequences_plot <- plot(fit, which = "sequences")
+  sequences_distribution <- plot(fit, which = "sequences",
+                                 type = "distribution")
   trajectories_plot <- plot(fit, which = "trajectories")
 
   expect_true(is.matrix(states_plot))
+  expect_true(all(
+    c("ord", "codes", "palette", "levels") %in% names(sequences_plot)
+  ))
+  expect_equal(dim(sequences_plot$codes), c(36L, 6L))
   expect_named(
-    sequences_plot,
+    sequences_distribution,
     c("counts", "proportions", "levels", "palette", "groups")
   )
-  expect_equal(dim(sequences_plot$counts$all), c(3L, 6L))
+  expect_equal(dim(sequences_distribution$counts$all), c(3L, 6L))
   expect_named(
     trajectories_plot,
     c("codes", "palette", "levels", "orders", "groups")

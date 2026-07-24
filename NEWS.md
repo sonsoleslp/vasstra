@@ -1,5 +1,10 @@
 # VaSStra 0.2.0
 
+- The sequence heatmap is now the default plot for complete sequence
+  sets (`plot(sequences)` / `plot(fit, which = "sequences")`): it keeps
+  every aligned sequence visible at full resolution. Titles are now
+  type-specific; `"distribution"` and `"index"` remain one argument
+  away, and grouped trajectory plots keep `"index"` as their default.
 - Added `launch_app()`: an interactive Shiny application (suggested
   `shiny` + `DT`) covering the complete workflow — data upload or the
   built-in engagement data, role mapping with detection pre-fill,
