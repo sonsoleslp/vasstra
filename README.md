@@ -12,9 +12,10 @@ reported and recorded.
 pak::pak("mohsaqr/vasstra")
 ```
 
-Two vignettes ship with the package: `vignette("get-started")` for the
-interface and `vignette("vasstra-tutorial")` for a complete worked
-analysis of the chapter's longitudinal engagement data.
+Three vignettes ship with the package: `vignette("get-started")` for the
+interface, `vignette("vasstra-tutorial")` for a complete worked analysis of
+the chapter's longitudinal engagement data, and `vignette("flow-plots")`
+for the alluvial and individual flow views.
 
 ## Interactive app
 
@@ -216,11 +217,69 @@ plot(trajectories, type = "index")
 plot(trajectories, type = "heatmap")
 ```
 
+## Flow plots
+
+Sequence plots are organised by subject similarity, so they show who
+resembles whom but not where movement goes — and a flat state distribution
+cannot distinguish a cohort where nobody moves from one where everybody
+swaps. `flow_plot()` draws the movement itself, rendered by
+[`cograph`](https://github.com/mohsaqr/cograph) (a suggested package), on
+the same palette and state order as every other VaSStra plot:
+
+```r
+flow_plot(fit)                              # aggregated alluvial bands
+flow_plot(fit, type = "individual")         # one line per subject
+flow_plot(fit, color_by = "destination")    # colour bands by where they arrive
+flow_plot(fit, group = "Mostly average")    # one trajectory's flows
+```
+
+Individual flows are bundled automatically so large cohorts stay legible
+(`bundle = FALSE` draws every subject). Unlike the base-graphics `plot()`
+methods, `flow_plot()` returns a `ggplot` object.
+
+## Transition networks
+
+`transition_plot()` collapses every time step into one network: states are
+nodes, transitions are directed edges, and node size is a centrality of the
+transition network. `Nestimate` builds the network and the centralities
+(`build_tna()`, `net_centrality()`), and `cograph::splot()` draws it —
+recognising the network object and supplying TNA styling, labels, and
+initial-probability rings on its own. The default node size is in-strength,
+so the largest node is the state the cohort most often moves *into*.
+
+```r
+transition_plot(fit)                                    # size = in-strength
+transition_plot(fit, weights = "count")                 # raw counts
+transition_plot(fit, size = "OutStrength")              # any Nestimate measure
+transition_plot(fit, loops = TRUE)                      # count self-transitions
+transition_plot(fit, group = "Mostly disengaged")       # one trajectory
+transition_plot(fit, sequences = TRUE)                  # sequences + network
+```
+
+`sequences = TRUE` draws the state sequences beside the network — the
+conventional pairing, where the left panel shows the raw data and the right
+summarises its movement. Both panels share one palette, so a state has the
+same colour in each; `"heatmap"` and `"distribution"` select the left view.
+
+The same centralities come as a tidy table, without drawing anything:
+
+```r
+transition_centrality(fit)                     # in- and out-strength
+transition_centrality(fit, measures = "all")   # every Nestimate measure
+transition_centrality(fit, weights = "count")
+```
+
+Self-transitions are excluded from the centrality by default, matching
+`Nestimate::net_centrality()` and `tna::centralities()` — otherwise a
+persistent state looks large merely because its members stay put, which is
+a different claim from attracting movement. See `vignette("flow-plots")`.
+
 ## Dependencies
 
 `mclust` powers the default LPA state estimation, base R provides
 k-means and hierarchical clustering, `cluster` provides PAM, and
 `Nestimate` provides sequence distances, trajectory clustering, and all
-sequence plots. There is no TraMineR plotting path or dependency.
+sequence plots. `cograph` is suggested, not required, and renders the flow
+plots. There is no TraMineR plotting path or dependency.
 
 Method overview: [VaSSTra chapter](https://lamethods.org/book1/chapters/ch11-vasstra/ch11-vasstra.html).

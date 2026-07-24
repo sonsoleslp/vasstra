@@ -14,6 +14,13 @@
 #' @return For profile, bar, heatmap, and overview plots, the plotted
 #'   indicator-by-state matrix, invisibly. For a size plot, a tidy
 #'   state-size data frame.
+#'
+#' @examples
+#' data("engagement", package = "VaSStra")
+#' states <- step1_states(engagement, n_states = 3)
+#' plot(states)
+#' plot(states, type = "sizes")
+#' plot(states, type = "all")
 #' @export
 plot.vasstra_states <- function(
     x,
@@ -332,8 +339,8 @@ plot.vasstra_states <- function(
 #' Plot State-Clustering Choices
 #'
 #' Draws a compact model-selection plot from [state_choices()]. Each line is
-#' one clustering method (and LPA covariance model). Stars mark the optimal
-#' eligible value of the plotted metric within each group; crosses mark
+#' one clustering method (and LPA covariance model). A ring marks the optimal
+#' eligible value of the plotted metric within each group; hollow points mark
 #' candidates that fail the requested size constraints.
 #'
 #' @param x A `vasstra_state_choices` object.
@@ -346,6 +353,12 @@ plot.vasstra_states <- function(
 #' @param ... Additional arguments passed to [graphics::plot()].
 #'
 #' @return The tidy candidate data used in the plot, invisibly.
+#'
+#' @examples
+#' data("engagement", package = "VaSStra")
+#' options <- state_choices(engagement, n_states = 2:4, method = "kmeans")
+#' plot(options)
+#' plot(options, metric = "silhouette")
 #' @export
 plot.vasstra_state_choices <- function(
     x,
@@ -391,8 +404,9 @@ plot.vasstra_state_choices <- function(
 #'
 #' Draws a compact Nestimate model-selection plot from
 #' [trajectory_choices()]. Each line is one distance-method combination.
-#' Stars mark the optimal eligible value of the plotted metric within each
-#' group; crosses mark candidates that fail the requested size constraints.
+#' A ring marks the optimal eligible value of the plotted metric within each
+#' group; hollow points mark candidates that fail the requested size
+#' constraints.
 #'
 #' @param x A `vasstra_trajectory_choices` object.
 #' @param metric One of `"silhouette"`, `"mean_within_distance"`,
@@ -405,6 +419,12 @@ plot.vasstra_state_choices <- function(
 #' @param ... Additional arguments passed to [graphics::plot()].
 #'
 #' @return The tidy candidate data used in the plot, invisibly.
+#'
+#' @examples
+#' data("engagement", package = "VaSStra")
+#' sequences <- step2_sequences(step1_states(engagement, n_states = 3))
+#' options <- trajectory_choices(sequences, n_trajectories = 2:4)
+#' plot(options)
 #' @export
 plot.vasstra_trajectory_choices <- function(
     x,
@@ -755,6 +775,14 @@ plot.vasstra_trajectory_choices <- function(
 #' @param ... Additional arguments passed to [Nestimate::sequence_plot()].
 #'
 #' @return The value returned by [Nestimate::sequence_plot()].
+#'
+#' @seealso [flow_plot()] for alluvial and individual flow views.
+#'
+#' @examples
+#' data("engagement", package = "VaSStra")
+#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+#' plot(fit$sequences)
+#' plot(fit$sequences, type = "distribution")
 #' @export
 plot.vasstra_sequences <- function(
     x,
@@ -793,7 +821,7 @@ plot.vasstra_sequences <- function(
       type = type,
       sort = sort,
       na = na,
-      state_colors = colors,
+      state_colors = .vasstra_sequence_colors(colors, x$states, x$data),
       main = main,
       time_label = x$settings$time
     ),
@@ -824,6 +852,14 @@ plot.vasstra_sequences <- function(
 #' @param ... Additional arguments passed to [Nestimate::sequence_plot()].
 #'
 #' @return The value returned by [Nestimate::sequence_plot()].
+#'
+#' @seealso [flow_plot()] for alluvial and individual flow views.
+#'
+#' @examples
+#' data("engagement", package = "VaSStra")
+#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+#' plot(fit$trajectories)
+#' plot(fit$trajectories, type = "distribution")
 #' @export
 plot.vasstra_trajectories <- function(
     x,
@@ -856,7 +892,7 @@ plot.vasstra_trajectories <- function(
       sort = sort,
       group = if (type == "heatmap") NULL else x$assignments,
       na = na,
-      state_colors = colors,
+      state_colors = .vasstra_sequence_colors(colors, states, x$data),
       main = main,
       time_label = x$source$settings$time
     ),
@@ -886,6 +922,13 @@ plot.vasstra_trajectories <- function(
 #'
 #' @return The tidy data drawn by the requested panel, invisibly. The
 #'   `"summary"` layout returns both the candidate and cluster tables.
+#'
+#' @examples
+#' data("engagement", package = "VaSStra")
+#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+#' evaluation <- evaluate(fit$trajectories)
+#' plot(evaluation)
+#' plot(evaluation, type = "silhouette")
 #' @export
 plot.vasstra_evaluation <- function(
     x,
@@ -946,6 +989,11 @@ plot.vasstra_evaluation <- function(
 #' @param ... Additional graphical arguments passed to the panel functions.
 #'
 #' @return The evaluated candidate and cluster tables, invisibly.
+#'
+#' @examples
+#' data("engagement", package = "VaSStra")
+#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+#' plot(evaluate(fit))
 #' @export
 plot.vasstra_evaluations <- function(x, colors = NULL, ...) {
   stopifnot(inherits(x, "vasstra_evaluations"))
@@ -1000,6 +1048,13 @@ plot.vasstra_evaluations <- function(x, colors = NULL, ...) {
 #'   trajectory plots are rendered by Nestimate.
 #'
 #' @return The selected plot method's invisible result.
+#'
+#' @examples
+#' data("engagement", package = "VaSStra")
+#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+#' plot(fit)
+#' plot(fit, which = "states", type = "profile")
+#' plot(fit, which = "sequences")
 #' @export
 plot.vasstra <- function(
     x,

@@ -288,6 +288,12 @@ summary.vasstra <- function(object, ...) {
 #'   `"observation"`, `"state_profile"`, or `"trajectory"`.
 #'
 #' @return A data frame at the requested analysis unit.
+#'
+#' @examples
+#' data("engagement", package = "VaSStra")
+#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+#' head(as.data.frame(fit))
+#' as.data.frame(fit, unit = "trajectory")
 #' @export
 as.data.frame.vasstra <- function(
     x,

@@ -23,6 +23,17 @@ make_vasstra_data <- function(seed = 2026L) {
   data
 }
 
+# A small complete fit for tests that only need a finished pipeline.
+vasstra_test_fit <- function(seed = 2026L) {
+  data <- make_vasstra_data(seed = seed)
+  suppressMessages(vasstra(
+    data,
+    variables = c("views", "sessions", "duration"),
+    n_states = 3L,
+    n_trajectories = 3L
+  ))
+}
+
 same_partition <- function(first, second) {
   stopifnot(length(first) == length(second))
   identical(

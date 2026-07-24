@@ -35,3 +35,10 @@ Draws the selection curve, per-cluster silhouette widths, and cluster
 sizes for one \code{\link[=evaluate]{evaluate()}} result. The default \code{"summary"} layout places
 the three panels side by side.
 }
+\examples{
+data("engagement", package = "VaSStra")
+fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+evaluation <- evaluate(fit$trajectories)
+plot(evaluation)
+plot(evaluation, type = "silhouette")
+}

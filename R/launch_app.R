@@ -9,6 +9,11 @@
 #' @param ... Passed to [shiny::runApp()].
 #'
 #' @return Called for its side effect of running the app.
+#'
+#' @examples
+#' if (interactive()) {
+#'   launch_app()
+#' }
 #' @export
 launch_app <- function(...) {
   # nocov start — interactive Shiny entrypoint, not reachable in batch tests

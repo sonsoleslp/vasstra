@@ -1,5 +1,48 @@
 # VaSStra 0.2.0
 
+- Added `flow_plot()`: alluvial and individual flow views of state
+  movement between consecutive time points, rendered by the suggested
+  `cograph` package. `type = "alluvial"` draws aggregated bands whose
+  width is the number of subjects making each move; `type = "individual"`
+  draws one line per subject, bundled automatically so large cohorts stay
+  legible. The state palette, state order, and time labels are taken from
+  the fit, so a flow plot is directly comparable with the sequence
+  heatmap. `color_by` selects the state that colours a flow, and `group`
+  restricts a trajectory plot to one group. Unlike the base-graphics
+  `plot()` methods, `flow_plot()` returns a `ggplot` object.
+- Added `transition_plot()`: the state transition network, with states as
+  nodes, transitions as directed edges, and node size encoding a
+  centrality. The network is built by `Nestimate::build_tna()` (or
+  `build_ftna()` for `weights = "count"`) and the centralities come from
+  `Nestimate::net_centrality()`, so they match `tna::centralities()`;
+  cograph draws it. `size` selects the measure (`"InStrength"` by
+  default), `loops` controls whether self-transitions count toward node
+  size (`FALSE` by default, so a persistent state is not large merely for
+  retaining its own members), `size_range` sets the node diameters, and
+  `group` restricts the network to one trajectory. The call draws the
+  network and returns the tidy state-by-centrality table it drew.
+- `transition_plot(sequences = TRUE)` draws the state sequences beside the
+  transition network on one device — the conventional pairing of raw data
+  and movement summary. `TRUE` uses an index plot; `"heatmap"` and
+  `"distribution"` select the left panel. Both panels share the state
+  palette, so a state has the same colour in each.
+- **Bug fix**: `colors` passed to `plot()` on sequences or trajectories was
+  applied to states in alphabetical order rather than by state, so every
+  state could be drawn in another state's colour. Nestimate assigns
+  `state_colors` positionally to alphabetically sorted states and ignores
+  factor levels; colours are now re-aligned by state name. Only
+  user-supplied `colors` were affected — the default palette was never
+  mismapped.
+- Added `vignette("flow-plots")`, which uses the flow views to show that
+  the engagement cohort's flat state distribution is a balanced exchange
+  rather than an absence of change, and that movement between the extreme
+  states almost always passes through the middle one.
+- Added examples to all eight `plot()` methods, `as.data.frame.vasstra()`,
+  and `launch_app()`; every exported topic is now documented with a
+  runnable example.
+- Corrected the `state_choices()` and `trajectory_choices()` plot
+  documentation, which still described the pre-redesign star and cross
+  markers instead of the ring and hollow-point markers actually drawn.
 - The sequence heatmap is now the default plot for complete sequence
   sets (`plot(sequences)` / `plot(fit, which = "sequences")`): it keeps
   every aligned sequence visible at full resolution. Titles are now

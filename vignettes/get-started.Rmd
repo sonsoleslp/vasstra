@@ -29,12 +29,11 @@ data <- expand.grid(
   course = seq_len(6)
 )
 trajectory <- ceiling(data$student / 12)
-patterns <- rbind(
-  c(1, 1, 2, 2, 3, 3),
-  c(2, 2, 3, 3, 1, 1),
-  c(3, 3, 1, 1, 2, 2)
-)
-latent_state <- patterns[cbind(trajectory, data$course)]
+# Three groups of twelve students climb the same three-phase ladder,
+# each starting one phase further along, so the groups differ in timing
+# rather than in level.
+phase <- ceiling(data$course / 2)
+latent_state <- (phase + trajectory - 2) %% 3 + 1
 data$views <- latent_state * 6 + rnorm(nrow(data), sd = 0.08)
 data$sessions <- latent_state * 3 + rnorm(nrow(data), sd = 0.08)
 data$duration <- latent_state * 12 + rnorm(nrow(data), sd = 0.08)

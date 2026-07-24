@@ -40,3 +40,12 @@ The value returned by \code{\link[Nestimate:sequence_plot]{Nestimate::sequence_p
 Delegates grouped sequence index, distribution, and heatmap rendering to
 \code{\link[Nestimate:sequence_plot]{Nestimate::sequence_plot()}}.
 }
+\examples{
+data("engagement", package = "VaSStra")
+fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+plot(fit$trajectories)
+plot(fit$trajectories, type = "distribution")
+}
+\seealso{
+\code{\link[=flow_plot]{flow_plot()}} for alluvial and individual flow views.
+}

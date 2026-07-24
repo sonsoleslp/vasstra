@@ -28,3 +28,9 @@ A data frame at the requested analysis unit.
 \description{
 Convert a VaSStra Analysis to a Tidy Table
 }
+\examples{
+data("engagement", package = "VaSStra")
+fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+head(as.data.frame(fit))
+as.data.frame(fit, unit = "trajectory")
+}

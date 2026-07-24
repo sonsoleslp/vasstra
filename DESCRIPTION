@@ -34,6 +34,7 @@ Imports:
     stats,
     utils
 Suggests:
+    cograph (>= 2.4.0),
     DT,
     knitr,
     rmarkdown,

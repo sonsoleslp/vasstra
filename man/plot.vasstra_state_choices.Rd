@@ -36,7 +36,13 @@ The tidy candidate data used in the plot, invisibly.
 }
 \description{
 Draws a compact model-selection plot from \code{\link[=state_choices]{state_choices()}}. Each line is
-one clustering method (and LPA covariance model). Stars mark the optimal
-eligible value of the plotted metric within each group; crosses mark
+one clustering method (and LPA covariance model). A ring marks the optimal
+eligible value of the plotted metric within each group; hollow points mark
 candidates that fail the requested size constraints.
+}
+\examples{
+data("engagement", package = "VaSStra")
+options <- state_choices(engagement, n_states = 2:4, method = "kmeans")
+plot(options)
+plot(options, metric = "silhouette")
 }

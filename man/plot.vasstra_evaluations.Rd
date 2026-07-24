@@ -21,3 +21,8 @@ The evaluated candidate and cluster tables, invisibly.
 Draws one row of evaluation panels per clustering step: the state
 clustering on top and the trajectory clustering below.
 }
+\examples{
+data("engagement", package = "VaSStra")
+fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+plot(evaluate(fit))
+}

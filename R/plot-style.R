@@ -15,6 +15,24 @@
 .vasstra_accent <- "#0072B2"
 .vasstra_accent_secondary <- "#D55E00"
 
+# Nestimate's sequence_plot() sorts states alphabetically and assigns
+# `state_colors` positionally to that order, ignoring factor levels. VaSStra
+# takes colors in its own state order, so they must be re-aligned by name or
+# every state is drawn in another state's color.
+.vasstra_sequence_colors <- function(colors, states, sequence_data) {
+  if (is.null(colors)) {
+    return(NULL)
+  }
+  stopifnot(is.character(states), length(colors) == length(states))
+  named <- stats::setNames(as.character(colors), states)
+  observed <- sort(unique(as.character(unlist(
+    sequence_data,
+    use.names = FALSE
+  ))))
+  observed <- observed[!is.na(observed)]
+  unname(named[observed])
+}
+
 # Apply the shared axis and title style; callers restore the returned value.
 .vasstra_style_par <- function() {
   graphics::par(

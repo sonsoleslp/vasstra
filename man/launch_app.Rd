@@ -19,3 +19,8 @@ fit states and trajectories with automated or explicit counts, inspect
 evaluation panels and tidy fit indices, rename groups, and export every
 tidy table. The app requires the suggested \code{shiny} and \code{DT} packages.
 }
+\examples{
+if (interactive()) {
+  launch_app()
+}
+}

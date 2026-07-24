@@ -20,3 +20,10 @@ The selected plot method's invisible result.
 \description{
 Plot a Complete VaSStra Analysis
 }
+\examples{
+data("engagement", package = "VaSStra")
+fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+plot(fit)
+plot(fit, which = "states", type = "profile")
+plot(fit, which = "sequences")
+}
