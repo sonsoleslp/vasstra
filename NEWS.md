@@ -1,4 +1,4 @@
-# VaSStra 0.2.0
+# VaSStra 0.3.0
 
 - Added `flow_plot()`: alluvial and individual flow views of state
   movement between consecutive time points, rendered by the suggested
@@ -43,6 +43,9 @@
 - Corrected the `state_choices()` and `trajectory_choices()` plot
   documentation, which still described the pre-redesign star and cross
   markers instead of the ring and hollow-point markers actually drawn.
+
+# VaSStra 0.2.0
+
 - The sequence heatmap is now the default plot for complete sequence
   sets (`plot(sequences)` / `plot(fit, which = "sequences")`): it keeps
   every aligned sequence visible at full resolution. Titles are now
