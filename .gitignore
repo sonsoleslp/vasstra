@@ -1,0 +1,16 @@
+.DS_Store
+.Rhistory
+.RData
+.Rproj.user
+Rplots.pdf
+tmp/
+inst/doc
+*.tar.gz
+HANDOFF.md
+LEARNINGS.md
+CHANGES.md
+CLAUDE.md
+AGENTS.md
+AGENT-NOTE-*.md
+cran-comments.md
+README.html

@@ -1,0 +1,229 @@
+---
+title: "VaSStra in Four Simple Steps"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{VaSStra in Four Simple Steps}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+VaSStra turns repeated multivariate measurements into states, state
+sequences, and groups of similar trajectories. The whole analysis is one
+call, and every part of it can also be run as an explicit step.
+
+```{r data}
+library(VaSStra)
+
+set.seed(2026)
+data <- expand.grid(
+  student = seq_len(36),
+  course = seq_len(6)
+)
+trajectory <- ceiling(data$student / 12)
+patterns <- rbind(
+  c(1, 1, 2, 2, 3, 3),
+  c(2, 2, 3, 3, 1, 1),
+  c(3, 3, 1, 1, 2, 2)
+)
+latent_state <- patterns[cbind(trajectory, data$course)]
+data$views <- latent_state * 6 + rnorm(nrow(data), sd = 0.08)
+data$sessions <- latent_state * 3 + rnorm(nrow(data), sd = 0.08)
+data$duration <- latent_state * 12 + rnorm(nrow(data), sd = 0.08)
+```
+
+## One call
+
+`vasstra()` detects the subject, time, and indicator roles from common
+column names (or attached role metadata), compares two through six states
+and trajectories, and fits the recommended counts. Every automated decision
+is reported as it is made and recorded inside the fit.
+
+```{r one-call}
+fit <- vasstra(data)
+fit
+```
+
+Tidy tables come straight from the fit at the analysis unit you need:
+
+```{r tidy-units}
+head(as.data.frame(fit))
+head(as.data.frame(fit, unit = "observation"))
+as.data.frame(fit, unit = "trajectory")
+```
+
+Name any decision to take it over; automation only fills what you omit.
+Labels are the shortest way to fix a count — three labels mean three
+states — and a candidate vector such as `n_states = 2:4` compares exactly
+those counts and fits the recommended one.
+
+```{r explicit-call, eval = FALSE}
+fit <- vasstra(
+  data,
+  state_labels = c("Low", "Average", "High"),
+  trajectory_labels = c("Stable low", "Moving", "Stable high"),
+  dissimilarity = "lcs",
+  cluster_method = "ward.D2",
+  positive_states = "High",
+  negative_states = "Low"
+)
+```
+
+## Evaluate the clustering
+
+`evaluate()` compares the fitted numbers of states and trajectories against
+the neighboring counts and reports per-cluster quality. Printing shows both
+tables; plotting draws the selection curve, per-cluster silhouette widths,
+and group sizes.
+
+```{r evaluate}
+evaluation <- evaluate(fit)
+evaluation
+```
+
+```{r evaluate-plot, fig.height = 6}
+plot(evaluation)
+```
+
+The same verb works on a single step, with any candidate range:
+
+```{r evaluate-states}
+state_evaluation <- evaluate(fit$states, n_states = 2:5)
+as.data.frame(state_evaluation)
+summary(state_evaluation)
+```
+
+## Tidy fit indices
+
+`fit_indices()` reports the fit statistics of the selected clustering as
+one tidy row, or one row per compared candidate with `compare = TRUE`.
+LPA models report the complete information-criterion family together
+with entropy and the extreme average posterior class probabilities;
+hard-clustering methods report their own objectives instead, and columns
+that do not apply are dropped.
+
+```{r fit-indices}
+fit_indices(fit)
+fit_indices(fit, compare = TRUE)
+fit_indices(fit, step = "trajectories", compare = TRUE)
+```
+
+## Name groups after inspecting them
+
+`set_labels()` renames fitted states or trajectories in place — nothing
+is refitted, no value changes — and the new names flow through every
+table, sequence, and plot. Rename everything with a full vector, or only
+some groups by name.
+
+```{r set-labels}
+fit <- set_labels(
+  fit,
+  states = c("Low", "Average", "High"),
+  trajectories = c("Mostly high", "Mixed", "Mostly low")
+)
+summary(fit)
+```
+
+## The same analysis in four explicit steps
+
+Each step accepts the result of the previous step and also runs alone with
+the same automated defaults. Use the steps when intermediate results are
+needed, or when states come from another method.
+
+```{r steps}
+states <- step1_states(data, n_states = 3,
+                       labels = c("Low", "Average", "High"))
+sequences <- step2_sequences(states)
+trajectories <- step3_trajectories(sequences, n_trajectories = 3)
+description <- step4_describe(
+  trajectories,
+  positive_states = "High",
+  negative_states = "Low"
+)
+summary(description)
+```
+
+Existing states from LPA, LCA, or any other source enter at step 2: pass a
+data frame whose state column is detected (or named with `state`).
+
+## State plots
+
+State results support profile, bar, heatmap, and size plots without adding
+a plotting dependency, plus a combined overview.
+
+```{r state-plots, fig.height = 6}
+plot(states, type = "all")
+```
+
+```{r state-profile}
+plot(states, type = "profile")
+```
+
+## Sequence and trajectory plots
+
+Every plot containing state sequences is rendered by Nestimate:
+
+```{r sequence-plot}
+plot(trajectories, type = "index")
+plot(trajectories, type = "distribution")
+```
+
+## Compare candidates in full detail
+
+When automation should be replaced by an explicit comparison,
+`state_choices()` and `trajectory_choices()` fit a grid across methods and
+counts and return one tidy row per candidate. Nothing is selected silently;
+pass the inspected `candidate_id` to fit.
+
+```{r state-choices}
+state_options <- state_choices(
+  data,
+  n_states = 2:4,
+  method = c("kmeans", "pam", "ward.D2")
+)
+state_options
+plot(state_options, metric = "silhouette")
+chosen_states <- fit_state_choice(
+  state_options,
+  n_states = 3,
+  method = "kmeans",
+  labels = c("Low", "Average", "High")
+)
+```
+
+`fit_state_choice(state_options)` with no selection fits the recommended
+candidate; `candidate_id` remains available for exact row selection.
+
+Average silhouette is the common diagnostic across all methods; larger
+values indicate better-separated groups. Recommendations identify the best
+eligible candidate separately for each method rather than declaring one
+algorithm universally best. LPA candidates are recommended by conventional
+BIC, with AIC, silhouette, or native mclust ICL available through
+`lpa_criterion`.
+
+```{r trajectory-choices}
+trajectory_options <- trajectory_choices(
+  step2_sequences(chosen_states),
+  n_trajectories = 2:4,
+  dissimilarity = c("hamming", "lcs"),
+  method = c("pam", "ward.D2")
+)
+trajectory_options
+plot(trajectory_options, metric = "silhouette")
+```
+
+Recommendations are made within each distance-method pair because mean
+within-trajectory distances are only comparable within one dissimilarity.
+
+States default to mclust latent profiles (`"EEI"`, tidyLPA model 1);
+base R supplies k-means and hierarchical clustering, `cluster` supplies
+PAM, and Nestimate supplies sequence distances, trajectory clustering,
+and plots. No TraMineR plotting path or dependency is required.

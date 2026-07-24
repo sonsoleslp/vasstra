@@ -1,0 +1,42 @@
+Package: VaSStra
+Title: Simple Variables to States to Sequences to Trajectories
+Version: 0.2.0
+Authors@R: c(
+    person("Mohammed", "Saqr",
+           email = "saqr@saqr.me",
+           role = c("aut", "cre", "cph")),
+    person("Sonsoles", "López-Pernas", role = "aut")
+    )
+Description: A small, pipe-friendly implementation of the VaSSTra workflow
+    for longitudinal multivariate data. It provides explicit steps to turn
+    variables into states, states into aligned sequences, and sequences into
+    trajectory groups, followed by tidy trajectory descriptions. A single
+    call runs the complete analysis with transparent, overridable automation
+    of data roles and cluster counts, and an evaluation verb compares the
+    fitted clustering against its alternatives. 'Nestimate' provides the
+    default sequence-clustering backend and all sequence plots. No
+    'TraMineR' dependency is required.
+License: MIT + file LICENSE
+URL: https://lamethods.org/book1/chapters/ch11-vasstra/ch11-vasstra.html
+BugReports: https://github.com/mohsaqr/VaSStra/issues
+Encoding: UTF-8
+Language: en-US
+LazyData: true
+Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.1.0)
+Imports:
+    cluster,
+    graphics,
+    grDevices,
+    mclust (>= 6.1.0),
+    Nestimate (>= 0.8.0),
+    stats,
+    utils
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0
