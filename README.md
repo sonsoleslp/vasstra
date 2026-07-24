@@ -16,6 +16,19 @@ Two vignettes ship with the package: `vignette("get-started")` for the
 interface and `vignette("vasstra-tutorial")` for a complete worked
 analysis of the chapter's longitudinal engagement data.
 
+## Interactive app
+
+`launch_app()` opens a Shiny application (requires the suggested
+`shiny` and `DT` packages) that runs the whole workflow interactively:
+load a CSV or the built-in engagement data, map roles, fit with
+automated or explicit counts, read the decisions log, walk the state /
+sequence / trajectory / evaluation / fit-index tabs, rename groups
+after inspecting them, and export every tidy table.
+
+```r
+VaSStra::launch_app()
+```
+
 ## One call
 
 ```r

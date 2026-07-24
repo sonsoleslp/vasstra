@@ -1,5 +1,12 @@
 # VaSStra 0.2.0
 
+- Added `launch_app()`: an interactive Shiny application (suggested
+  `shiny` + `DT`) covering the complete workflow — data upload or the
+  built-in engagement data, role mapping with detection pre-fill,
+  automated or explicit counts with an in-app decisions log, state /
+  sequence / trajectory plots, evaluation panels, tidy fit-index
+  tables, in-app group renaming through `set_labels()`, and tidy CSV
+  exports at every analysis unit.
 - Added `fit_indices()`: tidy fit statistics for the selected clustering
   (one row) or all compared candidates (`compare = TRUE`). LPA reports
   log-likelihood, AIC, BIC, SABIC, CAIC, AWE, CLC, KIC, ICL (all on the
