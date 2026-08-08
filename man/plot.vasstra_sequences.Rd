@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot.vasstra_sequences}
 \alias{plot.vasstra_sequences}
-\title{Plot VaSStra State Sequences with Nestimate}
+\title{Plot VaSSTra State Sequences with Nestimate}
 \usage{
 \method{plot}{vasstra_sequences}(
   x,
@@ -42,7 +42,7 @@ Delegates sequence index, distribution, and heatmap rendering to
 \code{\link[Nestimate:sequence_plot]{Nestimate::sequence_plot()}}.
 }
 \examples{
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 plot(fit$sequences)
 plot(fit$sequences, type = "distribution")

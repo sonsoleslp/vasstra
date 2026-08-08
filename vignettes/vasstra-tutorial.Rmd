@@ -1,10 +1,10 @@
 ---
-title: "VaSStra Tutorial: Variables, States, Sequences, Trajectories"
+title: "VaSSTra Tutorial: Variables, States, Sequences, Trajectories"
 output:
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{VaSStra Tutorial: Variables, States, Sequences, Trajectories}
+  %\VignetteIndexEntry{VaSSTra Tutorial: Variables, States, Sequences, Trajectories}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -65,12 +65,14 @@ tidyLPA Model 1) because that is the default state method. The LCS
 distance with Ward clustering follows the chapter's trajectory analysis.
 
 ```{r one-call}
-library(VaSStra)
-data("engagement", package = "VaSStra")
+library(VaSSTra)
+data("engagement", package = "VaSSTra")
 
 fit <- vasstra(
   engagement,
   state_labels = c("Disengaged", "Average", "Active"),
+  state_order  = c("Disengaged", "Average", "Active"),
+  state_colors = c(Disengaged = "#D55E00", Average = "#0072B2", Active = "#009E73"),
   dissimilarity = "lcs",
   cluster_method = "ward.D2",
   positive_states = "Active",
@@ -78,6 +80,11 @@ fit <- vasstra(
 )
 fit
 ```
+
+`state_order` fixes the order the states read in every plot and
+`state_colors` pins their palette, so the whole analysis below is drawn
+consistently; both are optional and default to the discovery order and the
+package palette.
 
 The one remaining automated decision — the number of trajectories — is
 reported in the message and stored with its full comparison table in the
@@ -100,7 +107,7 @@ evaluation <- evaluate(fit)
 evaluation
 ```
 
-```{r evaluate-plot, fig.height = 6.5}
+```{r evaluate-plot, fig.height = 5, fig.width=8}
 plot(evaluation)
 ```
 
@@ -149,7 +156,7 @@ The states are only useful if they can be named, and naming requires
 knowing how the profiles differ. The overview draws the four state views
 together; each answers one question.
 
-```{r state-all, fig.height = 7.5}
+```{r state-all, fig.height = 6}
 plot(fit, which = "states", type = "all")
 ```
 
@@ -199,8 +206,39 @@ of similar ones.
 
 ```{r trajectories, fig.height = 5.5}
 plot(fit, type = "index")
+```
+
+The three groups line up with the three states, so we can name them now by
+the state each mostly holds. `set_labels()` renames in place — every later
+table, sequence, and plot follows, and no fitted value changes.
+
+```{r name-trajectories}
+fit <- set_labels(
+  fit,
+  trajectories = c("Mostly active", "Mostly average", "Mostly disengaged")
+)
+```
+
+```{r trajectories-distribution, fig.height = 5.5}
 plot(fit, type = "distribution")
 ```
+
+Passing several views in `type` composes them into one figure with **one
+row per trajectory and one column per view**, so each group's transition
+network sits beside the sequences it summarises and their changing
+composition — the standard per-cluster VaSSTra display in a single call.
+A shared legend labels every panel at once, and the transition column
+requires the suggested `cograph` package.
+
+```{r trajectories-grid, fig.height = 8, eval = requireNamespace("cograph", quietly = TRUE)}
+plot(fit, type = c( "index", "distribution","transition"))
+```
+
+The rows now read as whole stories: the Active group's network is
+dominated by the Active self-loop and its distribution stays green, the
+Disengaged group mirrors it in blue, and the mixed middle group shows the
+busiest network — the many off-diagonal transitions that its higher
+entropy and mobility counts quantify in the next section.
 
 ## 6. Describing what the trajectories mean
 
@@ -229,19 +267,24 @@ come from the same fit:
 head(as.data.frame(fit))
 ```
 
-## 7. Naming groups after inspecting them
+## 7. Relabeling without refitting
 
-Interpretation happens *after* fitting, so labels should be assignable
-afterward without refitting. `set_labels()` renames in place — every
-table, sequence, and recorded positive/negative state follows, and no
-fitted value changes. Full vectors rename everything; named renames
-change only what they name.
+Interpretation happens *after* fitting, so labels stay assignable at any
+point without refitting — which is exactly what Section 5 did once the
+groups were visible. `set_labels()` renames in place, propagating the
+names through every table, sequence, and plot, including the recorded
+positive and negative states, and changing no fitted value. A full vector
+renames every group; a named vector renames only what it names, which is
+handy for refining a single label after a closer look:
+
+```{r set-labels-partial, eval = FALSE}
+# rename only one group, by name
+fit <- set_labels(fit, trajectories = c("Mostly average" = "Fluctuating"))
+```
+
+The named trajectories now flow through every summary of the fit:
 
 ```{r set-labels}
-fit <- set_labels(
-  fit,
-  trajectories = c("Mostly active", "Mostly average", "Mostly disengaged")
-)
 summary(fit)
 ```
 

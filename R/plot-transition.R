@@ -1,7 +1,7 @@
 # Transition networks: Nestimate builds the network and computes the
 # centralities, cograph draws it. `splot()` recognises a Nestimate
 # netobject and applies TNA styling, labels, initial-probability donuts,
-# and integer weight formatting on its own, so VaSStra only sizes the
+# and integer weight formatting on its own, so VaSSTra only sizes the
 # nodes.
 
 #' State Transition Network Centralities
@@ -34,7 +34,7 @@
 #' @seealso [transition_plot()] to draw the network.
 #'
 #' @examples
-#' data("engagement", package = "VaSStra")
+#' data("engagement", package = "VaSSTra")
 #' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 #' transition_centrality(fit)
 #' transition_centrality(fit, weights = "count")
@@ -115,7 +115,7 @@ transition_centrality.vasstra <- function(x, ...) {
 #'   `"distribution"` choose the sequence view. Both panels are drawn on
 #'   one device, so a state has the same colour in each.
 #' @param colors Optional colors, one per state, in state order. Defaults
-#'   to the shared VaSStra palette, so the network matches the sequence and
+#'   to the shared VaSSTra palette, so the network matches the sequence and
 #'   state plots. Colors are matched to states by name, so a trajectory
 #'   that never reaches a state still colours the rest correctly.
 #' @param main Optional plot title.
@@ -131,7 +131,7 @@ transition_centrality.vasstra <- function(x, ...) {
 #' @examples
 #' \donttest{
 #' if (requireNamespace("cograph", quietly = TRUE)) {
-#'   data("engagement", package = "VaSStra")
+#'   data("engagement", package = "VaSSTra")
 #'   fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 #'   transition_plot(fit)
 #'   transition_plot(fit, weights = "count", size = "OutStrength")
@@ -164,7 +164,7 @@ transition_plot.vasstra_sequences <- function(
     loops = loops,
     size_range = size_range,
     sequences = sequences,
-    colors = colors,
+    colors = .vasstra_resolve_palette(colors, x$state_colors, x$states),
     main = main,
     dots = list(...)
   )
@@ -193,7 +193,9 @@ transition_plot.vasstra_trajectories <- function(
     loops = loops,
     size_range = size_range,
     sequences = sequences,
-    colors = colors,
+    colors = .vasstra_resolve_palette(
+      colors, x$source$state_colors, x$source$states
+    ),
     main = if (is.null(main)) subset$main else main,
     dots = list(...)
   )

@@ -2,7 +2,7 @@ test_that("engagement data are named, subsetted, and analysis-ready", {
   data_environment <- new.env(parent = emptyenv())
   utils::data(
     "engagement",
-    package = "VaSStra",
+    package = "VaSSTra",
     envir = data_environment
   )
   engagement_data <- data_environment$engagement

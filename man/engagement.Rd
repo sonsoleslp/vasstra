@@ -24,7 +24,7 @@ forum_contribute_count_z,lecture_view_count_z,
 course_view_regularity_z,session_count_z,total_duration_z,
 active_days_z}{The eight indicators standardized within
 \code{course_id} using the sample standard deviation. Three singleton
-courses create 24 intentional missing values; VaSStra's attached
+courses create 24 intentional missing values; VaSSTra's attached
 metadata requests within-time median imputation.}
 }
 }
@@ -39,7 +39,7 @@ engagement
 \description{
 Analysis-ready data from the VaSSTra chapter. The object preserves the
 chapter's eight raw state indicators and adds \verb{_z} versions standardized
-within \code{course_id}. It also carries VaSStra role metadata, so \code{id}, \code{time},
+within \code{course_id}. It also carries VaSSTra role metadata, so \code{id}, \code{time},
 \code{variables}, standardization, and indicator missingness do not need to be
 repeated in common package calls.
 }

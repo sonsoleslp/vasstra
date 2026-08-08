@@ -8,11 +8,11 @@
 #'
 #' @param data A data frame with one row per subject and time point.
 #' @param id Name of the subject identifier column. May be omitted when the
-#'   data carry VaSStra role metadata.
+#'   data carry VaSSTra role metadata.
 #' @param time Name of the time or ordering column. May be omitted when the
-#'   data carry VaSStra role metadata.
+#'   data carry VaSSTra role metadata.
 #' @param variables Character vector naming numeric state indicators. May be
-#'   omitted when the data carry VaSStra role metadata.
+#'   omitted when the data carry VaSSTra role metadata.
 #' @param n_states Whole-number candidate state counts.
 #' @param method State-clustering methods to compare. See [step1_states()].
 #' @param lpa_model Optional mclust covariance models evaluated when
@@ -520,7 +520,7 @@ fit_state_choice <- function(
 #' @export
 print.vasstra_state_choices <- function(x, ...) {
   stopifnot(inherits(x, "vasstra_state_choices"))
-  cat("VaSStra state choices\n")
+  cat("VaSSTra state choices\n")
   cat(sprintf(
     "  %d candidates | %d successful | %d recommended\n",
     nrow(x$candidates),
@@ -796,7 +796,7 @@ fit_trajectory_choice <- function(
 #' @export
 print.vasstra_trajectory_choices <- function(x, ...) {
   stopifnot(inherits(x, "vasstra_trajectory_choices"))
-  cat("VaSStra trajectory choices (Nestimate)\n")
+  cat("VaSSTra trajectory choices (Nestimate)\n")
   cat(sprintf(
     "  %d candidates | %d recommended distance-method solutions\n",
     nrow(x$candidates),

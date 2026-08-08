@@ -222,7 +222,7 @@ evaluate.vasstra <- function(x, ...) {
 #' @export
 print.vasstra_evaluation <- function(x, digits = 3L, ...) {
   stopifnot(inherits(x, "vasstra_evaluation"))
-  cat(sprintf("VaSStra clustering evaluation: %s (%s)\n",
+  cat(sprintf("VaSSTra clustering evaluation: %s (%s)\n",
               x$unit, x$fitted$method))
   cat(sprintf(
     "  Fitted: %d %s | silhouette %.3f\n",

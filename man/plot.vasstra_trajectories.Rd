@@ -2,13 +2,13 @@
 % Please edit documentation in R/plot.R
 \name{plot.vasstra_trajectories}
 \alias{plot.vasstra_trajectories}
-\title{Plot VaSStra Trajectories with Nestimate}
+\title{Plot VaSSTra Trajectories with Nestimate}
 \usage{
 \method{plot}{vasstra_trajectories}(
   x,
-  type = c("index", "distribution", "heatmap"),
+  type = c("index", "distribution", "heatmap", "transition"),
   colors = NULL,
-  main = "Sequences grouped by trajectory",
+  main = NULL,
   sort = "start",
   na = x$source$diagnostics$n_missing > 0L,
   ...
@@ -17,12 +17,16 @@
 \arguments{
 \item{x}{A \code{vasstra_trajectories} object.}
 
-\item{type}{One of \code{"index"} (default), \code{"distribution"}, or \code{"heatmap"}.}
+\item{type}{One or more of \code{"index"} (the default), \code{"distribution"},
+\code{"heatmap"}, and \code{"transition"}. A character vector requests several
+views and switches to the per-trajectory grid described above; for
+example \code{type = c("transition", "index", "distribution")}.}
 
 \item{colors}{Optional colors, one per state, passed to Nestimate as
-\code{state_colors}.}
+\code{state_colors} and to \code{\link[=transition_plot]{transition_plot()}} as node fills.}
 
-\item{main}{Plot title.}
+\item{main}{Plot title for the single faceted view. Ignored by the grid,
+where each row is titled with its trajectory label.}
 
 \item{sort}{Sequence ordering passed to \code{\link[Nestimate:sequence_plot]{Nestimate::sequence_plot()}}.
 The default is \code{"start"} for robust within-trajectory index plots,
@@ -31,21 +35,41 @@ including trajectories containing one sequence.}
 \item{na}{Show missing cells as a separate distribution band. By default,
 this is \code{TRUE} only when the sequence data contain \code{NA}.}
 
-\item{...}{Additional arguments passed to \code{\link[Nestimate:sequence_plot]{Nestimate::sequence_plot()}}.}
+\item{...}{Additional arguments passed to the sequence panels
+(\code{\link[Nestimate:sequence_plot]{Nestimate::sequence_plot()}}). In the grid, \code{legend = "none"} or
+\code{legend = FALSE} suppresses the shared bottom legend.}
 }
 \value{
-The value returned by \code{\link[Nestimate:sequence_plot]{Nestimate::sequence_plot()}}.
+For a single view, the value returned by
+\code{\link[Nestimate:sequence_plot]{Nestimate::sequence_plot()}}. For the grid, \code{NULL} invisibly.
 }
 \description{
 Delegates grouped sequence index, distribution, and heatmap rendering to
-\code{\link[Nestimate:sequence_plot]{Nestimate::sequence_plot()}}.
+\code{\link[Nestimate:sequence_plot]{Nestimate::sequence_plot()}} and per-trajectory transition networks to
+\code{\link[=transition_plot]{transition_plot()}}.
+}
+\details{
+A single view (the default) is drawn as one faceted figure with a panel
+per trajectory. Passing several views, or the \code{"transition"} network,
+instead lays out a grid with \strong{one row per trajectory and one column per
+requested view} (in the order given), which reproduces the familiar
+per-cluster VaSSTra figure of a transition network beside its sequence
+index and state-distribution plots. A single shared legend is drawn along
+the bottom; pass \code{legend = "none"} (or \code{legend = FALSE}) to omit it.
 }
 \examples{
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 plot(fit$trajectories)
 plot(fit$trajectories, type = "distribution")
+\donttest{
+if (requireNamespace("cograph", quietly = TRUE)) {
+  # One row per trajectory; columns are the requested views.
+  plot(fit$trajectories, type = c("transition", "index", "distribution"))
+}
+}
 }
 \seealso{
-\code{\link[=flow_plot]{flow_plot()}} for alluvial and individual flow views.
+\code{\link[=flow_plot]{flow_plot()}} for alluvial and individual flow views,
+\code{\link[=transition_plot]{transition_plot()}} for a single transition network.
 }

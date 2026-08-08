@@ -2,7 +2,7 @@
 % Please edit documentation in R/vasstra.R
 \name{as.data.frame.vasstra}
 \alias{as.data.frame.vasstra}
-\title{Convert a VaSStra Analysis to a Tidy Table}
+\title{Convert a VaSSTra Analysis to a Tidy Table}
 \usage{
 \method{as.data.frame}{vasstra}(
   x,
@@ -26,10 +26,10 @@
 A data frame at the requested analysis unit.
 }
 \description{
-Convert a VaSStra Analysis to a Tidy Table
+Convert a VaSSTra Analysis to a Tidy Table
 }
 \examples{
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 head(as.data.frame(fit))
 as.data.frame(fit, unit = "trajectory")

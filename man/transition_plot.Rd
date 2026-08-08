@@ -66,7 +66,7 @@ alone; \code{TRUE} adds an index plot; \code{"index"}, \code{"heatmap"}, or
 one device, so a state has the same colour in each.}
 
 \item{colors}{Optional colors, one per state, in state order. Defaults
-to the shared VaSStra palette, so the network matches the sequence and
+to the shared VaSSTra palette, so the network matches the sequence and
 state plots. Colors are matched to states by name, so a trajectory
 that never reaches a state still colours the rest correctly.}
 
@@ -95,7 +95,7 @@ which states attract movement overall.
 \examples{
 \donttest{
 if (requireNamespace("cograph", quietly = TRUE)) {
-  data("engagement", package = "VaSStra")
+  data("engagement", package = "VaSSTra")
   fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
   transition_plot(fit)
   transition_plot(fit, weights = "count", size = "OutStrength")

@@ -188,7 +188,7 @@ fit_indices.vasstra <- function(
 print.vasstra_fit_indices <- function(x, digits = 2L, ...) {
   stopifnot(inherits(x, "vasstra_fit_indices"))
   cat(sprintf(
-    "VaSStra fit indices: %s (%s)\n",
+    "VaSSTra fit indices: %s (%s)\n",
     attr(x, "unit"),
     attr(x, "method_label")
   ))

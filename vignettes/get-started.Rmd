@@ -1,8 +1,8 @@
 ---
-title: "VaSStra in Four Simple Steps"
+title: "VaSSTra in Four Simple Steps"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{VaSStra in Four Simple Steps}
+  %\VignetteIndexEntry{VaSSTra in Four Simple Steps}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -16,12 +16,12 @@ knitr::opts_chunk$set(
 )
 ```
 
-VaSStra turns repeated multivariate measurements into states, state
+VaSSTra turns repeated multivariate measurements into states, state
 sequences, and groups of similar trajectories. The whole analysis is one
 call, and every part of it can also be run as an explicit step.
 
 ```{r data}
-library(VaSStra)
+library(VaSSTra)
 
 set.seed(2026)
 data <- expand.grid(

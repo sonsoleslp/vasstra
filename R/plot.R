@@ -1,4 +1,4 @@
-#' Plot Estimated VaSStra States
+#' Plot Estimated VaSSTra States
 #'
 #' @param x A `vasstra_states` object.
 #' @param colors Optional colors, one per state. Used by profile, bar, and
@@ -16,7 +16,7 @@
 #'   state-size data frame.
 #'
 #' @examples
-#' data("engagement", package = "VaSStra")
+#' data("engagement", package = "VaSSTra")
 #' states <- step1_states(engagement, n_states = 3)
 #' plot(states)
 #' plot(states, type = "sizes")
@@ -49,8 +49,8 @@ plot.vasstra_states <- function(
       all = NULL
     )
   }
-  if (is.null(colors) && !identical(type, "heatmap")) {
-    colors <- .vasstra_palette(length(labels))
+  if (!identical(type, "heatmap")) {
+    colors <- .vasstra_resolve_palette(colors, x$state_colors, labels)
   }
   if (!identical(type, "heatmap") && length(colors) != length(labels)) {
     stop("`colors` must contain one color per state.", call. = FALSE)
@@ -102,7 +102,10 @@ plot.vasstra_states <- function(
     return(invisible(profile_matrix))
   }
   if (identical(type, "sizes")) {
-    sizes <- as.integer(x$diagnostics$state_sizes)
+    # `state_sizes` is stored in profile (discovery) order; index it by name so
+    # the bar heights follow `labels` (the display order, which `state_order`
+    # may have changed) instead of being mislabelled.
+    sizes <- as.integer(x$diagnostics$state_sizes[labels])
     size_data <- data.frame(
       state = factor(labels, levels = labels, ordered = TRUE),
       n = sizes,
@@ -193,13 +196,19 @@ plot.vasstra_states <- function(
   color_scale <- .vasstra_heatmap_colors(profile_matrix)
   old_margins <- graphics::par(mar = c(7.6, 6.1, 2.6, 1.1))
   on.exit(graphics::par(old_margins), add = TRUE)
+  # image() draws the first column at the bottom; reverse the state columns so
+  # the first state is the top row, matching the left-to-right order of the
+  # bars, sizes, and legends.
+  flipped_index <- rev(seq_along(labels))
+  heat_matrix <- profile_matrix[, flipped_index, drop = FALSE]
+  heat_labels <- labels[flipped_index]
   do.call(
     graphics::image,
     .vasstra_graphics_arguments(
       list(
         x = seq_along(variables),
         y = seq_along(labels),
-        z = profile_matrix,
+        z = heat_matrix,
         col = color_scale$colors,
         zlim = color_scale$limits,
         axes = FALSE,
@@ -217,19 +226,19 @@ plot.vasstra_states <- function(
     las = 2,
     cex.axis = 0.8
   )
-  graphics::axis(2, at = seq_along(labels), labels = labels, las = 1)
+  graphics::axis(2, at = seq_along(labels), labels = heat_labels, las = 1)
   graphics::box(bty = "o")
   graphics::text(
     x = rep(seq_along(variables), times = length(labels)),
     y = rep(seq_along(labels), each = length(variables)),
     labels = formatC(
-      as.vector(profile_matrix),
+      as.vector(heat_matrix),
       format = "f",
       digits = 2
     ),
     cex = 0.75,
     col = .vasstra_heatmap_text_colors(
-      as.vector(profile_matrix),
+      as.vector(heat_matrix),
       color_scale$limits
     )
   )
@@ -355,7 +364,7 @@ plot.vasstra_states <- function(
 #' @return The tidy candidate data used in the plot, invisibly.
 #'
 #' @examples
-#' data("engagement", package = "VaSStra")
+#' data("engagement", package = "VaSSTra")
 #' options <- state_choices(engagement, n_states = 2:4, method = "kmeans")
 #' plot(options)
 #' plot(options, metric = "silhouette")
@@ -421,7 +430,7 @@ plot.vasstra_state_choices <- function(
 #' @return The tidy candidate data used in the plot, invisibly.
 #'
 #' @examples
-#' data("engagement", package = "VaSStra")
+#' data("engagement", package = "VaSSTra")
 #' sequences <- step2_sequences(step1_states(engagement, n_states = 3))
 #' options <- trajectory_choices(sequences, n_trajectories = 2:4)
 #' plot(options)
@@ -756,7 +765,7 @@ plot.vasstra_trajectory_choices <- function(
   invisible(plot_data)
 }
 
-#' Plot VaSStra State Sequences with Nestimate
+#' Plot VaSSTra State Sequences with Nestimate
 #'
 #' Delegates sequence index, distribution, and heatmap rendering to
 #' [Nestimate::sequence_plot()].
@@ -779,7 +788,7 @@ plot.vasstra_trajectory_choices <- function(
 #' @seealso [flow_plot()] for alluvial and individual flow views.
 #'
 #' @examples
-#' data("engagement", package = "VaSStra")
+#' data("engagement", package = "VaSSTra")
 #' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 #' plot(fit$sequences)
 #' plot(fit$sequences, type = "distribution")
@@ -815,6 +824,10 @@ plot.vasstra_sequences <- function(
   if (!is.null(colors) && length(colors) != length(x$states)) {
     stop("`colors` must contain one color per state.", call. = FALSE)
   }
+  # Reuse a palette stored on the fit; otherwise VaSSTra's default (not
+  # Nestimate's), so sequence views share the same state colours as transition,
+  # flow, and grid plots.
+  colors <- .vasstra_resolve_palette(colors, x$state_colors, x$states)
   arguments <- c(
     list(
       x = x$data,
@@ -827,50 +840,88 @@ plot.vasstra_sequences <- function(
     ),
     list(...)
   )
-  result <- do.call(
-    Nestimate::sequence_plot,
-    arguments
-  )
+  # When the state order is not alphabetical, Nestimate would stack/sort the
+  # states wrong; force the order and draw a matching ordered legend.
+  result <- if (!identical(x$states, sort(x$states))) {
+    .vasstra_forced_sequence_plot(
+      arguments, x$states, stats::setNames(as.character(colors), x$states)
+    )
+  } else {
+    do.call(Nestimate::sequence_plot, arguments)
+  }
   invisible(result)
 }
 
-#' Plot VaSStra Trajectories with Nestimate
+#' Plot VaSSTra Trajectories with Nestimate
 #'
 #' Delegates grouped sequence index, distribution, and heatmap rendering to
-#' [Nestimate::sequence_plot()].
+#' [Nestimate::sequence_plot()] and per-trajectory transition networks to
+#' [transition_plot()].
+#'
+#' A single view (the default) is drawn as one faceted figure with a panel
+#' per trajectory. Passing several views, or the `"transition"` network,
+#' instead lays out a grid with **one row per trajectory and one column per
+#' requested view** (in the order given), which reproduces the familiar
+#' per-cluster VaSSTra figure of a transition network beside its sequence
+#' index and state-distribution plots. A single shared legend is drawn along
+#' the bottom; pass `legend = "none"` (or `legend = FALSE`) to omit it.
 #'
 #' @param x A `vasstra_trajectories` object.
-#' @param type One of `"index"` (default), `"distribution"`, or `"heatmap"`.
+#' @param type One or more of `"index"` (the default), `"distribution"`,
+#'   `"heatmap"`, and `"transition"`. A character vector requests several
+#'   views and switches to the per-trajectory grid described above; for
+#'   example `type = c("transition", "index", "distribution")`.
 #' @param colors Optional colors, one per state, passed to Nestimate as
-#'   `state_colors`.
-#' @param main Plot title.
+#'   `state_colors` and to [transition_plot()] as node fills.
+#' @param main Plot title for the single faceted view. Ignored by the grid,
+#'   where each row is titled with its trajectory label.
 #' @param sort Sequence ordering passed to [Nestimate::sequence_plot()].
 #'   The default is `"start"` for robust within-trajectory index plots,
 #'   including trajectories containing one sequence.
 #' @param na Show missing cells as a separate distribution band. By default,
 #'   this is `TRUE` only when the sequence data contain `NA`.
-#' @param ... Additional arguments passed to [Nestimate::sequence_plot()].
+#' @param ... Additional arguments passed to the sequence panels
+#'   ([Nestimate::sequence_plot()]). In the grid, `legend = "none"` or
+#'   `legend = FALSE` suppresses the shared bottom legend.
 #'
-#' @return The value returned by [Nestimate::sequence_plot()].
+#' @return For a single view, the value returned by
+#'   [Nestimate::sequence_plot()]. For the grid, `NULL` invisibly.
 #'
-#' @seealso [flow_plot()] for alluvial and individual flow views.
+#' @seealso [flow_plot()] for alluvial and individual flow views,
+#'   [transition_plot()] for a single transition network.
 #'
 #' @examples
-#' data("engagement", package = "VaSStra")
+#' data("engagement", package = "VaSSTra")
 #' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 #' plot(fit$trajectories)
 #' plot(fit$trajectories, type = "distribution")
+#' \donttest{
+#' if (requireNamespace("cograph", quietly = TRUE)) {
+#'   # One row per trajectory; columns are the requested views.
+#'   plot(fit$trajectories, type = c("transition", "index", "distribution"))
+#' }
+#' }
 #' @export
 plot.vasstra_trajectories <- function(
     x,
-    type = c("index", "distribution", "heatmap"),
+    type = c("index", "distribution", "heatmap", "transition"),
     colors = NULL,
-    main = "Sequences grouped by trajectory",
+    main = NULL,
     sort = "start",
     na = x$source$diagnostics$n_missing > 0L,
     ...) {
   stopifnot(inherits(x, "vasstra_trajectories"))
-  type <- match.arg(type)
+  # A bare plot() keeps the historical single index view; several.ok makes
+  # match.arg() return every choice when nothing is supplied, so guard it.
+  type <- if (missing(type)) {
+    "index"
+  } else {
+    match.arg(
+      type,
+      c("index", "distribution", "heatmap", "transition"),
+      several.ok = TRUE
+    )
+  }
   sort <- match.arg(
     sort,
     c(
@@ -885,6 +936,25 @@ plot.vasstra_trajectories <- function(
   if (!is.null(colors) && length(colors) != length(states)) {
     stop("`colors` must contain one color per state.", call. = FALSE)
   }
+  # Resolve the palette once (explicit argument, else the fit's stored palette,
+  # else the default), so the single faceted view, the grid, and its transition
+  # panels all share one set of state colours.
+  colors <- .vasstra_resolve_palette(colors, x$source$state_colors, states)
+
+  # Several views, or a transition network (which is drawn one group at a
+  # time), lay out the per-trajectory grid; a single sequence view keeps the
+  # faceted whole-cohort figure.
+  if (length(type) > 1L || "transition" %in% type) {
+    return(.vasstra_trajectory_grid(
+      x = x,
+      types = type,
+      colors = colors,
+      sort = sort,
+      na = na,
+      dots = list(...)
+    ))
+  }
+
   arguments <- c(
     list(
       x = x$data,
@@ -893,16 +963,246 @@ plot.vasstra_trajectories <- function(
       group = if (type == "heatmap") NULL else x$assignments,
       na = na,
       state_colors = .vasstra_sequence_colors(colors, states, x$data),
-      main = main,
+      main = if (is.null(main)) "Sequences grouped by trajectory" else main,
       time_label = x$source$settings$time
     ),
     list(...)
   )
-  result <- do.call(
-    Nestimate::sequence_plot,
-    arguments
+  result <- if (!identical(states, sort(states))) {
+    .vasstra_forced_sequence_plot(
+      arguments, states, stats::setNames(as.character(colors), states)
+    )
+  } else {
+    do.call(Nestimate::sequence_plot, arguments)
+  }
+  invisible(result)
+}
+
+# Force Nestimate's alphabetical state sort to reproduce a chosen order.
+# Nestimate stacks and orders states by sorting their string values, ignoring
+# factor levels, so a non-alphabetical `states` order (e.g. from `state_order`)
+# would be drawn wrong. Recoding each state to a zero-padded rank makes the
+# alphabetical sort follow `states`; the codes never show because callers draw
+# their own ordered legend and Nestimate's own legend is switched off.
+.vasstra_encode_state_order <- function(data, states) {
+  codes <- stats::setNames(sprintf("%03d", seq_along(states)), states)
+  data[] <- lapply(data, function(column) unname(codes[as.character(column)]))
+  data
+}
+
+# Colours for the recoded data: the states observed in `data`, in `states`
+# order, mapped through the palette (named by state). Aligns with the ranks
+# that `.vasstra_encode_state_order()` assigns.
+.vasstra_ordered_state_colors <- function(palette, states, data) {
+  observed <- unique(as.character(unlist(data, use.names = FALSE)))
+  unname(palette[states[states %in% observed]])
+}
+
+# Render a standalone Nestimate sequence view with the states forced into
+# `states` order. The values are recoded so Nestimate's alphabetical sort
+# reproduces the order. Nestimate's own bottom legend is kept only to reserve
+# the space (its labels are the recoded ranks); a clean ordered legend is then
+# painted over it. This works for both single-panel and faceted layouts, where
+# Nestimate's internal layout() would otherwise leave no room to add a legend.
+# `palette` is named by state.
+.vasstra_forced_sequence_plot <- function(arguments, states, palette) {
+  original <- arguments$x
+  arguments$x <- .vasstra_encode_state_order(original, states)
+  arguments$state_colors <- .vasstra_ordered_state_colors(palette, states, original)
+  arguments$legend <- "bottom"
+  old <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(old), add = TRUE)
+  result <- do.call(Nestimate::sequence_plot, arguments)
+  graphics::par(
+    fig = c(0, 1, 0, 0.09), new = TRUE, mar = c(0, 0, 0, 0), oma = c(0, 0, 0, 0)
+  )
+  graphics::plot.new()
+  graphics::rect(0, 0, 1, 1, col = "white", border = NA)
+  graphics::legend(
+    "center",
+    legend = states,
+    fill = unname(palette[states]),
+    horiz = TRUE,
+    bty = "n",
+    border = NA,
+    text.col = "grey15",
+    xpd = NA
   )
   invisible(result)
+}
+
+# Draw the per-trajectory grid: one row per trajectory, one column per
+# requested view, filled left to right in the order the views were asked for.
+#
+# The tiling uses split.screen() rather than par(mfrow). Nestimate's sequence
+# panels save and restore the whole par() on entry via par(no.readonly), which
+# rewinds the mfrow panel counter and makes consecutive panels overdraw one
+# another; split.screen() gives each panel an independent figure region that
+# survives that restore. Each cell is drawn from a single-group call, so the
+# sequence panels skip the layout()/oma path they take only when faceting more
+# than one group.
+.vasstra_trajectory_grid <- function(x, types, colors, sort, na, dots) {
+  labels <- x$settings$labels
+  states <- x$source$states
+  n_rows <- length(labels)
+  n_cols <- length(types)
+  # Resolve the full state palette once, named by state. Nestimate assigns
+  # state_colors positionally to the states observed *within each panel*, so a
+  # trajectory that never visits a state would otherwise inherit its
+  # neighbour's colour; re-aligning per subset below keeps every state's colour
+  # fixed across rows, and the shared legend reads from the same palette.
+  palette <- if (is.null(colors)) .vasstra_palette(length(states)) else colors
+  palette <- stats::setNames(as.character(palette), states)
+  # Nestimate sorts states alphabetically; recode the panels only when the
+  # requested order differs from that, so the stacking matches the legend.
+  force_order <- !identical(states, sort(states))
+
+  # A shared legend strip along the bottom labels every panel at once; the
+  # per-panel legends stay off so they do not each grab an outer margin.
+  # `legend = "none"` or `legend = FALSE` in ... suppresses the shared strip.
+  show_legend <- TRUE
+  if ("legend" %in% names(dots)) {
+    show_legend <- !identical(dots$legend, "none") && !isFALSE(dots$legend)
+    dots$legend <- NULL
+  }
+
+  if ("transition" %in% types &&
+      !requireNamespace("cograph", quietly = TRUE)) {
+    stop(
+      paste0(
+        "Transition panels require the 'cograph' package.\n",
+        "Install it with install.packages(\"cograph\")."
+      ),
+      call. = FALSE
+    )
+  }
+
+  old_style <- .vasstra_style_par()
+  on.exit(graphics::par(old_style), add = TRUE)
+  on.exit(graphics::close.screen(all.screens = TRUE), add = TRUE)
+  # Lay the panels out with explicit device coordinates rather than an even
+  # split.screen(c(rows, cols)) grid, so the wide time-course views
+  # (distribution, index, heatmap) get more width than the compact network
+  # column. Each screen is c(left, right, bottom, top) in NDC.
+  col_weight <- vapply(types, function(t) {
+    switch(t, distribution = 1.8, index = 1.45, heatmap = 1.6, transition = 1.15)
+  }, numeric(1))
+  right <- cumsum(col_weight) / sum(col_weight)
+  left <- right - col_weight / sum(col_weight)
+  legend_frac <- if (show_legend) 0.09 else 0
+  row_height <- (1 - legend_frac) / n_rows
+  # Each panel insets itself with its own margins, so contiguous screens leave
+  # a gap between neighbours. A vertical bleed grows every screen into that
+  # top/bottom margin whitespace, tightening the rows. Horizontal bleed is left
+  # at zero: columns are drawn left to right, so any overlap lets the next
+  # panel's blank left margin paint over the previous network's right edge.
+  pad_x <- 0
+  pad_y <- 0.02
+  # Row-major order matches the (row - 1) * n_cols + col indexing used below.
+  figs <- matrix(NA_real_, nrow = n_rows * n_cols, ncol = 4L)
+  for (row in seq_len(n_rows)) {
+    for (col in seq_len(n_cols)) {
+      figs[(row - 1L) * n_cols + col, ] <- c(
+        max(0, left[[col]] - pad_x), min(1, right[[col]] + pad_x),
+        max(legend_frac, 1 - row * row_height - pad_y),
+        min(1, 1 - (row - 1L) * row_height + pad_y)
+      )
+    }
+  }
+  if (show_legend) {
+    figs <- rbind(figs, c(0, 1, 0, legend_frac))
+  }
+  screens <- graphics::split.screen(figs)
+  legend_screen <- if (show_legend) screens[[length(screens)]] else NULL
+
+  for (row in seq_len(n_rows)) {
+    label <- labels[[row]]
+    subset <- x$data[as.character(x$assignments) == label, , drop = FALSE]
+    # The trajectory name and its sample size title the first panel of the
+    # row; the other panels carry no title, and their own "(n = ..)" is
+    # switched off so the count is reported once, in the row title. The name
+    # is bold and larger; the count stays small and plain (plotmath, so both
+    # graphics::title() for the network and mtext() for the sequences honour
+    # it).
+    title_expr <- bquote(
+      bold(.(label)) ~ scriptstyle(plain(.(sprintf("(n = %d)", nrow(subset)))))
+    )
+    for (col in seq_len(n_cols)) {
+      graphics::screen(screens[[(row - 1L) * n_cols + col]])
+      panel_type <- types[[col]]
+      main <- if (col == 1L) title_expr else NULL
+      if (identical(panel_type, "transition")) {
+        transition_plot(
+          x,
+          group = label,
+          colors = palette,
+          # "" (not NULL) suppresses the title; transition_plot() substitutes
+          # its own "<group> (n subjects)" title when main is NULL, which would
+          # otherwise duplicate the row title on a non-first transition panel.
+          main = if (col == 1L) main else "",
+          title_size = 2.7,
+          # Fix the node-label size; left NULL, cograph couples it to node
+          # size, so panels with larger nodes would print larger labels.
+          label_size = 0.75,
+          # cograph derives edge labels from the node-label size; bump them so
+          # the transition probabilities stay legible at grid scale.
+          edge_label_size = 0.9
+        )
+      } else {
+        panel_data <- if (force_order) {
+          .vasstra_encode_state_order(subset, states)
+        } else {
+          subset
+        }
+        seq_colors <- if (force_order) {
+          .vasstra_ordered_state_colors(palette, states, subset)
+        } else {
+          .vasstra_sequence_colors(palette, states, subset)
+        }
+        do.call(
+          Nestimate::sequence_plot,
+          c(
+            list(
+              x = panel_data,
+              type = panel_type,
+              sort = if (identical(panel_type, "index")) sort else "lcs",
+              na = na,
+              state_colors = seq_colors,
+              # A space (not NULL) on the title-less panels reserves the same
+              # top margin as the titled first column, so every panel in the
+              # row gets an equally tall plotting region.
+              main = if (col == 1L) main else " ",
+              show_n = FALSE,
+              # A space keeps the bottom margin (so the time ticks are not
+              # clipped) while dropping the "sequence_position" axis title;
+              # "" removes the floating "Proportion" label.
+              xlab = " ",
+              ylab = "",
+              legend = "none"
+            ),
+            dots
+          )
+        )
+      }
+    }
+  }
+
+  if (show_legend) {
+    graphics::screen(legend_screen)
+    graphics::par(mar = c(0, 0, 0, 0))
+    graphics::plot.new()
+    graphics::legend(
+      "center",
+      legend = states,
+      fill = unname(palette[states]),
+      border = NA,
+      bty = "n",
+      horiz = TRUE,
+      cex = 1.1,
+      text.col = "grey15"
+    )
+  }
+  invisible(NULL)
 }
 
 #' Plot a Clustering Evaluation
@@ -924,7 +1224,7 @@ plot.vasstra_trajectories <- function(
 #'   `"summary"` layout returns both the candidate and cluster tables.
 #'
 #' @examples
-#' data("engagement", package = "VaSStra")
+#' data("engagement", package = "VaSSTra")
 #' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 #' evaluation <- evaluate(fit$trajectories)
 #' plot(evaluation)
@@ -940,7 +1240,7 @@ plot.vasstra_evaluation <- function(
   type <- match.arg(type)
   n_clusters <- nrow(x$clusters)
   if (is.null(colors)) {
-    colors <- .vasstra_palette(n_clusters)
+    colors <- .vasstra_unit_palette(x$unit, n_clusters)
   }
   if (length(colors) != n_clusters) {
     stop("`colors` must contain one color per fitted cluster.",
@@ -985,13 +1285,15 @@ plot.vasstra_evaluation <- function(
 #'
 #' @param x A `vasstra_evaluations` object from [evaluate()] on a complete
 #'   `vasstra` fit.
-#' @param colors Optional colors recycled within each evaluation row.
+#' @param colors Optional colors recycled within each evaluation row. By
+#'   default the state and trajectory rows use distinct palettes so the two
+#'   groupings are not read as corresponding.
 #' @param ... Additional graphical arguments passed to the panel functions.
 #'
 #' @return The evaluated candidate and cluster tables, invisibly.
 #'
 #' @examples
-#' data("engagement", package = "VaSStra")
+#' data("engagement", package = "VaSSTra")
 #' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 #' plot(evaluate(fit))
 #' @export
@@ -1004,7 +1306,7 @@ plot.vasstra_evaluations <- function(x, colors = NULL, ...) {
   drawn <- lapply(x, function(evaluation) {
     n_clusters <- nrow(evaluation$clusters)
     panel_colors <- if (is.null(colors)) {
-      .vasstra_palette(n_clusters)
+      .vasstra_unit_palette(evaluation$unit, n_clusters)
     } else {
       rep_len(colors, n_clusters)
     }
@@ -1040,21 +1342,29 @@ plot.vasstra_evaluations <- function(x, colors = NULL, ...) {
   invisible(drawn)
 }
 
-#' Plot a Complete VaSStra Analysis
+#' Plot a Complete VaSSTra Analysis
 #'
 #' @param x A `vasstra` object.
 #' @param which One of `"trajectories"`, `"states"`, or `"sequences"`.
 #' @param ... Passed to the selected step's plot method. Sequence and
-#'   trajectory plots are rendered by Nestimate.
+#'   trajectory plots are rendered by Nestimate. For the trajectory step,
+#'   `type` accepts a vector of views (e.g.
+#'   `type = c("transition", "index", "distribution")`) to draw a grid with
+#'   one row per trajectory; see [plot.vasstra_trajectories()].
 #'
 #' @return The selected plot method's invisible result.
 #'
 #' @examples
-#' data("engagement", package = "VaSStra")
+#' data("engagement", package = "VaSSTra")
 #' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 #' plot(fit)
 #' plot(fit, which = "states", type = "profile")
 #' plot(fit, which = "sequences")
+#' \donttest{
+#' if (requireNamespace("cograph", quietly = TRUE)) {
+#'   plot(fit, type = c("transition", "index", "distribution"))
+#' }
+#' }
 #' @export
 plot.vasstra <- function(
     x,

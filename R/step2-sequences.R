@@ -10,6 +10,13 @@
 #'   attached role metadata, or a common time name.
 #' @param state State column. Inferred from `vasstra_states`, or detected as
 #'   the single categorical non-role column of a plain data frame.
+#' @param state_order Optional character vector giving the order the states
+#'   should appear in every plot. It must list exactly the observed states,
+#'   rearranged. Defaults to the state factor's levels, or alphabetical order
+#'   for a character state column.
+#' @param state_colors Optional state palette stored on the result and reused
+#'   by every plot. A named vector (matched by state) or one colour per state
+#'   in state order. Inherited from a `vasstra_states` input when not given.
 #' @param time_levels Explicit chronological values. Required for character or
 #'   unordered-factor time when `data` is a plain data frame.
 #' @param missing Structural-gap policy: `"error"` (default), `"explicit"` to
@@ -41,6 +48,8 @@ step2_sequences <- function(
     id = NULL,
     time = NULL,
     state = NULL,
+    state_order = NULL,
+    state_colors = NULL,
     time_levels = NULL,
     missing = c("error", "explicit", "keep"),
     missing_label = "Missing") {
@@ -56,6 +65,8 @@ step2_sequences <- function(
     if (is.null(time_levels)) {
       time_levels <- state_object$settings$time_levels
     }
+    # Carry the stored state palette forward from step 1 unless overridden.
+    if (is.null(state_colors)) state_colors <- state_object$state_colors
   } else if (is.null(id) || is.null(time) || is.null(state)) {
     resolved <- .vasstra_auto_roles(
       data,
@@ -92,6 +103,14 @@ step2_sequences <- function(
   if (length(states) < 1L) {
     stop("No observed states were found.", call. = FALSE)
   }
+  # `state_order` fixes the order the states appear in every plot; it must name
+  # exactly the observed states, just rearranged.
+  if (!is.null(state_order)) {
+    states <- .vasstra_state_order(state_order, states)
+  }
+  # Normalise the palette against the observed states (before any missing
+  # band is appended below) so plots can reuse it by name.
+  state_colors <- .vasstra_name_palette(state_colors, states)
   if (length(unique(data[[id]])) < 2L) {
     stop("At least two subjects are required.", call. = FALSE)
   }
@@ -153,6 +172,7 @@ step2_sequences <- function(
         stringsAsFactors = FALSE
       ),
       states = states,
+      state_colors = state_colors,
       distribution = distribution,
       transitions = transitions,
       settings = list(
@@ -181,7 +201,7 @@ step2_sequences <- function(
 #' @export
 print.vasstra_sequences <- function(x, ...) {
   stopifnot(inherits(x, "vasstra_sequences"))
-  cat("VaSStra Step 2: States -> Sequences\n")
+  cat("VaSSTra Step 2: States -> Sequences\n")
   cat(sprintf(
     "  %d subjects | %d times | %d states | %d transitions\n",
     x$diagnostics$n_subjects,

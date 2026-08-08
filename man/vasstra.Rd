@@ -2,7 +2,7 @@
 % Please edit documentation in R/vasstra.R
 \name{vasstra}
 \alias{vasstra}
-\title{Run the Complete VaSStra Workflow}
+\title{Run the Complete VaSSTra Workflow}
 \usage{
 vasstra(
   data,
@@ -13,6 +13,8 @@ vasstra(
   n_states = "auto",
   n_trajectories = "auto",
   state_labels = NULL,
+  state_order = NULL,
+  state_colors = NULL,
   trajectory_labels = NULL,
   state_name = "state",
   standardize = NULL,
@@ -39,10 +41,10 @@ vasstra(
 \item{data}{A longitudinal data frame.}
 
 \item{id}{Subject identifier column. May be omitted when the data carry
-VaSStra role metadata or use a common identifier name.}
+VaSSTra role metadata or use a common identifier name.}
 
 \item{time}{Time or ordering column. May be omitted when the data carry
-VaSStra role metadata or use a common time name.}
+VaSSTra role metadata or use a common time name.}
 
 \item{variables}{Numeric state indicators. Use either \code{variables} or
 \code{state}, but not both. When both are omitted, the numeric non-role
@@ -60,6 +62,19 @@ candidate vector to compare, or \code{"auto"} (default). Supplied
 \code{trajectory_labels} determine the count under \code{"auto"}.}
 
 \item{state_labels}{Optional labels ordered from low to high profile.}
+
+\item{state_order}{Optional character vector giving the order the states
+should appear in every plot (stacking, legends, transition nodes, flow
+nodes). It must list exactly the same states as \code{state_labels} (or the
+observed states, for precomputed input), rearranged. When supplied, the
+state column becomes a factor in this order. Useful when the cluster
+discovery order does not match the order that reads best.}
+
+\item{state_colors}{Optional state palette stored on the fit and reused by
+every plot without repeating \code{colors}. Either a named vector
+(\code{c(Low = "grey", High = "red", ...)}, matched by state name and robust to
+\code{state_order} and renaming) or one colour per state in state order. An
+explicit \code{colors} argument to a plot still overrides it.}
 
 \item{trajectory_labels}{Optional labels for stable trajectory groups.}
 

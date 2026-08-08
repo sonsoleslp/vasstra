@@ -36,7 +36,7 @@ sizes for one \code{\link[=evaluate]{evaluate()}} result. The default \code{"sum
 the three panels side by side.
 }
 \examples{
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 evaluation <- evaluate(fit$trajectories)
 plot(evaluation)

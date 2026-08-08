@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot.vasstra}
 \alias{plot.vasstra}
-\title{Plot a Complete VaSStra Analysis}
+\title{Plot a Complete VaSSTra Analysis}
 \usage{
 \method{plot}{vasstra}(x, which = c("trajectories", "states", "sequences"), ...)
 }
@@ -12,18 +12,26 @@
 \item{which}{One of \code{"trajectories"}, \code{"states"}, or \code{"sequences"}.}
 
 \item{...}{Passed to the selected step's plot method. Sequence and
-trajectory plots are rendered by Nestimate.}
+trajectory plots are rendered by Nestimate. For the trajectory step,
+\code{type} accepts a vector of views (e.g.
+\code{type = c("transition", "index", "distribution")}) to draw a grid with
+one row per trajectory; see \code{\link[=plot.vasstra_trajectories]{plot.vasstra_trajectories()}}.}
 }
 \value{
 The selected plot method's invisible result.
 }
 \description{
-Plot a Complete VaSStra Analysis
+Plot a Complete VaSSTra Analysis
 }
 \examples{
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 plot(fit)
 plot(fit, which = "states", type = "profile")
 plot(fit, which = "sequences")
+\donttest{
+if (requireNamespace("cograph", quietly = TRUE)) {
+  plot(fit, type = c("transition", "index", "distribution"))
+}
+}
 }

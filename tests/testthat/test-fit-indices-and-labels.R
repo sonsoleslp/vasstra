@@ -99,7 +99,7 @@ test_that("fit_indices compares candidates and adapts to hard methods", {
     3L
   )
   printed <- capture.output(print(fit_indices(fit)))
-  expect_true(any(grepl("VaSStra fit indices: states", printed)))
+  expect_true(any(grepl("VaSSTra fit indices: states", printed)))
 })
 
 test_that("set_labels renames states and trajectories everywhere", {

@@ -287,7 +287,7 @@ test_that("state choice plots return candidates and recompute metric optima", {
 
   classification_info <- getFromNamespace(
     ".vasstra_metric_info",
-    "VaSStra"
+    "VaSSTra"
   )("classification_entropy")
   expect_identical(
     classification_info$label,

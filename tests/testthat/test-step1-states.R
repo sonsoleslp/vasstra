@@ -26,7 +26,7 @@ test_that("step1_states returns tidy reproducible state results", {
   expect_named(
     first,
     c(
-      "data", "profiles", "standardized", "model",
+      "data", "profiles", "state_colors", "standardized", "model",
       "settings", "diagnostics"
     )
   )

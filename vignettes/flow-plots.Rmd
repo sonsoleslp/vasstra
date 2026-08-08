@@ -60,8 +60,8 @@ order:
 | The same, as numbers | `transition_centrality(fit)` |
 
 ```{r fit}
-library(VaSStra)
-data("engagement", package = "VaSStra")
+library(VaSSTra)
+data("engagement", package = "VaSSTra")
 
 fit <- vasstra(
   engagement,

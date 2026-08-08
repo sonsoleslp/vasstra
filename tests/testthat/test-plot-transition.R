@@ -74,7 +74,7 @@ test_that("size = 'none' draws one uniform node size", {
 
 test_that("sequence colors are realigned to Nestimate's state order", {
   # Nestimate sorts states alphabetically and assigns state_colors
-  # positionally, ignoring factor levels, so colors supplied in VaSStra's
+  # positionally, ignoring factor levels, so colors supplied in VaSSTra's
   # state order must be remapped by name.
   states <- c("Zeta", "Mid", "Alpha")
   colors <- c("#FF0000", "#00FF00", "#0000FF")

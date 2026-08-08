@@ -1,4 +1,4 @@
-^VaSStra\.Rproj$
+^VaSSTra\.Rproj$
 ^\.Rproj\.user$
 ^\.git$
 ^\.github$
@@ -8,3 +8,9 @@
 ^HANDOFF\.md$
 ^LEARNINGS\.md$
 ^\.claude$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^logo\.png$
+^vasstra\.Rproj$
+^README\.Rmd$

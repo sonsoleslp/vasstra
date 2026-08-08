@@ -1,12 +1,12 @@
-# VaSStra interactive app: variables -> states -> sequences -> trajectories.
-# Launched through VaSStra::launch_app(); shiny and DT are suggested packages.
+# VaSSTra interactive app: variables -> states -> sequences -> trajectories.
+# Launched through VaSSTra::launch_app(); shiny and DT are suggested packages.
 
 library(shiny)
-library(VaSStra)
+library(VaSSTra)
 
 options(shiny.maxRequestSize = 100 * 1024^2)
 
-data("engagement", package = "VaSStra", envir = environment())
+data("engagement", package = "VaSSTra", envir = environment())
 
 .parse_labels <- function(text) {
   values <- trimws(strsplit(text, ",", fixed = TRUE)[[1L]])
@@ -67,7 +67,7 @@ ui <- fluidPage(
   tags$head(tags$style(HTML(app_css))),
   div(
     class = "app-title",
-    h2("VaSStra"),
+    h2("VaSSTra"),
     p(
       class = "subtitle",
       "Variables to States to Sequences to Trajectories — ",
@@ -180,7 +180,7 @@ ui <- fluidPage(
       numericInput("seed", "Seed", value = 123, min = 1, step = 1),
       actionButton(
         "run",
-        "Run VaSStra",
+        "Run VaSSTra",
         class = "btn-primary btn-block",
         icon = icon("play")
       ),
@@ -210,7 +210,7 @@ ui <- fluidPage(
                 "detected."
               ),
               tags$li(
-                strong("Run VaSStra."),
+                strong("Run VaSSTra."),
                 " Counts left on “auto” are selected by comparing ",
                 "2–6 candidates; every automated decision is reported ",
                 "in the Decisions box and recorded in the fit. Supplying ",
@@ -523,7 +523,7 @@ server <- function(input, output, session) {
     req(data)
     tryCatch(
       suppressMessages(
-        VaSStra:::.vasstra_auto_roles(data, NULL, NULL, NULL)
+        VaSSTra:::.vasstra_auto_roles(data, NULL, NULL, NULL)
       ),
       error = function(error) {
         list(
@@ -573,7 +573,7 @@ server <- function(input, output, session) {
       return(NULL)
     }
     messages <- character(0)
-    result <- withProgress(message = "Running VaSStra…", value = 0.4, {
+    result <- withProgress(message = "Running VaSSTra…", value = 0.4, {
       tryCatch(
         withCallingHandlers(
           vasstra(

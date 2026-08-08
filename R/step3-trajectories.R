@@ -266,7 +266,7 @@ step3_trajectories <- function(
 #' @export
 print.vasstra_trajectories <- function(x, ...) {
   stopifnot(inherits(x, "vasstra_trajectories"))
-  cat("VaSStra Step 3: Sequences -> Trajectories\n")
+  cat("VaSSTra Step 3: Sequences -> Trajectories\n")
   cat(sprintf(
     "  %d sequences | %d trajectories | %s + %s | silhouette %.3f\n",
     x$diagnostics$n_sequences,

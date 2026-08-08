@@ -138,6 +138,121 @@ test_that("sequence plot methods expose every Nestimate plot type", {
   expect_equal(dim(trajectory_heatmap$codes), c(36L, 6L))
 })
 
+test_that("a single trajectory type keeps the faceted Nestimate figure", {
+  data <- make_vasstra_data()
+  trajectories <- data |>
+    step2_sequences("student", "course", "true_state") |>
+    step3_trajectories(n_trajectories = 3, backend = "base")
+  path <- tempfile(fileext = ".pdf")
+  grDevices::pdf(path)
+  on.exit(grDevices::dev.off(), add = TRUE)
+
+  # A bare call and an explicit single type both return Nestimate plot data,
+  # unchanged by the new vector-valued `type`.
+  bare <- plot(trajectories)
+  explicit <- plot(trajectories, type = "index", legend = "none")
+
+  expect_equal(dim(bare$codes), c(36L, 6L))
+  expect_equal(length(bare$groups), 3L)
+  expect_equal(dim(explicit$codes), c(36L, 6L))
+})
+
+test_that("state_order fixes the plotting order of the states", {
+  data <- make_vasstra_data()
+  variables <- c("views", "sessions", "duration")
+  fit <- vasstra(
+    data,
+    id = "student",
+    time = "course",
+    variables = variables,
+    state_labels = c("Low", "Mid", "High"),
+    state_order = c("High", "Low", "Mid"),
+    n_trajectories = 3
+  )
+  # The requested order flows to the states vector and the factor levels.
+  expect_equal(fit$sequences$states, c("High", "Low", "Mid"))
+  expect_equal(
+    levels(fit$states$data[[fit$states$settings$state]]),
+    c("High", "Low", "Mid")
+  )
+  expect_equal(fit$trajectories$source$states, c("High", "Low", "Mid"))
+
+  # An order that is not a rearrangement of the labels is rejected.
+  expect_error(
+    vasstra(
+      data, id = "student", time = "course", variables = variables,
+      state_labels = c("Low", "Mid", "High"), state_order = c("Low", "Mid", "X")
+    ),
+    "same states"
+  )
+
+  # Forced-order sequence views still render and return Nestimate plot data.
+  path <- tempfile(fileext = ".pdf")
+  grDevices::pdf(path)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  seq_plot <- plot(fit, which = "sequences", type = "distribution")
+  traj_plot <- plot(fit, type = "distribution")
+  expect_equal(dim(seq_plot$counts$all), c(3L, ncol(fit$sequences$data)))
+  expect_equal(length(traj_plot$groups), 3L)
+})
+
+test_that("state_colors are stored on the fit and reused by every plot", {
+  data <- make_vasstra_data()
+  variables <- c("views", "sessions", "duration")
+  palette <- c(Low = "#D55E00", Mid = "#0072B2", High = "#009E73")
+  fit <- vasstra(
+    data, id = "student", time = "course", variables = variables,
+    state_labels = c("Low", "Mid", "High"), state_colors = palette,
+    n_trajectories = 3
+  )
+  # The palette is stored (named by state) and propagates through the pipeline.
+  expect_equal(fit$states$state_colors, palette)
+  expect_equal(fit$sequences$state_colors, palette)
+  expect_equal(fit$trajectories$source$state_colors, palette)
+
+  # Renaming states carries the palette along by name.
+  renamed <- set_labels(fit, states = c("Low", "Mid", "Top"))
+  expect_equal(names(renamed$sequences$state_colors), c("Low", "Mid", "Top"))
+  expect_equal(unname(renamed$states$state_colors), unname(palette))
+
+  # A wrong-length / mismatched palette is rejected.
+  expect_error(
+    vasstra(
+      data, id = "student", time = "course", variables = variables,
+      state_labels = c("Low", "Mid", "High"),
+      state_colors = c(Low = "red", Mid = "blue", Nope = "green")
+    ),
+    "names must match"
+  )
+
+  path <- tempfile(fileext = ".pdf")
+  grDevices::pdf(path)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  # No colors argument -> stored palette is applied.
+  expect_silent(plot(fit, which = "states", type = "sizes"))
+})
+
+test_that("a vector of types draws the per-trajectory grid", {
+  data <- make_vasstra_data()
+  trajectories <- data |>
+    step2_sequences("student", "course", "true_state") |>
+    step3_trajectories(n_trajectories = 3, backend = "base")
+  path <- tempfile(fileext = ".pdf")
+  grDevices::pdf(path)
+  on.exit(grDevices::dev.off(), add = TRUE)
+
+  # Two sequence views need no extra packages; the grid returns NULL
+  # invisibly rather than Nestimate plot data.
+  grid <- plot(trajectories, type = c("index", "distribution"))
+  expect_null(grid)
+
+  skip_if_not_installed("cograph")
+  # Adding the transition network exercises the cograph branch and the
+  # single-type-but-transition path.
+  expect_null(plot(trajectories, type = c("transition", "index")))
+  expect_null(plot(trajectories, type = "transition"))
+})
+
 test_that("Nestimate trajectory index plots handle singleton groups", {
   data <- make_vasstra_data()
   trajectories <- data |>

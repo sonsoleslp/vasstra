@@ -27,13 +27,13 @@ state_choices(
 \item{data}{A data frame with one row per subject and time point.}
 
 \item{id}{Name of the subject identifier column. May be omitted when the
-data carry VaSStra role metadata.}
+data carry VaSSTra role metadata.}
 
 \item{time}{Name of the time or ordering column. May be omitted when the
-data carry VaSStra role metadata.}
+data carry VaSSTra role metadata.}
 
 \item{variables}{Character vector naming numeric state indicators. May be
-omitted when the data carry VaSStra role metadata.}
+omitted when the data carry VaSSTra role metadata.}
 
 \item{n_states}{Whole-number candidate state counts.}
 

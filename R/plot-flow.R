@@ -2,7 +2,7 @@
 #
 # Ownership boundary: Nestimate renders index, distribution, and heatmap
 # views of sequences; cograph renders every flow view (alluvial bands and
-# individual tracked lines). VaSStra supplies only what cograph cannot
+# individual tracked lines). VaSSTra supplies only what cograph cannot
 # infer: the shared state palette, the substantive state order, and the
 # real time labels.
 
@@ -25,7 +25,7 @@
 #'   is the number of subjects making that move, or `"individual"` for one
 #'   line per subject.
 #' @param colors Optional colors, one per state, in state order. Defaults to
-#'   the shared VaSStra palette.
+#'   the shared VaSSTra palette.
 #' @param main Optional plot title. A type-specific title is used by default.
 #' @param color_by State that gives a flow its color: `"source"` (default for
 #'   `"alluvial"`) or `"destination"`. Individual lines also accept
@@ -49,7 +49,7 @@
 #' @examples
 #' \donttest{
 #' if (requireNamespace("cograph", quietly = TRUE)) {
-#'   data("engagement", package = "VaSStra")
+#'   data("engagement", package = "VaSSTra")
 #'   fit <- vasstra(
 #'     engagement,
 #'     state_labels = c("Disengaged", "Average", "Active")
@@ -81,7 +81,7 @@ flow_plot.vasstra_sequences <- function(
     states = x$states,
     time_labels = as.character(x$settings$time_levels),
     type = match.arg(type),
-    colors = colors,
+    colors = .vasstra_resolve_palette(colors, x$state_colors, x$states),
     main = main,
     color_by = color_by,
     bundle = bundle,
@@ -127,7 +127,9 @@ flow_plot.vasstra_trajectories <- function(
     states = x$source$states,
     time_labels = as.character(x$source$settings$time_levels),
     type = type,
-    colors = colors,
+    colors = .vasstra_resolve_palette(
+      colors, x$source$state_colors, x$source$states
+    ),
     main = main,
     color_by = color_by,
     bundle = bundle,

@@ -140,6 +140,52 @@
   sort(observed)
 }
 
+# Resolve the order the states should appear in every plot. `state_order`,
+# when supplied, must list exactly the same labels rearranged; otherwise the
+# discovery order (`labels`) is kept.
+.vasstra_state_order <- function(state_order, labels) {
+  if (is.null(state_order)) {
+    return(labels)
+  }
+  if (!is.character(state_order) || anyNA(state_order) ||
+      length(state_order) != length(labels) ||
+      !setequal(state_order, labels)) {
+    stop(
+      sprintf(
+        "`state_order` must list the same states in the desired order: %s.",
+        paste(labels, collapse = ", ")
+      ),
+      call. = FALSE
+    )
+  }
+  state_order
+}
+
+# Normalise a user state palette into a vector named by state, so it survives
+# reordering (`state_order`) and subset plots. Accepts a named vector (matched
+# by name) or a positional one (one colour per state, in `states` order).
+.vasstra_name_palette <- function(colors, states) {
+  if (is.null(colors)) {
+    return(NULL)
+  }
+  if (!is.null(names(colors))) {
+    if (!setequal(names(colors), states)) {
+      stop(
+        sprintf(
+          "`state_colors` names must match the states: %s.",
+          paste(states, collapse = ", ")
+        ),
+        call. = FALSE
+      )
+    }
+    return(colors[states])
+  }
+  if (length(colors) != length(states)) {
+    stop("`state_colors` must give one colour per state.", call. = FALSE)
+  }
+  stats::setNames(as.character(colors), states)
+}
+
 .vasstra_with_seed <- function(seed, code) {
   stopifnot(is.numeric(seed), length(seed) == 1L, is.finite(seed))
   seed <- as.integer(seed)
@@ -267,7 +313,7 @@
 .vasstra_missing_sentinel <- function(values) {
   stopifnot(is.character(values))
   longest <- if (length(values) == 0L) 0L else max(nchar(values))
-  paste0("<VaSStra missing", strrep("_", longest + 1L), ">")
+  paste0("<VaSSTra missing", strrep("_", longest + 1L), ">")
 }
 
 .vasstra_hamming_distance <- function(sequence_matrix) {

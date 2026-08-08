@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot.vasstra_states}
 \alias{plot.vasstra_states}
-\title{Plot Estimated VaSStra States}
+\title{Plot Estimated VaSSTra States}
 \usage{
 \method{plot}{vasstra_states}(
   x,
@@ -36,10 +36,10 @@ indicator-by-state matrix, invisibly. For a size plot, a tidy
 state-size data frame.
 }
 \description{
-Plot Estimated VaSStra States
+Plot Estimated VaSSTra States
 }
 \examples{
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 states <- step1_states(engagement, n_states = 3)
 plot(states)
 plot(states, type = "sizes")

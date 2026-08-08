@@ -1,14 +1,72 @@
-# Served from pak.dynasite.org — the gh-pages branch built by
-# .github/workflows/pkgdown.yaml is mirrored there by the dynasite-infra cron
-# (see dynasite-infra/PACKAGES.md).
-url: https://pak.dynasite.org/VaSStra
+url: https://sonsoles.me/vasstra/
 
 template:
   bootstrap: 5
-  bslib:
-    primary: "#1a5276"
 
 navbar:
   structure:
     left:  [intro, reference, articles, news]
     right: [search, github]
+
+reference:
+- title: Complete workflow
+  desc: Run the whole variables-to-trajectories analysis in one call.
+  contents:
+  - vasstra
+
+- title: Explicit steps
+  desc: The four steps `vasstra()` runs, for full control over each stage.
+  contents:
+  - step1_states
+  - step2_sequences
+  - step3_trajectories
+  - step4_describe
+
+- title: Choosing and evaluating a model
+  desc: Compare cluster counts and methods, and read fit statistics.
+  contents:
+  - evaluate
+  - fit_indices
+  - state_choices
+  - trajectory_choices
+  - fit_state_choice
+  - fit_trajectory_choice
+
+- title: Plots
+  desc: >
+    Sequence, trajectory, state, and evaluation views, plus transition
+    networks and state-flow diagrams.
+  contents:
+  - plot.vasstra
+  - plot.vasstra_states
+  - plot.vasstra_sequences
+  - plot.vasstra_trajectories
+  - plot.vasstra_evaluation
+  - plot.vasstra_evaluations
+  - plot.vasstra_state_choices
+  - plot.vasstra_trajectory_choices
+  - transition_plot
+  - transition_centrality
+  - flow_plot
+
+- title: Labels and tidy output
+  desc: Rename groups after inspection and extract tidy tables.
+  contents:
+  - set_labels
+  - as.data.frame.vasstra
+
+- title: Interactive app
+  contents:
+  - launch_app
+
+- title: Data
+  contents:
+  - engagement
+
+articles:
+- title: Get started
+  navbar: ~
+  contents:
+  - get-started
+  - vasstra-tutorial
+  - flow-plots

@@ -1,5 +1,36 @@
-# VaSStra 0.3.0
+# VaSSTra 0.3.0
 
+- `plot()` on an `evaluate()` result now draws the trajectory groups in a
+  palette distinct from the states, so the state and trajectory evaluation
+  rows are no longer coloured identically (which read as a correspondence
+  between unrelated groupings).
+- Added a `state_colors` argument to `vasstra()`, `step1_states()`, and
+  `step2_sequences()` that stores a state palette on the fit, so every plot
+  reuses it without repeating `colors`. Accepts a named vector (matched by
+  state, and preserved through `state_order` and `set_labels()`) or one
+  colour per state in state order; an explicit `colors` on a plot still
+  wins.
+- The state profile heatmap now draws the first state as the top row, so it
+  reads in the same order as the profile bars, state sizes, and legends.
+- Fixed the state-sizes plot, whose bar heights were taken in cluster
+  (discovery) order while the labels followed the display order, mislabelling
+  the bars when `state_order` reordered the states.
+- Added a `state_order` argument to `vasstra()`, `step1_states()`, and
+  `step2_sequences()` that fixes the order the states appear in **every**
+  plot -- distribution stacking, sequence and transition legends,
+  transition and flow nodes, and the combined grid -- independent of the
+  order the clusters were discovered in. Because Nestimate sorts states
+  alphabetically, the sequence views recode the states internally to force
+  the requested order and draw a matching ordered legend. Colours follow
+  the state order; pass `colors` for a fixed state-to-colour mapping.
+- `plot()` on trajectories now accepts a vector of views in `type`, for
+  example `plot(fit, type = c("transition", "index", "distribution"))`.
+  Several views (or the new `"transition"` network) lay out a grid with
+  one row per trajectory and one column per requested view, reproducing
+  the familiar per-cluster VaSSTra figure in a single call, with one
+  shared state legend along the bottom (`legend = "none"` omits it). A
+  single sequence view keeps the existing faceted whole-cohort figure, so
+  `plot(fit$trajectories)` is unchanged.
 - Added `flow_plot()`: alluvial and individual flow views of state
   movement between consecutive time points, rendered by the suggested
   `cograph` package. `type = "alluvial"` draws aggregated bands whose
@@ -44,7 +75,7 @@
   documentation, which still described the pre-redesign star and cross
   markers instead of the ring and hollow-point markers actually drawn.
 
-# VaSStra 0.2.0
+# VaSSTra 0.2.0
 
 - The sequence heatmap is now the default plot for complete sequence
   sets (`plot(sequences)` / `plot(fit, which = "sequences")`): it keeps
@@ -120,13 +151,13 @@
   supplied; when neither is given, indicator columns are resolved
   automatically.
 
-# VaSStra 0.1.0
+# VaSSTra 0.1.0
 
-- Added a four-step, pipe-friendly VaSStra workflow.
+- Added a four-step, pipe-friendly VaSSTra workflow.
 - Added a complete one-call `vasstra()` interface.
 - Added tidy S3 results and summaries.
 - Added the ready-to-load `engagement` chapter data with clear raw and
-  course-standardized indicator names plus attached VaSStra data roles.
+  course-standardized indicator names plus attached VaSSTra data roles.
 - Added metadata-aware one-call workflows and tidy complete-fit tables at the
   subject, observation, state-profile, and trajectory units.
 - Added `state_choices()` and `fit_state_choice()` for explicit comparison

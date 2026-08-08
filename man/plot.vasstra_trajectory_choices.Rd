@@ -42,7 +42,7 @@ group; hollow points mark candidates that fail the requested size
 constraints.
 }
 \examples{
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 sequences <- step2_sequences(step1_states(engagement, n_states = 3))
 options <- trajectory_choices(sequences, n_trajectories = 2:4)
 plot(options)

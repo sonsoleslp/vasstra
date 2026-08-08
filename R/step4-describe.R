@@ -207,7 +207,7 @@ step4_describe <- function(
 #' @export
 print.vasstra_description <- function(x, ...) {
   stopifnot(inherits(x, "vasstra_description"))
-  cat("VaSStra Step 4: Describe Trajectories\n")
+  cat("VaSSTra Step 4: Describe Trajectories\n")
   cat(sprintf(
     "  %d subjects | %d trajectories | %d states\n",
     x$diagnostics$n_subjects,

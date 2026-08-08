@@ -8,11 +8,11 @@
 #'
 #' @param data A data frame with one row per subject and time point.
 #' @param id Name of the subject identifier column. May be omitted when the
-#'   data carry VaSStra role metadata.
+#'   data carry VaSSTra role metadata.
 #' @param time Name of the time or ordering column. May be omitted when the
-#'   data carry VaSStra role metadata.
+#'   data carry VaSSTra role metadata.
 #' @param variables Character vector naming numeric state indicators. May be
-#'   omitted when the data carry VaSStra role metadata.
+#'   omitted when the data carry VaSSTra role metadata.
 #' @param n_states Number of states to estimate. One number fits exactly
 #'   that count, several numbers (for example `2:4`) compare those
 #'   candidates with [state_choices()] and fit the recommended count, and
@@ -24,6 +24,13 @@
 #'   message.
 #' @param labels Optional unique labels, ordered from the lowest to the highest
 #'   average standardized profile.
+#' @param state_order Optional character vector giving the order the states
+#'   should appear in every plot. It must list the same labels rearranged;
+#'   the state column is stored as a factor in this order. Defaults to the
+#'   profile (discovery) order.
+#' @param state_colors Optional state palette stored on the result and reused
+#'   by every plot. A named vector (matched by state) or one colour per state
+#'   in state order.
 #' @param state Name of the state column created in the returned data.
 #' @param standardize One of `"time"` (default for ordinary data),
 #'   `"global"`, or `"none"`. Analysis-ready package data may provide its
@@ -71,6 +78,8 @@ step1_states <- function(
     variables = NULL,
     n_states = "auto",
     labels = NULL,
+    state_order = NULL,
+    state_colors = NULL,
     state = "state",
     standardize = NULL,
     missing = NULL,
@@ -359,9 +368,16 @@ step1_states <- function(
     stop("`labels` must contain one unique non-empty label per state.",
          call. = FALSE)
   }
+  # Labels are assigned in profile order (low to high). `state_order` sets the
+  # order the states appear in every plot, independent of that discovery
+  # order; it must name exactly the same labels, just rearranged. Profiles and
+  # sizes below stay keyed by `labels` in profile order; only the factor
+  # levels and the stored label order follow `level_order`.
+  level_order <- .vasstra_state_order(state_order, labels)
+  state_colors <- .vasstra_name_palette(state_colors, level_order)
   state_values <- factor(
     labels[assignments],
-    levels = labels,
+    levels = level_order,
     ordered = TRUE
   )
   result_data <- data
@@ -444,6 +460,7 @@ step1_states <- function(
     list(
       data = result_data,
       profiles = profiles,
+      state_colors = state_colors,
       standardized = standardized,
       model = model,
       settings = list(
@@ -452,7 +469,7 @@ step1_states <- function(
         variables = variables,
         state = state,
         n_states = n_states,
-        labels = labels,
+        labels = level_order,
         standardize = standardize,
         missing = missing,
         time_levels = chronology,
@@ -529,7 +546,7 @@ step1_states <- function(
 #' @export
 print.vasstra_states <- function(x, ...) {
   stopifnot(inherits(x, "vasstra_states"))
-  cat("VaSStra Step 1: Variables -> States\n")
+  cat("VaSSTra Step 1: Variables -> States\n")
   cat(sprintf(
     "  %d rows | %d subjects | %d times | %d states | %s\n",
     x$diagnostics$n_rows,

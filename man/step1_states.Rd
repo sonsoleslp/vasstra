@@ -11,6 +11,8 @@ step1_states(
   variables = NULL,
   n_states = "auto",
   labels = NULL,
+  state_order = NULL,
+  state_colors = NULL,
   state = "state",
   standardize = NULL,
   missing = NULL,
@@ -26,13 +28,13 @@ step1_states(
 \item{data}{A data frame with one row per subject and time point.}
 
 \item{id}{Name of the subject identifier column. May be omitted when the
-data carry VaSStra role metadata.}
+data carry VaSSTra role metadata.}
 
 \item{time}{Name of the time or ordering column. May be omitted when the
-data carry VaSStra role metadata.}
+data carry VaSSTra role metadata.}
 
 \item{variables}{Character vector naming numeric state indicators. May be
-omitted when the data carry VaSStra role metadata.}
+omitted when the data carry VaSSTra role metadata.}
 
 \item{n_states}{Number of states to estimate. One number fits exactly
 that count, several numbers (for example \code{2:4}) compare those
@@ -46,6 +48,15 @@ message.}
 
 \item{labels}{Optional unique labels, ordered from the lowest to the highest
 average standardized profile.}
+
+\item{state_order}{Optional character vector giving the order the states
+should appear in every plot. It must list the same labels rearranged;
+the state column is stored as a factor in this order. Defaults to the
+profile (discovery) order.}
+
+\item{state_colors}{Optional state palette stored on the result and reused
+by every plot. A named vector (matched by state) or one colour per state
+in state order.}
 
 \item{state}{Name of the state column created in the returned data.}
 

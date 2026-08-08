@@ -9,6 +9,8 @@ step2_sequences(
   id = NULL,
   time = NULL,
   state = NULL,
+  state_order = NULL,
+  state_colors = NULL,
   time_levels = NULL,
   missing = c("error", "explicit", "keep"),
   missing_label = "Missing"
@@ -25,6 +27,15 @@ attached role metadata, or a common time name.}
 
 \item{state}{State column. Inferred from \code{vasstra_states}, or detected as
 the single categorical non-role column of a plain data frame.}
+
+\item{state_order}{Optional character vector giving the order the states
+should appear in every plot. It must list exactly the observed states,
+rearranged. Defaults to the state factor's levels, or alphabetical order
+for a character state column.}
+
+\item{state_colors}{Optional state palette stored on the result and reused
+by every plot. A named vector (matched by state) or one colour per state
+in state order. Inherited from a \code{vasstra_states} input when not given.}
 
 \item{time_levels}{Explicit chronological values. Required for character or
 unordered-factor time when \code{data} is a plain data frame.}
