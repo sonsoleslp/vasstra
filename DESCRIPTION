@@ -17,7 +17,9 @@ Description: A small, pipe-friendly implementation of the VaSSTra workflow
     default sequence-clustering backend and all sequence plots. No
     'TraMineR' dependency is required.
 License: MIT + file LICENSE
-URL: https://lamethods.org/book1/chapters/ch11-vasstra/ch11-vasstra.html
+URL: https://pak.dynasite.org/VaSStra,
+    https://github.com/mohsaqr/VaSStra,
+    https://lamethods.org/book1/chapters/ch11-vasstra/ch11-vasstra.html
 BugReports: https://github.com/mohsaqr/VaSStra/issues
 Encoding: UTF-8
 Language: en-US
