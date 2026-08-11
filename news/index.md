@@ -1,9 +1,54 @@
 # Changelog
 
-## VaSStra 0.3.0
+## VaSSTra 0.3.0
 
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on an
+  [`evaluate()`](https://sonsoles.me/vasstra/reference/evaluate.md)
+  result now draws the trajectory groups in a palette distinct from the
+  states, so the state and trajectory evaluation rows are no longer
+  coloured identically (which read as a correspondence between unrelated
+  groupings).
+- Added a `state_colors` argument to
+  [`vasstra()`](https://sonsoles.me/vasstra/reference/vasstra.md),
+  [`step1_states()`](https://sonsoles.me/vasstra/reference/step1_states.md),
+  and
+  [`step2_sequences()`](https://sonsoles.me/vasstra/reference/step2_sequences.md)
+  that stores a state palette on the fit, so every plot reuses it
+  without repeating `colors`. Accepts a named vector (matched by state,
+  and preserved through `state_order` and
+  [`set_labels()`](https://sonsoles.me/vasstra/reference/set_labels.md))
+  or one colour per state in state order; an explicit `colors` on a plot
+  still wins.
+- The state profile heatmap now draws the first state as the top row, so
+  it reads in the same order as the profile bars, state sizes, and
+  legends.
+- Fixed the state-sizes plot, whose bar heights were taken in cluster
+  (discovery) order while the labels followed the display order,
+  mislabelling the bars when `state_order` reordered the states.
+- Added a `state_order` argument to
+  [`vasstra()`](https://sonsoles.me/vasstra/reference/vasstra.md),
+  [`step1_states()`](https://sonsoles.me/vasstra/reference/step1_states.md),
+  and
+  [`step2_sequences()`](https://sonsoles.me/vasstra/reference/step2_sequences.md)
+  that fixes the order the states appear in **every** plot –
+  distribution stacking, sequence and transition legends, transition and
+  flow nodes, and the combined grid – independent of the order the
+  clusters were discovered in. Because Nestimate sorts states
+  alphabetically, the sequence views recode the states internally to
+  force the requested order and draw a matching ordered legend. Colours
+  follow the state order; pass `colors` for a fixed state-to-colour
+  mapping.
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) on
+  trajectories now accepts a vector of views in `type`, for example
+  `plot(fit, type = c("transition", "index", "distribution"))`. Several
+  views (or the new `"transition"` network) lay out a grid with one row
+  per trajectory and one column per requested view, reproducing the
+  familiar per-cluster VaSSTra figure in a single call, with one shared
+  state legend along the bottom (`legend = "none"` omits it). A single
+  sequence view keeps the existing faceted whole-cohort figure, so
+  `plot(fit$trajectories)` is unchanged.
 - Added
-  [`flow_plot()`](https://pak.dynasite.org/VaSStra/reference/flow_plot.md):
+  [`flow_plot()`](https://sonsoles.me/vasstra/reference/flow_plot.md):
   alluvial and individual flow views of state movement between
   consecutive time points, rendered by the suggested `cograph` package.
   `type = "alluvial"` draws aggregated bands whose width is the number
@@ -14,10 +59,10 @@
   `color_by` selects the state that colours a flow, and `group`
   restricts a trajectory plot to one group. Unlike the base-graphics
   [`plot()`](https://rdrr.io/r/graphics/plot.default.html) methods,
-  [`flow_plot()`](https://pak.dynasite.org/VaSStra/reference/flow_plot.md)
+  [`flow_plot()`](https://sonsoles.me/vasstra/reference/flow_plot.md)
   returns a `ggplot` object.
 - Added
-  [`transition_plot()`](https://pak.dynasite.org/VaSStra/reference/transition_plot.md):
+  [`transition_plot()`](https://sonsoles.me/vasstra/reference/transition_plot.md):
   the state transition network, with states as nodes, transitions as
   directed edges, and node size encoding a centrality. The network is
   built by
@@ -46,26 +91,26 @@
   now re-aligned by state name. Only user-supplied `colors` were
   affected — the default palette was never mismapped.
 - Added
-  [`vignette("flow-plots")`](https://pak.dynasite.org/VaSStra/articles/flow-plots.md),
+  [`vignette("flow-plots")`](https://sonsoles.me/vasstra/articles/flow-plots.md),
   which uses the flow views to show that the engagement cohort’s flat
   state distribution is a balanced exchange rather than an absence of
   change, and that movement between the extreme states almost always
   passes through the middle one.
 - Added examples to all eight
   [`plot()`](https://rdrr.io/r/graphics/plot.default.html) methods,
-  [`as.data.frame.vasstra()`](https://pak.dynasite.org/VaSStra/reference/as.data.frame.vasstra.md),
+  [`as.data.frame.vasstra()`](https://sonsoles.me/vasstra/reference/as.data.frame.vasstra.md),
   and
-  [`launch_app()`](https://pak.dynasite.org/VaSStra/reference/launch_app.md);
+  [`launch_app()`](https://sonsoles.me/vasstra/reference/launch_app.md);
   every exported topic is now documented with a runnable example.
 - Corrected the
-  [`state_choices()`](https://pak.dynasite.org/VaSStra/reference/state_choices.md)
+  [`state_choices()`](https://sonsoles.me/vasstra/reference/state_choices.md)
   and
-  [`trajectory_choices()`](https://pak.dynasite.org/VaSStra/reference/trajectory_choices.md)
+  [`trajectory_choices()`](https://sonsoles.me/vasstra/reference/trajectory_choices.md)
   plot documentation, which still described the pre-redesign star and
   cross markers instead of the ring and hollow-point markers actually
   drawn.
 
-## VaSStra 0.2.0
+## VaSSTra 0.2.0
 
 - The sequence heatmap is now the default plot for complete sequence
   sets (`plot(sequences)` / `plot(fit, which = "sequences")`): it keeps
@@ -74,18 +119,18 @@
   away, and grouped trajectory plots keep `"index"` as their default.
 
 - Added
-  [`launch_app()`](https://pak.dynasite.org/VaSStra/reference/launch_app.md):
+  [`launch_app()`](https://sonsoles.me/vasstra/reference/launch_app.md):
   an interactive Shiny application (suggested `shiny` + `DT`) covering
   the complete workflow — data upload or the built-in engagement data,
   role mapping with detection pre-fill, automated or explicit counts
   with an in-app decisions log, state / sequence / trajectory plots,
   evaluation panels, tidy fit-index tables, in-app group renaming
   through
-  [`set_labels()`](https://pak.dynasite.org/VaSStra/reference/set_labels.md),
+  [`set_labels()`](https://sonsoles.me/vasstra/reference/set_labels.md),
   and tidy CSV exports at every analysis unit.
 
 - Added
-  [`fit_indices()`](https://pak.dynasite.org/VaSStra/reference/fit_indices.md):
+  [`fit_indices()`](https://sonsoles.me/vasstra/reference/fit_indices.md):
   tidy fit statistics for the selected clustering (one row) or all
   compared candidates (`compare = TRUE`). LPA reports log-likelihood,
   AIC, BIC, SABIC, CAIC, AWE, CLC, KIC, ICL (all on the conventional
@@ -96,11 +141,11 @@
 
 - The extended information criteria and posterior-probability summaries
   are also recorded in
-  [`state_choices()`](https://pak.dynasite.org/VaSStra/reference/state_choices.md)
+  [`state_choices()`](https://sonsoles.me/vasstra/reference/state_choices.md)
   candidate tables and step-1 diagnostics.
 
 - Added
-  [`set_labels()`](https://pak.dynasite.org/VaSStra/reference/set_labels.md):
+  [`set_labels()`](https://sonsoles.me/vasstra/reference/set_labels.md):
   rename fitted states and trajectories in place — full vectors or
   partial named renames such as `c("State 1" = "Disengaged")` —
   propagated through every derived table, sequence, and recorded
@@ -114,7 +159,7 @@
 - Automatic count selection applies a 5 percent minimum group share, so
   spuriously small states or trajectories are never auto-selected;
   explicit
-  [`state_choices()`](https://pak.dynasite.org/VaSStra/reference/state_choices.md)/[`trajectory_choices()`](https://pak.dynasite.org/VaSStra/reference/trajectory_choices.md)
+  [`state_choices()`](https://sonsoles.me/vasstra/reference/state_choices.md)/[`trajectory_choices()`](https://sonsoles.me/vasstra/reference/trajectory_choices.md)
   comparisons keep their permissive defaults.
 
 - Labels imply the count: with `n_states`/`n_trajectories` left on
@@ -124,7 +169,7 @@
   example `2:4`) to compare exactly those counts and fit the recommended
   one.
 
-- [`fit_state_choice()`](https://pak.dynasite.org/VaSStra/reference/fit_state_choice.md)/[`fit_trajectory_choice()`](https://pak.dynasite.org/VaSStra/reference/fit_trajectory_choice.md)
+- [`fit_state_choice()`](https://sonsoles.me/vasstra/reference/fit_state_choice.md)/[`fit_trajectory_choice()`](https://sonsoles.me/vasstra/reference/fit_trajectory_choice.md)
   fit the recommended candidate when called with only the choices
   object, and select candidates by `n_states`/`method`/`lpa_model` (or
   `n_trajectories`/`dissimilarity`/`method`) instead of `candidate_id`.
@@ -141,20 +186,20 @@
   trajectories default to `"auto"`. Every automated decision is reported
   with a message and recorded in `diagnostics$selection`.
 
-- [`step1_states()`](https://pak.dynasite.org/VaSStra/reference/step1_states.md),
-  [`step2_sequences()`](https://pak.dynasite.org/VaSStra/reference/step2_sequences.md),
+- [`step1_states()`](https://sonsoles.me/vasstra/reference/step1_states.md),
+  [`step2_sequences()`](https://sonsoles.me/vasstra/reference/step2_sequences.md),
   and
-  [`step3_trajectories()`](https://pak.dynasite.org/VaSStra/reference/step3_trajectories.md)
+  [`step3_trajectories()`](https://sonsoles.me/vasstra/reference/step3_trajectories.md)
   gain the same automation, so each step also runs alone with minimal
   arguments;
-  [`step2_sequences()`](https://pak.dynasite.org/VaSStra/reference/step2_sequences.md)
+  [`step2_sequences()`](https://sonsoles.me/vasstra/reference/step2_sequences.md)
   detects a single categorical state column in plain data frames.
 
 - Added the
-  [`evaluate()`](https://pak.dynasite.org/VaSStra/reference/evaluate.md)
-  verb for states, trajectories, and complete fits: one tidy row per
-  compared cluster count with `best` and `fitted` markers, plus a
-  per-cluster quality table with mean silhouette widths.
+  [`evaluate()`](https://sonsoles.me/vasstra/reference/evaluate.md) verb
+  for states, trajectories, and complete fits: one tidy row per compared
+  cluster count with `best` and `fitted` markers, plus a per-cluster
+  quality table with mean silhouette widths.
 
 - Added evaluation plots (`plot(evaluate(fit))`): selection curve,
   per-cluster silhouette widths, and group sizes in one layout.
@@ -168,31 +213,31 @@
 - Automatic selection surfaces the underlying error when every candidate
   fails (for example missing indicator values with `missing = "error"`).
 
-- [`vasstra()`](https://pak.dynasite.org/VaSStra/reference/vasstra.md)
-  now errors only when both `variables` and `state` are supplied; when
+- [`vasstra()`](https://sonsoles.me/vasstra/reference/vasstra.md) now
+  errors only when both `variables` and `state` are supplied; when
   neither is given, indicator columns are resolved automatically.
 
-## VaSStra 0.1.0
+## VaSSTra 0.1.0
 
-- Added a four-step, pipe-friendly VaSStra workflow.
+- Added a four-step, pipe-friendly VaSSTra workflow.
 - Added a complete one-call
-  [`vasstra()`](https://pak.dynasite.org/VaSStra/reference/vasstra.md)
+  [`vasstra()`](https://sonsoles.me/vasstra/reference/vasstra.md)
   interface.
 - Added tidy S3 results and summaries.
 - Added the ready-to-load `engagement` chapter data with clear raw and
-  course-standardized indicator names plus attached VaSStra data roles.
+  course-standardized indicator names plus attached VaSSTra data roles.
 - Added metadata-aware one-call workflows and tidy complete-fit tables
   at the subject, observation, state-profile, and trajectory units.
 - Added
-  [`state_choices()`](https://pak.dynasite.org/VaSStra/reference/state_choices.md)
+  [`state_choices()`](https://sonsoles.me/vasstra/reference/state_choices.md)
   and
-  [`fit_state_choice()`](https://pak.dynasite.org/VaSStra/reference/fit_state_choice.md)
+  [`fit_state_choice()`](https://sonsoles.me/vasstra/reference/fit_state_choice.md)
   for explicit comparison and fitting of k-means, PAM, hierarchical, and
   optional mclust LPA states.
 - Added
-  [`trajectory_choices()`](https://pak.dynasite.org/VaSStra/reference/trajectory_choices.md)
+  [`trajectory_choices()`](https://sonsoles.me/vasstra/reference/trajectory_choices.md)
   and
-  [`fit_trajectory_choice()`](https://pak.dynasite.org/VaSStra/reference/fit_trajectory_choice.md)
+  [`fit_trajectory_choice()`](https://sonsoles.me/vasstra/reference/fit_trajectory_choice.md)
   for tidy Nestimate comparisons across sequence distances, clustering
   methods, and trajectory counts.
 - Added lightweight state profile, heatmap, size, and metric-aware

@@ -1,6 +1,6 @@
-# Plot Estimated VaSStra States
+# Plot Estimated VaSSTra States
 
-Plot Estimated VaSStra States
+Plot Estimated VaSSTra States
 
 ## Usage
 
@@ -57,7 +57,7 @@ data frame.
 ## Examples
 
 ``` r
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 states <- step1_states(engagement, n_states = 3)
 plot(states)
 

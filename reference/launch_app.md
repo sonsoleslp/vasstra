@@ -1,6 +1,6 @@
-# Launch the Interactive VaSStra App
+# Launch the Interactive VaSSTra App
 
-Opens a Shiny application that runs the complete VaSStra workflow
+Opens a Shiny application that runs the complete VaSSTra workflow
 interactively: load data, map the subject, time, and indicator roles,
 fit states and trajectories with automated or explicit counts, inspect
 evaluation panels and tidy fit indices, rename groups, and export every

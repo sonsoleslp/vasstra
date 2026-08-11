@@ -1,52 +1,43 @@
-# VaSStra
+# VaSSTra
 
-`VaSStra` turns longitudinal multivariate data into interpretable
+`VaSSTra` turns longitudinal multivariate data into interpretable
 states, sequences, and trajectory groups. The whole analysis is one
 call, every part of it is also a simple explicit step, and every
 automated decision is reported and recorded.
+
+## The method
+
+The name is the workflow: **Va**riables become **S**tates, states become
+**S**equences, and sequences become **Tra**jectories. Each step
+compresses the data while keeping what matters for how people change —
+multivariate observations collapse into a few interpretable states, each
+subject’s states ordered in time form a sequence, and subjects with
+similar sequences group into trajectories.
+
+![The VaSSTra method: variables are clustered into states, each
+subject’s states over time form a sequence, and similar sequences are
+grouped into trajectories.](reference/figures/vasstra.png)
+
+The VaSSTra method: variables are clustered into states, each subject’s
+states over time form a sequence, and similar sequences are grouped into
+trajectories.
 
 ## Installation
 
 ``` r
 
 # install.packages("pak")
-pak::pak("mohsaqr/vasstra")
-```
-
-Three vignettes ship with the package:
-[`vignette("get-started")`](https://pak.dynasite.org/VaSStra/articles/get-started.md)
-for the interface,
-[`vignette("vasstra-tutorial")`](https://pak.dynasite.org/VaSStra/articles/vasstra-tutorial.md)
-for a complete worked analysis of the chapter’s longitudinal engagement
-data, and
-[`vignette("flow-plots")`](https://pak.dynasite.org/VaSStra/articles/flow-plots.md)
-for the alluvial and individual flow views.
-
-## Interactive app
-
-[`launch_app()`](https://pak.dynasite.org/VaSStra/reference/launch_app.md)
-opens a Shiny application (requires the suggested `shiny` and `DT`
-packages) that runs the whole workflow interactively: load a CSV or the
-built-in engagement data, map roles, fit with automated or explicit
-counts, read the decisions log, walk the state / sequence / trajectory /
-evaluation / fit-index tabs, rename groups after inspecting them, and
-export every tidy table.
-
-``` r
-
-VaSStra::launch_app()
+pak::pak("sonsoleslp/vasstra")
 ```
 
 ## One call
 
 ``` r
 
-library(VaSStra)
-data("engagement", package = "VaSStra")
+library(VaSSTra)
+data("engagement", package = "VaSSTra")
 
 fit <- vasstra(engagement)
-#> Selected n_states = 5 (lpa, bic = 19008.964); ...
-#> Selected n_trajectories = 3 (hamming + pam, silhouette = 0.222); ...
 ```
 
 States are estimated by latent profile analysis (mclust `"EEI"`, tidyLPA
@@ -55,11 +46,11 @@ hierarchical clustering. Automatic selection compares 2 through 6
 candidates and never picks a solution whose smallest group holds under 5
 percent of the observations.
 
-[`vasstra()`](https://pak.dynasite.org/VaSStra/reference/vasstra.md)
-finds the subject, time, and indicator roles from attached role metadata
-or common column names, compares two through six states and
-trajectories, and fits the recommended counts. Three natural shortcuts
-cover most analyses:
+[`vasstra()`](https://sonsoles.me/vasstra/reference/vasstra.md) finds
+the subject, time, and indicator roles from attached role metadata or
+common column names, compares two through six states and trajectories,
+and fits the recommended counts. Three natural shortcuts cover most
+analyses:
 
 ``` r
 
@@ -98,12 +89,29 @@ as.data.frame(fit, unit = "state_profile")      # one row per state-indicator
 as.data.frame(fit, unit = "trajectory")         # one row per trajectory
 ```
 
+## Understand the states
+
+State results support profile, bar, heatmap, and size plots plus a
+combined overview, all without adding a plotting dependency:
+
+``` r
+
+plot(fit, which = "states", type = "all")   # profile + bars + heatmap + sizes
+plot(fit, which = "states", type = "profile")
+plot(fit, which = "states", type = "profile", scale = "original")
+```
+
+![State profile lines, grouped bars, heatmap, and group
+sizes.](reference/figures/README-states-1.png)
+
 ## Evaluate the clustering
 
-[`evaluate()`](https://pak.dynasite.org/VaSStra/reference/evaluate.md)
+[`evaluate()`](https://sonsoles.me/vasstra/reference/evaluate.md)
 compares the fitted counts against the neighboring candidates and
 reports per-cluster quality. Plotting draws the selection curve,
-per-cluster silhouette widths, and group sizes.
+per-cluster silhouette widths, and group sizes; the state and trajectory
+rows use distinct palettes so they are not read as corresponding
+groupings.
 
 ``` r
 
@@ -112,6 +120,9 @@ evaluation                       # candidate and per-cluster tables
 as.data.frame(evaluation)        # one tidy row per compared count
 plot(evaluation)                 # selection curve + silhouette + sizes
 ```
+
+![Selection curves, silhouette widths, and group sizes for the state and
+trajectory clusterings.](reference/figures/README-evaluation-1.png)
 
 The same verb evaluates a single step, with any candidate range:
 
@@ -123,7 +134,7 @@ evaluate(fit$trajectories)
 
 ## Tidy fit indices
 
-[`fit_indices()`](https://pak.dynasite.org/VaSStra/reference/fit_indices.md)
+[`fit_indices()`](https://sonsoles.me/vasstra/reference/fit_indices.md)
 returns the fit statistics of the selected clustering as one tidy row —
 for LPA the complete information-criterion family (log-likelihood, AIC,
 BIC, SABIC, CAIC, AWE, CLC, KIC, ICL), normalized entropy, and the
@@ -142,11 +153,11 @@ fit_indices(fit, step = "trajectories")     # the trajectory clustering
 
 ## Relabel anything, tidily
 
-[`set_labels()`](https://pak.dynasite.org/VaSStra/reference/set_labels.md)
+[`set_labels()`](https://sonsoles.me/vasstra/reference/set_labels.md)
 renames fitted groups after inspection — no refitting, no touched
 numbers — and propagates the names through every table, sequence, and
-plot, including recorded positive and negative states. Use a full vector
-or rename only some groups by name:
+plot, including recorded positive and negative states and any stored
+`state_colors`. Use a full vector or rename only some groups by name:
 
 ``` r
 
@@ -189,9 +200,9 @@ sequences <- step2_sequences(data_with_states, state = "engagement_state")
 ## Compare candidates in full detail
 
 When automation should be replaced by an explicit comparison,
-[`state_choices()`](https://pak.dynasite.org/VaSStra/reference/state_choices.md)
+[`state_choices()`](https://sonsoles.me/vasstra/reference/state_choices.md)
 and
-[`trajectory_choices()`](https://pak.dynasite.org/VaSStra/reference/trajectory_choices.md)
+[`trajectory_choices()`](https://sonsoles.me/vasstra/reference/trajectory_choices.md)
 fit a tidy grid across methods and counts. Nothing is selected silently;
 fit the inspected candidate by its id.
 
@@ -221,27 +232,25 @@ Average silhouette is the common diagnostic; recommendations maximize it
 within each method (LPA candidates use conventional BIC by default via
 `lpa_criterion`), subject to the requested group-size constraints.
 
-## Plots
-
-State results support profile, bar, heatmap, and size plots plus a
-combined overview, all without adding a plotting dependency:
-
-``` r
-
-plot(states, type = "all")        # profile + bars + heatmap + sizes
-plot(states, type = "profile")
-plot(states, type = "profile", scale = "original")
-```
+## Sequence views
 
 Every plot containing state sequences is rendered by `Nestimate`:
 
 ``` r
 
-plot(sequences)                          # heatmap of every aligned sequence
-plot(sequences, type = "distribution")
-plot(trajectories, type = "index")
-plot(trajectories, type = "heatmap")
+plot(fit, which = "sequences")            # heatmap of every aligned sequence
+plot(fit, which = "sequences", type = "distribution")
+plot(fit, type = "index")                 # one panel per trajectory
+plot(fit, type = "distribution")
 ```
+
+You can also describe each trajectory three ways at once: the transition
+network it follows, the individual sequences it groups, and how its
+state composition unfolds over time — all on a shared palette and state
+order.
+
+![Per-trajectory grid of transition networks, sequence index plots, and
+state distributions.](reference/figures/README-overview-1.png)
 
 ## Flow plots
 
@@ -249,10 +258,10 @@ Sequence plots are organised by subject similarity, so they show who
 resembles whom but not where movement goes — and a flat state
 distribution cannot distinguish a cohort where nobody moves from one
 where everybody swaps.
-[`flow_plot()`](https://pak.dynasite.org/VaSStra/reference/flow_plot.md)
+[`flow_plot()`](https://sonsoles.me/vasstra/reference/flow_plot.md)
 draws the movement itself, rendered by
 [`cograph`](https://github.com/mohsaqr/cograph) (a suggested package),
-on the same palette and state order as every other VaSStra plot:
+on the same palette and state order as every other VaSSTra plot:
 
 ``` r
 
@@ -262,15 +271,18 @@ flow_plot(fit, color_by = "destination")    # colour bands by where they arrive
 flow_plot(fit, group = "Mostly average")    # one trajectory's flows
 ```
 
+![Alluvial flow of subjects between states across time
+points.](reference/figures/README-flow-1.png)
+
 Individual flows are bundled automatically so large cohorts stay legible
 (`bundle = FALSE` draws every subject). Unlike the base-graphics
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) methods,
-[`flow_plot()`](https://pak.dynasite.org/VaSStra/reference/flow_plot.md)
+[`flow_plot()`](https://sonsoles.me/vasstra/reference/flow_plot.md)
 returns a `ggplot` object.
 
 ## Transition networks
 
-[`transition_plot()`](https://pak.dynasite.org/VaSStra/reference/transition_plot.md)
+[`transition_plot()`](https://sonsoles.me/vasstra/reference/transition_plot.md)
 collapses every time step into one network: states are nodes,
 transitions are directed edges, and node size is a centrality of the
 transition network. `Nestimate` builds the network and the centralities
@@ -290,6 +302,9 @@ transition_plot(fit, loops = TRUE)                      # count self-transitions
 transition_plot(fit, group = "Mostly disengaged")       # one trajectory
 transition_plot(fit, sequences = TRUE)                  # sequences + network
 ```
+
+![State transition network with node size by
+in-strength.](reference/figures/README-transition-1.png)
 
 `sequences = TRUE` draws the state sequences beside the network — the
 conventional pairing, where the left panel shows the raw data and the
@@ -311,7 +326,22 @@ Self-transitions are excluded from the centrality by default, matching
 and `tna::centralities()` — otherwise a persistent state looks large
 merely because its members stay put, which is a different claim from
 attracting movement. See
-[`vignette("flow-plots")`](https://pak.dynasite.org/VaSStra/articles/flow-plots.md).
+[`vignette("flow-plots")`](https://sonsoles.me/vasstra/articles/flow-plots.md).
+
+## Interactive app
+
+[`launch_app()`](https://sonsoles.me/vasstra/reference/launch_app.md)
+opens a Shiny application (requires the suggested `shiny` and `DT`
+packages) that runs the whole workflow interactively: load a CSV or the
+built-in engagement data, map roles, fit with automated or explicit
+counts, read the decisions log, walk the state / sequence / trajectory /
+evaluation / fit-index tabs, rename groups after inspecting them, and
+export every tidy table.
+
+``` r
+
+VaSSTra::launch_app()
+```
 
 ## Dependencies
 

@@ -1,7 +1,7 @@
 # Fit One Trajectory Choice
 
 Fits a candidate from
-[`trajectory_choices()`](https://pak.dynasite.org/VaSStra/reference/trajectory_choices.md),
+[`trajectory_choices()`](https://sonsoles.me/vasstra/reference/trajectory_choices.md),
 selected by `candidate_id`, by any combination of `n_trajectories`,
 `dissimilarity`, and `method`, or — when nothing is specified — the
 recommended candidate.
@@ -67,7 +67,7 @@ choices <- trajectory_choices(
 )
 fit_trajectory_choice(choices)
 #> Fitting recommended candidate 1.
-#> VaSStra Step 3: Sequences -> Trajectories
+#> VaSSTra Step 3: Sequences -> Trajectories
 #>   6 sequences | 2 trajectories | hamming + pam | silhouette 1.000
 #>   Sizes: Trajectory 1=3, Trajectory 2=3
 ```

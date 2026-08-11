@@ -74,7 +74,7 @@ data$duration <- level * 3 + rnorm(nrow(data), sd = 0.4)
 states <- step1_states(data, n_states = 3)
 #> Detected id = "student", time = "course", variables = 2 numeric indicators.
 fit_indices(states)
-#> VaSStra fit indices: states (lpa)
+#> VaSSTra fit indices: states (lpa)
 #>  n_states method lpa_model log_likelihood n_parameters     aic     bic   sabic
 #>         3    lpa       EEI         101.91           10 -183.83 -167.99 -199.23
 #>     caic     awe     clc     kic     icl entropy prob_min prob_max silhouette
@@ -82,7 +82,7 @@ fit_indices(states)
 #>  min_size max_size size_ratio
 #>        12       12          1
 fit_indices(states, compare = TRUE)
-#> VaSStra fit indices: states (lpa)
+#> VaSSTra fit indices: states (lpa)
 #>  n_states method lpa_model log_likelihood n_parameters     aic     bic   sabic
 #>         2    lpa       EEI         -60.80            7  135.59  146.68  124.81
 #>         3    lpa       EEI         101.91           10 -183.83 -167.99 -199.23

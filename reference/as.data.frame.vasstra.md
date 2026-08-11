@@ -1,6 +1,6 @@
-# Convert a VaSStra Analysis to a Tidy Table
+# Convert a VaSSTra Analysis to a Tidy Table
 
-Convert a VaSStra Analysis to a Tidy Table
+Convert a VaSSTra Analysis to a Tidy Table
 
 ## Usage
 
@@ -43,7 +43,7 @@ A data frame at the requested analysis unit.
 ## Examples
 
 ``` r
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 head(as.data.frame(fit))
 #>    user_id   trajectory n_observed unique_states transitions   entropy

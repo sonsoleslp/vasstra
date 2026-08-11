@@ -1,4 +1,4 @@
-# Flow Plots: Where the Movement Goes
+# Flow Plots
 
 A state distribution that stays flat across time is ambiguous evidence.
 It is equally consistent with a cohort in which nobody moves and a
@@ -10,17 +10,17 @@ course positions, yet almost a third of consecutive observations are a
 change of state. Nothing in a distribution plot, and nothing in a
 sequence plot sorted by similarity, separates those two worlds.
 
-[`flow_plot()`](https://pak.dynasite.org/VaSStra/reference/flow_plot.md)
+[`flow_plot()`](https://sonsoles.me/vasstra/reference/flow_plot.md)
 closes that gap. It draws the movement itself — how many students leave
 each state, and which state they arrive in — using
 [cograph](https://github.com/mohsaqr/cograph) for the rendering, and
-[`transition_plot()`](https://pak.dynasite.org/VaSStra/reference/transition_plot.md)
+[`transition_plot()`](https://sonsoles.me/vasstra/reference/transition_plot.md)
 collapses the same movement into a network whose node sizes come from
 `Nestimate`’s transition-network centralities. This vignette is the
 third in the series:
-[`vignette("get-started")`](https://pak.dynasite.org/VaSStra/articles/get-started.md)
+[`vignette("get-started")`](https://sonsoles.me/vasstra/articles/get-started.md)
 covers the interface,
-[`vignette("vasstra-tutorial")`](https://pak.dynasite.org/VaSStra/articles/vasstra-tutorial.md)
+[`vignette("vasstra-tutorial")`](https://sonsoles.me/vasstra/articles/vasstra-tutorial.md)
 runs the complete analysis, and this one covers the views that answer
 *where movement goes*, in this order:
 
@@ -43,8 +43,8 @@ runs the complete analysis, and this one covers the views that answer
 
 ``` r
 
-library(VaSStra)
-data("engagement", package = "VaSStra")
+library(VaSSTra)
+data("engagement", package = "VaSSTra")
 
 fit <- vasstra(
   engagement,
@@ -131,7 +131,7 @@ diagram and slowly from a nine-row table.
 
 ## 2. Aggregated flows: the alluvial
 
-[`flow_plot()`](https://pak.dynasite.org/VaSStra/reference/flow_plot.md)
+[`flow_plot()`](https://sonsoles.me/vasstra/reference/flow_plot.md)
 draws one band per transition, with band width proportional to the
 number of students making it, at every consecutive pair of time points
 at once.
@@ -192,7 +192,7 @@ extreme groups, and here that difference is the visible fanning of the
 orange lines.
 
 With 142 students the lines would overplot, so
-[`flow_plot()`](https://pak.dynasite.org/VaSStra/reference/flow_plot.md)
+[`flow_plot()`](https://sonsoles.me/vasstra/reference/flow_plot.md)
 bundles them by default and annotates the figure with how many students
 one line represents. Setting `bundle = FALSE` draws every student, which
 is worth doing for small cohorts and rarely worth doing for large ones.
@@ -263,10 +263,10 @@ as.data.frame(fit, unit = "trajectory")
 
 ## 5. Controlling colour, bundling, and layout
 
-[`flow_plot()`](https://pak.dynasite.org/VaSStra/reference/flow_plot.md)
-sets the palette, the state order, the time labels, and a readable
-geometry, and passes anything else through to cograph, so a figure
-destined for a manuscript can be tuned without abandoning the wrapper.
+[`flow_plot()`](https://sonsoles.me/vasstra/reference/flow_plot.md) sets
+the palette, the state order, the time labels, and a readable geometry,
+and passes anything else through to cograph, so a figure destined for a
+manuscript can be tuned without abandoning the wrapper.
 
 ``` r
 
@@ -299,7 +299,7 @@ worth reading the transition table before setting one.
 Two arguments are specific to the individual view. `bundle` sets how
 many students one line represents — `"auto"` by default, `FALSE` for
 every student, or a number — and `bundle_max` sets the number of lines
-that triggers automatic bundling.
+above which automatic bundling starts (50 by default).
 
 ``` r
 
@@ -319,7 +319,7 @@ Every view so far keeps time on the horizontal axis. Collapsing all
 seven steps into one network drops the timing and asks a different
 question: across the whole course, which states attract movement and
 which emit it?
-[`transition_plot()`](https://pak.dynasite.org/VaSStra/reference/transition_plot.md)
+[`transition_plot()`](https://sonsoles.me/vasstra/reference/transition_plot.md)
 builds that network with
 [`Nestimate::build_tna()`](https://saqr.me/Nestimate/reference/build_tna.html),
 takes its centralities from
@@ -377,7 +377,7 @@ is the version to report when the absolute volume of movement matters
 rather than its conditional likelihood, and `size` accepts any measure
 [`Nestimate::net_centrality()`](https://saqr.me/Nestimate/reference/net_centrality.html)
 offers — `measures = "all"` on
-[`transition_centrality()`](https://pak.dynasite.org/VaSStra/reference/transition_centrality.md)
+[`transition_centrality()`](https://sonsoles.me/vasstra/reference/transition_centrality.md)
 lists them.
 
 ``` r
@@ -426,7 +426,7 @@ identical either way.
 
 ``` r
 
-transition_plot(fit, sequences = TRUE, group = "Mostly disengaged")
+transition_plot(fit, sequences = "heatmap", group = "Mostly disengaged")
 ```
 
 ![](flow-plots_files/figure-html/transition-paired-contrast-1.png)

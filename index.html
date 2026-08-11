@@ -5,7 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Simple Variables to States to Sequences to Trajectories • VaSStra</title>
+<title>Simple Variables to States to Sequences to Trajectories • VaSSTra</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" sizes="any" href="favicon.ico">
+<link rel="manifest" href="site.webmanifest">
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -13,6 +18,7 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Simple Variables to States to Sequences to Trajectories">
 <meta name="description" content="A small, pipe-friendly implementation of the VaSSTra workflow for longitudinal multivariate data. It provides explicit steps to turn variables into states, states into aligned sequences, and sequences into trajectory groups, followed by tidy trajectory descriptions. A single call runs the complete analysis with transparent, overridable automation of data roles and cluster counts, and an evaluation verb compares the fitted clustering against its alternatives. Nestimate provides the default sequence-clustering backend and all sequence plots. No TraMineR dependency is required.">
 <meta property="og:description" content="A small, pipe-friendly implementation of the VaSSTra workflow for longitudinal multivariate data. It provides explicit steps to turn variables into states, states into aligned sequences, and sequences into trajectory groups, followed by tidy trajectory descriptions. A single call runs the complete analysis with transparent, overridable automation of data roles and cluster counts, and an evaluation verb compares the fitted clustering against its alternatives. Nestimate provides the default sequence-clustering backend and all sequence plots. No TraMineR dependency is required.">
+<meta property="og:image" content="https://sonsoles.me/vasstra/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -20,7 +26,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="index.html">VaSStra</a>
+    <a class="navbar-brand me-2" href="index.html">VaSSTra</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
@@ -35,9 +41,11 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/flow-plots.html">Flow Plots: Where the Movement Goes</a></li>
-    <li><a class="dropdown-item" href="articles/get-started.html">VaSStra in Four Simple Steps</a></li>
-    <li><a class="dropdown-item" href="articles/vasstra-tutorial.html">VaSStra Tutorial: Variables, States, Sequences, Trajectories</a></li>
+<li><a class="dropdown-item" href="articles/get-started.html">Getting started with VaSSTra</a></li>
+    <li><a class="dropdown-item" href="articles/vasstra-tutorial.html">VaSSTra Tutorial: Variables, States, Sequences, Trajectories</a></li>
+    <li><a class="dropdown-item" href="articles/flow-plots.html">Flow Plots</a></li>
+    <li><a class="dropdown-item" href="articles/plot-review.html">Plotting the results</a></li>
+    <li><a class="dropdown-item" href="articles/clustering-algorithms.html">Clustering Algorithms in VaSSTra</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -46,7 +54,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mohsaqr/VaSStra/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/sonsoleslp/vasstra/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,37 +63,37 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="vasstra">VaSStra<a class="anchor" aria-label="anchor" href="#vasstra"></a>
-</h1></div>
-<p><code>VaSStra</code> turns longitudinal multivariate data into interpretable states, sequences, and trajectory groups. The whole analysis is one call, every part of it is also a simple explicit step, and every automated decision is reported and recorded.</p>
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="vasstra-">VaSSTra <a class="anchor" aria-label="anchor" href="#vasstra-"></a>
+</h1>
+</div>
+<p><code>VaSSTra</code> turns longitudinal multivariate data into interpretable states, sequences, and trajectory groups. The whole analysis is one call, every part of it is also a simple explicit step, and every automated decision is reported and recorded.</p>
+<div class="section level2">
+<h2 id="the-method">The method<a class="anchor" aria-label="anchor" href="#the-method"></a>
+</h2>
+<p>The name is the workflow: <strong>Va</strong>riables become <strong>S</strong>tates, states become <strong>S</strong>equences, and sequences become <strong>Tra</strong>jectories. Each step compresses the data while keeping what matters for how people change — multivariate observations collapse into a few interpretable states, each subject’s states ordered in time form a sequence, and subjects with similar sequences group into trajectories.</p>
+<figure><img src="reference/figures/vasstra.png" alt="The VaSSTra method: variables are clustered into states, each subject’s states over time form a sequence, and similar sequences are grouped into trajectories."><figcaption aria-hidden="true">
+The VaSSTra method: variables are clustered into states, each subject’s states over time form a sequence, and similar sequences are grouped into trajectories.
+</figcaption></figure>
+</div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"mohsaqr/vasstra"</span><span class="op">)</span></span></code></pre></div>
-<p>Three vignettes ship with the package: <code><a href="articles/get-started.html">vignette("get-started")</a></code> for the interface, <code><a href="articles/vasstra-tutorial.html">vignette("vasstra-tutorial")</a></code> for a complete worked analysis of the chapter’s longitudinal engagement data, and <code><a href="articles/flow-plots.html">vignette("flow-plots")</a></code> for the alluvial and individual flow views.</p>
-</div>
-<div class="section level2">
-<h2 id="interactive-app">Interactive app<a class="anchor" aria-label="anchor" href="#interactive-app"></a>
-</h2>
-<p><code><a href="reference/launch_app.html">launch_app()</a></code> opens a Shiny application (requires the suggested <code>shiny</code> and <code>DT</code> packages) that runs the whole workflow interactively: load a CSV or the built-in engagement data, map roles, fit with automated or explicit counts, read the decisions log, walk the state / sequence / trajectory / evaluation / fit-index tabs, rename groups after inspecting them, and export every tidy table.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">VaSStra</span><span class="fu">::</span><span class="fu"><a href="reference/launch_app.html">launch_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"sonsoleslp/vasstra"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="one-call">One call<a class="anchor" aria-label="anchor" href="#one-call"></a>
 </h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://pak.dynasite.org/VaSStra">VaSStra</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"engagement"</span>, package <span class="op">=</span> <span class="st">"VaSStra"</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://sonsoles.me/vasstra/">VaSSTra</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"engagement"</span>, package <span class="op">=</span> <span class="st">"VaSSTra"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/vasstra.html">vasstra</a></span><span class="op">(</span><span class="va">engagement</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Selected n_states = 5 (lpa, bic = 19008.964); ...</span></span>
-<span><span class="co">#&gt; Selected n_trajectories = 3 (hamming + pam, silhouette = 0.222); ...</span></span></code></pre></div>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/vasstra.html">vasstra</a></span><span class="op">(</span><span class="va">engagement</span><span class="op">)</span></span></code></pre></div>
 <p>States are estimated by latent profile analysis (mclust <code>"EEI"</code>, tidyLPA model 1) by default; <code>state_method</code> switches to k-means, PAM, or hierarchical clustering. Automatic selection compares 2 through 6 candidates and never picks a solution whose smallest group holds under 5 percent of the observations.</p>
 <p><code><a href="reference/vasstra.html">vasstra()</a></code> finds the subject, time, and indicator roles from attached role metadata or common column names, compares two through six states and trajectories, and fits the recommended counts. Three natural shortcuts cover most analyses:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/vasstra.html">vasstra</a></span><span class="op">(</span><span class="va">engagement</span>, state_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Disengaged"</span>, <span class="st">"Average"</span>, <span class="st">"Active"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; three labels, so three states — no n_states needed</span></span>
 <span></span>
@@ -95,7 +103,7 @@
 <span><span class="fu"><a href="reference/vasstra.html">vasstra</a></span><span class="op">(</span><span class="va">engagement</span>, n_states <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt; fits exactly three states</span></span></code></pre></div>
 <p>Name any decision to take it over; automation only fills what you omit:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/vasstra.html">vasstra</a></span><span class="op">(</span></span>
 <span>  <span class="va">engagement</span>,</span>
 <span>  state_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Disengaged"</span>, <span class="st">"Average"</span>, <span class="st">"Active"</span><span class="op">)</span>,</span>
@@ -106,21 +114,32 @@
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; the chapter analysis: three labels imply three LPA profiles</span></span></code></pre></div>
 <p>Tidy tables are returned directly at the requested analysis unit:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>                              <span class="co"># one row per student</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fit</span>, unit <span class="op">=</span> <span class="st">"observation"</span><span class="op">)</span>        <span class="co"># one row per student-time</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fit</span>, unit <span class="op">=</span> <span class="st">"state_profile"</span><span class="op">)</span>      <span class="co"># one row per state-indicator</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fit</span>, unit <span class="op">=</span> <span class="st">"trajectory"</span><span class="op">)</span>         <span class="co"># one row per trajectory</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="understand-the-states">Understand the states<a class="anchor" aria-label="anchor" href="#understand-the-states"></a>
+</h2>
+<p>State results support profile, bar, heatmap, and size plots plus a combined overview, all without adding a plotting dependency:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"states"</span>, type <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span>   <span class="co"># profile + bars + heatmap + sizes</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"states"</span>, type <span class="op">=</span> <span class="st">"profile"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"states"</span>, type <span class="op">=</span> <span class="st">"profile"</span>, scale <span class="op">=</span> <span class="st">"original"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-states-1.png" alt="State profile lines, grouped bars, heatmap, and group sizes." width="100%"></p>
+</div>
+<div class="section level2">
 <h2 id="evaluate-the-clustering">Evaluate the clustering<a class="anchor" aria-label="anchor" href="#evaluate-the-clustering"></a>
 </h2>
-<p><code><a href="reference/evaluate.html">evaluate()</a></code> compares the fitted counts against the neighboring candidates and reports per-cluster quality. Plotting draws the selection curve, per-cluster silhouette widths, and group sizes.</p>
+<p><code><a href="reference/evaluate.html">evaluate()</a></code> compares the fitted counts against the neighboring candidates and reports per-cluster quality. Plotting draws the selection curve, per-cluster silhouette widths, and group sizes; the state and trajectory rows use distinct palettes so they are not read as corresponding groupings.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">evaluation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/evaluate.html">evaluate</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="va">evaluation</span>                       <span class="co"># candidate and per-cluster tables</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">evaluation</span><span class="op">)</span>        <span class="co"># one tidy row per compared count</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">evaluation</span><span class="op">)</span>                 <span class="co"># selection curve + silhouette + sizes</span></span></code></pre></div>
+<p><img src="reference/figures/README-evaluation-1.png" alt="Selection curves, silhouette widths, and group sizes for the state and trajectory clusterings." width="100%"></p>
 <p>The same verb evaluates a single step, with any candidate range:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/evaluate.html">evaluate</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">states</span>, n_states <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span>
@@ -138,7 +157,7 @@
 <div class="section level2">
 <h2 id="relabel-anything-tidily">Relabel anything, tidily<a class="anchor" aria-label="anchor" href="#relabel-anything-tidily"></a>
 </h2>
-<p><code><a href="reference/set_labels.html">set_labels()</a></code> renames fitted groups after inspection — no refitting, no touched numbers — and propagates the names through every table, sequence, and plot, including recorded positive and negative states. Use a full vector or rename only some groups by name:</p>
+<p><code><a href="reference/set_labels.html">set_labels()</a></code> renames fitted groups after inspection — no refitting, no touched numbers — and propagates the names through every table, sequence, and plot, including recorded positive and negative states and any stored <code>state_colors</code>. Use a full vector or rename only some groups by name:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/set_labels.html">set_labels</a></span><span class="op">(</span><span class="va">fit</span>, states <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"State 1"</span> <span class="op">=</span> <span class="st">"Disengaged"</span>,</span>
 <span>                                  <span class="st">"State 2"</span> <span class="op">=</span> <span class="st">"Average"</span>,</span>
@@ -193,49 +212,55 @@
 <p>Average silhouette is the common diagnostic; recommendations maximize it within each method (LPA candidates use conventional BIC by default via <code>lpa_criterion</code>), subject to the requested group-size constraints.</p>
 </div>
 <div class="section level2">
-<h2 id="plots">Plots<a class="anchor" aria-label="anchor" href="#plots"></a>
+<h2 id="sequence-views">Sequence views<a class="anchor" aria-label="anchor" href="#sequence-views"></a>
 </h2>
-<p>State results support profile, bar, heatmap, and size plots plus a combined overview, all without adding a plotting dependency:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">states</span>, type <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span>        <span class="co"># profile + bars + heatmap + sizes</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">states</span>, type <span class="op">=</span> <span class="st">"profile"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">states</span>, type <span class="op">=</span> <span class="st">"profile"</span>, scale <span class="op">=</span> <span class="st">"original"</span><span class="op">)</span></span></code></pre></div>
 <p>Every plot containing state sequences is rendered by <code>Nestimate</code>:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sequences</span><span class="op">)</span>                          <span class="co"># heatmap of every aligned sequence</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sequences</span>, type <span class="op">=</span> <span class="st">"distribution"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trajectories</span>, type <span class="op">=</span> <span class="st">"index"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trajectories</span>, type <span class="op">=</span> <span class="st">"heatmap"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"sequences"</span><span class="op">)</span>            <span class="co"># heatmap of every aligned sequence</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, which <span class="op">=</span> <span class="st">"sequences"</span>, type <span class="op">=</span> <span class="st">"distribution"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"index"</span><span class="op">)</span>                 <span class="co"># one panel per trajectory</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"distribution"</span><span class="op">)</span></span></code></pre></div>
+<p>You can also describe each trajectory three ways at once: the transition network it follows, the individual sequences it groups, and how its state composition unfolds over time — all on a shared palette and state order.</p>
+<p><img src="reference/figures/README-overview-1.png" alt="Per-trajectory grid of transition networks, sequence index plots, and state distributions." width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="flow-plots">Flow plots<a class="anchor" aria-label="anchor" href="#flow-plots"></a>
 </h2>
-<p>Sequence plots are organised by subject similarity, so they show who resembles whom but not where movement goes — and a flat state distribution cannot distinguish a cohort where nobody moves from one where everybody swaps. <code><a href="reference/flow_plot.html">flow_plot()</a></code> draws the movement itself, rendered by <a href="https://github.com/mohsaqr/cograph" class="external-link"><code>cograph</code></a> (a suggested package), on the same palette and state order as every other VaSStra plot:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<p>Sequence plots are organised by subject similarity, so they show who resembles whom but not where movement goes — and a flat state distribution cannot distinguish a cohort where nobody moves from one where everybody swaps. <code><a href="reference/flow_plot.html">flow_plot()</a></code> draws the movement itself, rendered by <a href="https://github.com/mohsaqr/cograph" class="external-link"><code>cograph</code></a> (a suggested package), on the same palette and state order as every other VaSSTra plot:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/flow_plot.html">flow_plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>                              <span class="co"># aggregated alluvial bands</span></span>
 <span><span class="fu"><a href="reference/flow_plot.html">flow_plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"individual"</span><span class="op">)</span>         <span class="co"># one line per subject</span></span>
 <span><span class="fu"><a href="reference/flow_plot.html">flow_plot</a></span><span class="op">(</span><span class="va">fit</span>, color_by <span class="op">=</span> <span class="st">"destination"</span><span class="op">)</span>    <span class="co"># colour bands by where they arrive</span></span>
 <span><span class="fu"><a href="reference/flow_plot.html">flow_plot</a></span><span class="op">(</span><span class="va">fit</span>, group <span class="op">=</span> <span class="st">"Mostly average"</span><span class="op">)</span>    <span class="co"># one trajectory's flows</span></span></code></pre></div>
+<p><img src="reference/figures/README-flow-1.png" alt="Alluvial flow of subjects between states across time points." width="100%"></p>
 <p>Individual flows are bundled automatically so large cohorts stay legible (<code>bundle = FALSE</code> draws every subject). Unlike the base-graphics <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> methods, <code><a href="reference/flow_plot.html">flow_plot()</a></code> returns a <code>ggplot</code> object.</p>
 </div>
 <div class="section level2">
 <h2 id="transition-networks">Transition networks<a class="anchor" aria-label="anchor" href="#transition-networks"></a>
 </h2>
 <p><code><a href="reference/transition_plot.html">transition_plot()</a></code> collapses every time step into one network: states are nodes, transitions are directed edges, and node size is a centrality of the transition network. <code>Nestimate</code> builds the network and the centralities (<code>build_tna()</code>, <code>net_centrality()</code>), and <code><a href="https://sonsoles.me/cograph/reference/splot.html" class="external-link">cograph::splot()</a></code> draws it — recognising the network object and supplying TNA styling, labels, and initial-probability rings on its own. The default node size is in-strength, so the largest node is the state the cohort most often moves <em>into</em>.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/transition_plot.html">transition_plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>                                    <span class="co"># size = in-strength</span></span>
 <span><span class="fu"><a href="reference/transition_plot.html">transition_plot</a></span><span class="op">(</span><span class="va">fit</span>, weights <span class="op">=</span> <span class="st">"count"</span><span class="op">)</span>                 <span class="co"># raw counts</span></span>
 <span><span class="fu"><a href="reference/transition_plot.html">transition_plot</a></span><span class="op">(</span><span class="va">fit</span>, size <span class="op">=</span> <span class="st">"OutStrength"</span><span class="op">)</span>              <span class="co"># any Nestimate measure</span></span>
 <span><span class="fu"><a href="reference/transition_plot.html">transition_plot</a></span><span class="op">(</span><span class="va">fit</span>, loops <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>                      <span class="co"># count self-transitions</span></span>
 <span><span class="fu"><a href="reference/transition_plot.html">transition_plot</a></span><span class="op">(</span><span class="va">fit</span>, group <span class="op">=</span> <span class="st">"Mostly disengaged"</span><span class="op">)</span>       <span class="co"># one trajectory</span></span>
 <span><span class="fu"><a href="reference/transition_plot.html">transition_plot</a></span><span class="op">(</span><span class="va">fit</span>, sequences <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>                  <span class="co"># sequences + network</span></span></code></pre></div>
+<p><img src="reference/figures/README-transition-1.png" alt="State transition network with node size by in-strength." width="100%"></p>
 <p><code>sequences = TRUE</code> draws the state sequences beside the network — the conventional pairing, where the left panel shows the raw data and the right summarises its movement. Both panels share one palette, so a state has the same colour in each; <code>"heatmap"</code> and <code>"distribution"</code> select the left view.</p>
 <p>The same centralities come as a tidy table, without drawing anything:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/transition_centrality.html">transition_centrality</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>                     <span class="co"># in- and out-strength</span></span>
 <span><span class="fu"><a href="reference/transition_centrality.html">transition_centrality</a></span><span class="op">(</span><span class="va">fit</span>, measures <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span>   <span class="co"># every Nestimate measure</span></span>
 <span><span class="fu"><a href="reference/transition_centrality.html">transition_centrality</a></span><span class="op">(</span><span class="va">fit</span>, weights <span class="op">=</span> <span class="st">"count"</span><span class="op">)</span></span></code></pre></div>
 <p>Self-transitions are excluded from the centrality by default, matching <code><a href="https://saqr.me/Nestimate/reference/net_centrality.html" class="external-link">Nestimate::net_centrality()</a></code> and <code>tna::centralities()</code> — otherwise a persistent state looks large merely because its members stay put, which is a different claim from attracting movement. See <code><a href="articles/flow-plots.html">vignette("flow-plots")</a></code>.</p>
+</div>
+<div class="section level2">
+<h2 id="interactive-app">Interactive app<a class="anchor" aria-label="anchor" href="#interactive-app"></a>
+</h2>
+<p><code><a href="reference/launch_app.html">launch_app()</a></code> opens a Shiny application (requires the suggested <code>shiny</code> and <code>DT</code> packages) that runs the whole workflow interactively: load a CSV or the built-in engagement data, map roles, fit with automated or explicit counts, read the decisions log, walk the state / sequence / trajectory / evaluation / fit-index tabs, rename groups after inspecting them, and export every tidy table.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">VaSSTra</span><span class="fu">::</span><span class="fu"><a href="reference/launch_app.html">launch_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="dependencies">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies"></a>
@@ -247,8 +272,8 @@
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/mohsaqr/VaSStra/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/mohsaqr/VaSStra/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/sonsoleslp/vasstra/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/sonsoleslp/vasstra/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -265,7 +290,7 @@
 <div class="citation">
 <h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li><a href="authors.html#citation">Citing VaSStra</a></li>
+<li><a href="authors.html#citation">Citing VaSSTra</a></li>
 </ul>
 </div>
 

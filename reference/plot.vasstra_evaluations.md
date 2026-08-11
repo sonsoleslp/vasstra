@@ -15,12 +15,14 @@ plot(x, colors = NULL, ...)
 - x:
 
   A `vasstra_evaluations` object from
-  [`evaluate()`](https://pak.dynasite.org/VaSStra/reference/evaluate.md)
-  on a complete `vasstra` fit.
+  [`evaluate()`](https://sonsoles.me/vasstra/reference/evaluate.md) on a
+  complete `vasstra` fit.
 
 - colors:
 
-  Optional colors recycled within each evaluation row.
+  Optional colors recycled within each evaluation row. By default the
+  state and trajectory rows use distinct palettes so the two groupings
+  are not read as corresponding.
 
 - ...:
 
@@ -33,7 +35,7 @@ The evaluated candidate and cluster tables, invisibly.
 ## Examples
 
 ``` r
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 plot(evaluate(fit))
 ```

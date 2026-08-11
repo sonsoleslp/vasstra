@@ -57,6 +57,6 @@ description <- step4_describe(
   negative_states = "Low"
 )
 description
-#> VaSStra Step 4: Describe Trajectories
+#> VaSSTra Step 4: Describe Trajectories
 #>   6 subjects | 3 trajectories | 3 states
 ```

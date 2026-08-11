@@ -2,7 +2,7 @@
 
 Draws the selection curve, per-cluster silhouette widths, and cluster
 sizes for one
-[`evaluate()`](https://pak.dynasite.org/VaSStra/reference/evaluate.md)
+[`evaluate()`](https://sonsoles.me/vasstra/reference/evaluate.md)
 result. The default `"summary"` layout places the three panels side by
 side.
 
@@ -24,7 +24,7 @@ plot(
 - x:
 
   A `vasstra_evaluation` object from
-  [`evaluate()`](https://pak.dynasite.org/VaSStra/reference/evaluate.md).
+  [`evaluate()`](https://sonsoles.me/vasstra/reference/evaluate.md).
 
 - type:
 
@@ -51,7 +51,7 @@ layout returns both the candidate and cluster tables.
 ## Examples
 
 ``` r
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 evaluation <- evaluate(fit$trajectories)
 plot(evaluation)

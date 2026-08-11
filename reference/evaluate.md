@@ -62,7 +62,7 @@ data$duration <- level * 3 + rnorm(nrow(data), sd = 0.4)
 states <- step1_states(data, n_states = 3)
 #> Detected id = "student", time = "course", variables = 2 numeric indicators.
 evaluate(states)
-#> VaSStra clustering evaluation: states (lpa)
+#> VaSSTra clustering evaluation: states (lpa)
 #>   Fitted: 3 states | silhouette 0.950
 #>   Candidates:
 #>  n_states method lpa_model silhouette      bic      aic classification_entropy

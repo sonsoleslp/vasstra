@@ -5,12 +5,17 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>VaSStra in Four Simple Steps • VaSStra</title>
+<title>Getting started with VaSSTra • VaSSTra</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="VaSStra in Four Simple Steps">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Getting started with VaSSTra">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -18,7 +23,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../index.html">VaSStra</a>
+    <a class="navbar-brand me-2" href="../index.html">VaSSTra</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
@@ -33,9 +38,11 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/flow-plots.html">Flow Plots: Where the Movement Goes</a></li>
-    <li><a class="dropdown-item" href="../articles/get-started.html">VaSStra in Four Simple Steps</a></li>
-    <li><a class="dropdown-item" href="../articles/vasstra-tutorial.html">VaSStra Tutorial: Variables, States, Sequences, Trajectories</a></li>
+<li><a class="dropdown-item" href="../articles/get-started.html">Getting started with VaSSTra</a></li>
+    <li><a class="dropdown-item" href="../articles/vasstra-tutorial.html">VaSSTra Tutorial: Variables, States, Sequences, Trajectories</a></li>
+    <li><a class="dropdown-item" href="../articles/flow-plots.html">Flow Plots</a></li>
+    <li><a class="dropdown-item" href="../articles/plot-review.html">Plotting the results</a></li>
+    <li><a class="dropdown-item" href="../articles/clustering-algorithms.html">Clustering Algorithms in VaSSTra</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -44,7 +51,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/mohsaqr/VaSStra/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/sonsoleslp/vasstra/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -57,181 +64,83 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>VaSStra in Four Simple Steps</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Getting started with VaSSTra</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/mohsaqr/VaSStra/blob/main/vignettes/get-started.Rmd" class="external-link"><code>vignettes/get-started.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/sonsoleslp/vasstra/blob/main/vignettes/get-started.Rmd" class="external-link"><code>vignettes/get-started.Rmd</code></a></small>
       <div class="d-none name"><code>get-started.Rmd</code></div>
     </div>
 
     
     
-<p>VaSStra turns repeated multivariate measurements into states, state
+<p>VaSSTra turns repeated multivariate measurements into states, state
 sequences, and groups of similar trajectories. The whole analysis is one
 call, and every part of it can also be run as an explicit step.</p>
+<p>This guide uses the built-in <code>engagement</code> data: 142
+students measured on eight indicators at eight course positions, from
+the <a href="https://lamethods.org/book1/chapters/ch11-vasstra/ch11-vasstra.html" class="external-link">VaSSTra
+chapter</a> of <em>Learning Analytics Methods and Tutorials</em>. It
+ships analysis-ready with attached role metadata, so no column plumbing
+is needed.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://pak.dynasite.org/VaSStra">VaSStra</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2026</span><span class="op">)</span></span>
-<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span></span>
-<span>  student <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">36</span><span class="op">)</span>,</span>
-<span>  course <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">6</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">trajectory</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">ceiling</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">student</span> <span class="op">/</span> <span class="fl">12</span><span class="op">)</span></span>
-<span><span class="co"># Three groups of twelve students climb the same three-phase ladder,</span></span>
-<span><span class="co"># each starting one phase further along, so the groups differ in timing</span></span>
-<span><span class="co"># rather than in level.</span></span>
-<span><span class="va">phase</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">ceiling</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">course</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="va">latent_state</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">phase</span> <span class="op">+</span> <span class="va">trajectory</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">3</span> <span class="op">+</span> <span class="fl">1</span></span>
-<span><span class="va">data</span><span class="op">$</span><span class="va">views</span> <span class="op">&lt;-</span> <span class="va">latent_state</span> <span class="op">*</span> <span class="fl">6</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fl">0.08</span><span class="op">)</span></span>
-<span><span class="va">data</span><span class="op">$</span><span class="va">sessions</span> <span class="op">&lt;-</span> <span class="va">latent_state</span> <span class="op">*</span> <span class="fl">3</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fl">0.08</span><span class="op">)</span></span>
-<span><span class="va">data</span><span class="op">$</span><span class="va">duration</span> <span class="op">&lt;-</span> <span class="va">latent_state</span> <span class="op">*</span> <span class="fl">12</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fl">0.08</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://sonsoles.me/vasstra/">VaSSTra</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"engagement"</span>, package <span class="op">=</span> <span class="st">"VaSSTra"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="one-call">One call<a class="anchor" aria-label="anchor" href="#one-call"></a>
 </h2>
 <p><code><a href="../reference/vasstra.html">vasstra()</a></code> detects the subject, time, and indicator roles
-from common column names (or attached role metadata), compares two
+from the attached role metadata (or common column names), compares two
 through six states and trajectories, and fits the recommended counts.
 Every automated decision is reported as it is made and recorded inside
-the fit.</p>
+the fit. Here three state labels fix three states; omit them and the
+state count is selected too.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vasstra.html">vasstra</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Detected id = "student", time = "course", variables = 3 numeric indicators.</span></span>
-<span><span class="co">#&gt; Selected n_states = 3 (lpa, bic = -3020.208); see `diagnostics$selection`.</span></span>
-<span><span class="co">#&gt; Selected n_trajectories = 3 (hamming + pam, silhouette = 1.000); see `diagnostics$selection`.</span></span>
+<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vasstra.html">vasstra</a></span><span class="op">(</span><span class="va">engagement</span>, state_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Disengaged"</span>, <span class="st">"Average"</span>, <span class="st">"Active"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Using n_states = 3 to match the supplied labels.</span></span>
+<span><span class="co">#&gt; Selected n_trajectories = 3 (hamming + pam, silhouette = 0.435); see `diagnostics$selection`.</span></span>
 <span><span class="va">fit</span></span>
-<span><span class="co">#&gt; VaSStra Analysis</span></span>
-<span><span class="co">#&gt;   36 subjects | 6 times | 3 states | 3 trajectories</span></span>
-<span><span class="co">#&gt;   hamming + pam | silhouette 1.000</span></span></code></pre></div>
-<p>Tidy tables come straight from the fit at the analysis unit you
-need:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   student   trajectory n_observed unique_states transitions entropy complexity</span></span>
-<span><span class="co">#&gt; 1       1 Trajectory 1          6             3           2       1  0.6324555</span></span>
-<span><span class="co">#&gt; 2       2 Trajectory 1          6             3           2       1  0.6324555</span></span>
-<span><span class="co">#&gt; 3       3 Trajectory 1          6             3           2       1  0.6324555</span></span>
-<span><span class="co">#&gt; 4       4 Trajectory 1          6             3           2       1  0.6324555</span></span>
-<span><span class="co">#&gt; 5       5 Trajectory 1          6             3           2       1  0.6324555</span></span>
-<span><span class="co">#&gt; 6       6 Trajectory 1          6             3           2       1  0.6324555</span></span>
-<span><span class="co">#&gt;   volatility integrative_potential negative_exposure</span></span>
-<span><span class="co">#&gt; 1        0.7                    NA                NA</span></span>
-<span><span class="co">#&gt; 2        0.7                    NA                NA</span></span>
-<span><span class="co">#&gt; 3        0.7                    NA                NA</span></span>
-<span><span class="co">#&gt; 4        0.7                    NA                NA</span></span>
-<span><span class="co">#&gt; 5        0.7                    NA                NA</span></span>
-<span><span class="co">#&gt; 6        0.7                    NA                NA</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fit</span>, unit <span class="op">=</span> <span class="st">"observation"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   student course   state position   trajectory</span></span>
-<span><span class="co">#&gt; 1       1      1 State 1        1 Trajectory 1</span></span>
-<span><span class="co">#&gt; 2       1      2 State 1        2 Trajectory 1</span></span>
-<span><span class="co">#&gt; 3       1      3 State 2        3 Trajectory 1</span></span>
-<span><span class="co">#&gt; 4       1      4 State 2        4 Trajectory 1</span></span>
-<span><span class="co">#&gt; 5       1      5 State 3        5 Trajectory 1</span></span>
-<span><span class="co">#&gt; 6       1      6 State 3        6 Trajectory 1</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fit</span>, unit <span class="op">=</span> <span class="st">"trajectory"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;     trajectory  n proportion mean_within_distance n_observed unique_states</span></span>
-<span><span class="co">#&gt; 1 Trajectory 1 12  0.3333333                    0          6             3</span></span>
-<span><span class="co">#&gt; 2 Trajectory 2 12  0.3333333                    0          6             3</span></span>
-<span><span class="co">#&gt; 3 Trajectory 3 12  0.3333333                    0          6             3</span></span>
-<span><span class="co">#&gt;   transitions entropy complexity volatility integrative_potential</span></span>
-<span><span class="co">#&gt; 1           2       1  0.6324555        0.7                   NaN</span></span>
-<span><span class="co">#&gt; 2           2       1  0.6324555        0.7                   NaN</span></span>
-<span><span class="co">#&gt; 3           2       1  0.6324555        0.7                   NaN</span></span>
-<span><span class="co">#&gt;   negative_exposure</span></span>
-<span><span class="co">#&gt; 1               NaN</span></span>
-<span><span class="co">#&gt; 2               NaN</span></span>
-<span><span class="co">#&gt; 3               NaN</span></span></code></pre></div>
+<span><span class="co">#&gt; VaSSTra Analysis</span></span>
+<span><span class="co">#&gt;   142 subjects | 8 times | 3 states | 3 trajectories</span></span>
+<span><span class="co">#&gt;   hamming + pam | silhouette 0.435</span></span></code></pre></div>
 <p>Name any decision to take it over; automation only fills what you
 omit. Labels are the shortest way to fix a count — three labels mean
 three states — and a candidate vector such as
 <code>n_states = 2:4</code> compares exactly those counts and fits the
-recommended one.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+recommended one. Two more arguments control how states display
+everywhere: <code>state_order</code> fixes the order states appear in
+across every plot, and <code>state_colors</code> sets a state palette
+that is stored on the fit and reused by every plot.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vasstra.html">vasstra</a></span><span class="op">(</span></span>
-<span>  <span class="va">data</span>,</span>
-<span>  state_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Low"</span>, <span class="st">"Average"</span>, <span class="st">"High"</span><span class="op">)</span>,</span>
-<span>  trajectory_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Stable low"</span>, <span class="st">"Moving"</span>, <span class="st">"Stable high"</span><span class="op">)</span>,</span>
+<span>  <span class="va">engagement</span>,</span>
+<span>  state_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Disengaged"</span>, <span class="st">"Average"</span>, <span class="st">"Active"</span><span class="op">)</span>,</span>
+<span>  trajectory_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Mostly active"</span>, <span class="st">"Mostly average"</span>, <span class="st">"Mostly disengaged"</span><span class="op">)</span>,</span>
 <span>  dissimilarity <span class="op">=</span> <span class="st">"lcs"</span>,</span>
 <span>  cluster_method <span class="op">=</span> <span class="st">"ward.D2"</span>,</span>
-<span>  positive_states <span class="op">=</span> <span class="st">"High"</span>,</span>
-<span>  negative_states <span class="op">=</span> <span class="st">"Low"</span></span>
+<span>  positive_states <span class="op">=</span> <span class="st">"Active"</span>,</span>
+<span>  negative_states <span class="op">=</span> <span class="st">"Disengaged"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="evaluate-the-clustering">Evaluate the clustering<a class="anchor" aria-label="anchor" href="#evaluate-the-clustering"></a>
 </h2>
 <p><code><a href="../reference/evaluate.html">evaluate()</a></code> compares the fitted numbers of states and
-trajectories against the neighboring counts and reports per-cluster
+trajectories against the alternative counts and reports per-cluster
 quality. Printing shows both tables; plotting draws the selection curve,
 per-cluster silhouette widths, and group sizes.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">evaluation</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/evaluate.html">evaluate</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">evaluation</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/evaluate.html">evaluate</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="va">evaluation</span></span>
-<span><span class="co">#&gt; VaSStra clustering evaluation: states (lpa)</span></span>
-<span><span class="co">#&gt;   Fitted: 3 states | silhouette 0.979</span></span>
-<span><span class="co">#&gt;   Candidates:</span></span>
-<span><span class="co">#&gt;  n_states method lpa_model silhouette       bic       aic</span></span>
-<span><span class="co">#&gt;         2    lpa       EEI      0.738  1252.237  1218.485</span></span>
-<span><span class="co">#&gt;         3    lpa       EEI      0.979 -3020.208 -3067.462</span></span>
-<span><span class="co">#&gt;         4    lpa       EEI      0.754 -3008.104 -3068.859</span></span>
-<span><span class="co">#&gt;         5    lpa       EEI      0.587 -2988.741 -3062.997</span></span>
-<span><span class="co">#&gt;         6    lpa       EEI      0.521 -2968.898 -3056.655</span></span>
-<span><span class="co">#&gt;  classification_entropy min_size max_size size_ratio eligible  best fitted</span></span>
-<span><span class="co">#&gt;                   0.997       72      144          2     TRUE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;                   1.000       72       72          1     TRUE  TRUE   TRUE</span></span>
-<span><span class="co">#&gt;                   0.967        4       72         18    FALSE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;                   0.935        3       72         24    FALSE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;                   0.924        1       72         72    FALSE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;   Fitted states:</span></span>
-<span><span class="co">#&gt;    state  n proportion silhouette</span></span>
-<span><span class="co">#&gt;  State 1 72      0.333      0.978</span></span>
-<span><span class="co">#&gt;  State 2 72      0.333      0.979</span></span>
-<span><span class="co">#&gt;  State 3 72      0.333      0.979</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; VaSStra clustering evaluation: trajectories (hamming + pam)</span></span>
-<span><span class="co">#&gt;   Fitted: 3 trajectories | silhouette 1.000</span></span>
-<span><span class="co">#&gt;   Candidates:</span></span>
-<span><span class="co">#&gt;  n_trajectories dissimilarity method silhouette mean_within_distance min_size</span></span>
-<span><span class="co">#&gt;               2       hamming    pam      0.652                2.087       12</span></span>
-<span><span class="co">#&gt;               3       hamming    pam      1.000                0.000       12</span></span>
-<span><span class="co">#&gt;               4       hamming    pam      0.667                0.000        1</span></span>
-<span><span class="co">#&gt;               5       hamming    pam      0.667                0.000        1</span></span>
-<span><span class="co">#&gt;               6       hamming    pam      0.667                0.000        1</span></span>
-<span><span class="co">#&gt;  max_size size_ratio eligible  best fitted</span></span>
-<span><span class="co">#&gt;        24          2     TRUE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;        12          1     TRUE  TRUE   TRUE</span></span>
-<span><span class="co">#&gt;        12         12    FALSE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;        12         12    FALSE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;        12         12    FALSE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;   Fitted trajectories:</span></span>
-<span><span class="co">#&gt;    trajectory  n proportion mean_within_distance silhouette</span></span>
-<span><span class="co">#&gt;  Trajectory 1 12      0.333                    0          1</span></span>
-<span><span class="co">#&gt;  Trajectory 2 12      0.333                    0          1</span></span>
-<span><span class="co">#&gt;  Trajectory 3 12      0.333                    0          1</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">evaluation</span><span class="op">)</span></span></code></pre></div>
 <p><img src="get-started_files/figure-html/evaluate-plot-1.png" class="r-plt" alt="" width="672"></p>
 <p>The same verb works on a single step, with any candidate range:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">state_evaluation</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/evaluate.html">evaluate</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">states</span>, n_states <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">state_evaluation</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   n_states method lpa_model silhouette       bic       aic</span></span>
-<span><span class="co">#&gt; 1        2    lpa       EEI  0.7380052  1252.237  1218.485</span></span>
-<span><span class="co">#&gt; 2        3    lpa       EEI  0.9786523 -3020.208 -3067.462</span></span>
-<span><span class="co">#&gt; 3        4    lpa       EEI  0.7539322 -3008.104 -3068.859</span></span>
-<span><span class="co">#&gt; 4        5    lpa       EEI  0.5866211 -2988.741 -3062.997</span></span>
-<span><span class="co">#&gt;   classification_entropy min_size max_size size_ratio eligible  best fitted</span></span>
-<span><span class="co">#&gt; 1              0.9974592       72      144          2     TRUE FALSE  FALSE</span></span>
-<span><span class="co">#&gt; 2              1.0000000       72       72          1     TRUE  TRUE   TRUE</span></span>
-<span><span class="co">#&gt; 3              0.9670127        4       72         18    FALSE FALSE  FALSE</span></span>
-<span><span class="co">#&gt; 4              0.9354653        3       72         24    FALSE FALSE  FALSE</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">state_evaluation</span><span class="op">)</span></span>
-<span><span class="co">#&gt;     state  n proportion silhouette</span></span>
-<span><span class="co">#&gt; 1 State 1 72  0.3333333  0.9780484</span></span>
-<span><span class="co">#&gt; 2 State 2 72  0.3333333  0.9789273</span></span>
-<span><span class="co">#&gt; 3 State 3 72  0.3333333  0.9789813</span></span></code></pre></div>
+<span><span class="co">#&gt;        state   n proportion silhouette</span></span>
+<span><span class="co">#&gt; 1 Disengaged 266  0.2341549  0.3245448</span></span>
+<span><span class="co">#&gt; 2    Average 551  0.4850352  0.2287734</span></span>
+<span><span class="co">#&gt; 3     Active 319  0.2808099  0.2607385</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="tidy-fit-indices">Tidy fit indices<a class="anchor" aria-label="anchor" href="#tidy-fit-indices"></a>
@@ -243,49 +152,49 @@ information-criterion family together with entropy and the extreme
 average posterior class probabilities; hard-clustering methods report
 their own objectives instead, and columns that do not apply are
 dropped.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/fit_indices.html">fit_indices</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt; VaSStra fit indices: states (lpa)</span></span>
+<span><span class="co">#&gt; VaSSTra fit indices: states (lpa)</span></span>
 <span><span class="co">#&gt;  n_states method lpa_model log_likelihood n_parameters      aic      bic</span></span>
-<span><span class="co">#&gt;         3    lpa       EEI        1547.73           14 -3067.46 -3020.21</span></span>
+<span><span class="co">#&gt;         3    lpa       EEI       -9940.47           34 19948.93 20120.13</span></span>
 <span><span class="co">#&gt;     sabic     caic      awe      clc      kic      icl entropy prob_min</span></span>
-<span><span class="co">#&gt;  -3064.57 -3006.21 -2902.95 -3095.46 -3050.46 -3020.21       1        1</span></span>
+<span><span class="co">#&gt;  20012.14 20154.13 20461.33 20144.89 19985.93 20384.09   0.894    0.945</span></span>
 <span><span class="co">#&gt;  prob_max silhouette min_size max_size size_ratio</span></span>
-<span><span class="co">#&gt;         1      0.979       72       72          1</span></span>
+<span><span class="co">#&gt;     0.956       0.26      266      551       2.07</span></span>
 <span><span class="fu"><a href="../reference/fit_indices.html">fit_indices</a></span><span class="op">(</span><span class="va">fit</span>, compare <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; VaSStra fit indices: states (lpa)</span></span>
+<span><span class="co">#&gt; VaSSTra fit indices: states (lpa)</span></span>
 <span><span class="co">#&gt;  n_states method lpa_model log_likelihood n_parameters      aic      bic</span></span>
-<span><span class="co">#&gt;         2    lpa       EEI        -599.24           10  1218.48  1252.24</span></span>
-<span><span class="co">#&gt;         3    lpa       EEI        1547.73           14 -3067.46 -3020.21</span></span>
-<span><span class="co">#&gt;         4    lpa       EEI        1552.43           18 -3068.86 -3008.10</span></span>
-<span><span class="co">#&gt;         5    lpa       EEI        1553.50           22 -3063.00 -2988.74</span></span>
-<span><span class="co">#&gt;         6    lpa       EEI        1554.33           26 -3056.66 -2968.90</span></span>
+<span><span class="co">#&gt;         2    lpa       EEI      -10751.56           25 21553.12 21679.00</span></span>
+<span><span class="co">#&gt;         3    lpa       EEI       -9940.47           34 19948.93 20120.13</span></span>
+<span><span class="co">#&gt;         4    lpa       EEI       -9529.86           43 19145.73 19362.25</span></span>
+<span><span class="co">#&gt;         5    lpa       EEI       -9321.57           52 18747.13 19008.96</span></span>
+<span><span class="co">#&gt;         6    lpa       EEI       -9085.82           61 18293.64 18600.79</span></span>
 <span><span class="co">#&gt;     sabic     caic      awe      clc      kic      icl entropy prob_min</span></span>
-<span><span class="co">#&gt;   1220.55  1262.24  1335.99  1199.25  1231.48  1253.00   0.997    1.000</span></span>
-<span><span class="co">#&gt;  -3064.57 -3006.21 -2902.95 -3095.46 -3050.46 -3020.21   1.000    1.000</span></span>
-<span><span class="co">#&gt;  -3065.14 -2990.10 -2857.35 -3085.10 -3047.86 -2988.35   0.967    0.829</span></span>
-<span><span class="co">#&gt;  -3058.45 -2966.74 -2804.48 -3062.13 -3038.00 -2943.87   0.935    0.730</span></span>
-<span><span class="co">#&gt;  -3051.29 -2942.90 -2751.14 -3049.93 -3027.66 -2910.17   0.924    0.770</span></span>
+<span><span class="co">#&gt;  21599.59 21704.00 21929.88 21655.20 21581.12 21831.08   0.903    0.973</span></span>
+<span><span class="co">#&gt;  20012.14 20154.13 20461.33 20144.89 19985.93 20384.09   0.894    0.945</span></span>
+<span><span class="co">#&gt;  19225.66 19405.25 19793.76 19397.81 19191.73 19700.33   0.893    0.928</span></span>
+<span><span class="co">#&gt;  18843.80 19060.96 19530.80 19113.95 18802.13 19479.79   0.871    0.873</span></span>
+<span><span class="co">#&gt;  18407.04 18661.79 19212.95 18633.20 18357.64 19062.35   0.887    0.876</span></span>
 <span><span class="co">#&gt;  prob_max silhouette min_size max_size size_ratio eligible  best fitted</span></span>
-<span><span class="co">#&gt;         1      0.738       72      144          2     TRUE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;         1      0.979       72       72          1     TRUE  TRUE   TRUE</span></span>
-<span><span class="co">#&gt;         1      0.754        4       72         18    FALSE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;         1      0.587        3       72         24    FALSE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;         1      0.521        1       72         72    FALSE FALSE  FALSE</span></span>
+<span><span class="co">#&gt;     0.975      0.351      509      627       1.23     TRUE FALSE  FALSE</span></span>
+<span><span class="co">#&gt;     0.956      0.260      266      551       2.07     TRUE FALSE   TRUE</span></span>
+<span><span class="co">#&gt;     0.969      0.203      152      414       2.72     TRUE FALSE  FALSE</span></span>
+<span><span class="co">#&gt;     0.964      0.197      155      367       2.37     TRUE  TRUE  FALSE</span></span>
+<span><span class="co">#&gt;     0.973      0.181       33      350      10.61    FALSE FALSE  FALSE</span></span>
 <span><span class="fu"><a href="../reference/fit_indices.html">fit_indices</a></span><span class="op">(</span><span class="va">fit</span>, step <span class="op">=</span> <span class="st">"trajectories"</span>, compare <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; VaSStra fit indices: trajectories (hamming + pam)</span></span>
+<span><span class="co">#&gt; VaSSTra fit indices: trajectories (hamming + pam)</span></span>
 <span><span class="co">#&gt;  n_trajectories dissimilarity method silhouette mean_within_distance min_size</span></span>
-<span><span class="co">#&gt;               2       hamming    pam      0.652                 2.09       12</span></span>
-<span><span class="co">#&gt;               3       hamming    pam      1.000                 0.00       12</span></span>
-<span><span class="co">#&gt;               4       hamming    pam      0.667                 0.00        1</span></span>
-<span><span class="co">#&gt;               5       hamming    pam      0.667                 0.00        1</span></span>
-<span><span class="co">#&gt;               6       hamming    pam      0.667                 0.00        1</span></span>
+<span><span class="co">#&gt;               2       hamming    pam      0.350                 4.03       47</span></span>
+<span><span class="co">#&gt;               3       hamming    pam      0.435                 3.02       32</span></span>
+<span><span class="co">#&gt;               4       hamming    pam      0.376                 2.83       15</span></span>
+<span><span class="co">#&gt;               5       hamming    pam      0.347                 2.67       15</span></span>
+<span><span class="co">#&gt;               6       hamming    pam      0.335                 2.49       12</span></span>
 <span><span class="co">#&gt;  max_size size_ratio eligible  best fitted</span></span>
-<span><span class="co">#&gt;        24          2     TRUE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;        12          1     TRUE  TRUE   TRUE</span></span>
-<span><span class="co">#&gt;        12         12    FALSE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;        12         12    FALSE FALSE  FALSE</span></span>
-<span><span class="co">#&gt;        12         12    FALSE FALSE  FALSE</span></span></code></pre></div>
+<span><span class="co">#&gt;        95       2.02     TRUE FALSE  FALSE</span></span>
+<span><span class="co">#&gt;        68       2.12     TRUE  TRUE   TRUE</span></span>
+<span><span class="co">#&gt;        59       3.93     TRUE FALSE  FALSE</span></span>
+<span><span class="co">#&gt;        54       3.60     TRUE FALSE  FALSE</span></span>
+<span><span class="co">#&gt;        40       3.33     TRUE FALSE  FALSE</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="name-groups-after-inspecting-them">Name groups after inspecting them<a class="anchor" aria-label="anchor" href="#name-groups-after-inspecting-them"></a>
@@ -294,21 +203,20 @@ dropped.</p>
 place — nothing is refitted, no value changes — and the new names flow
 through every table, sequence, and plot. Rename everything with a full
 vector, or only some groups by name.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_labels.html">set_labels</a></span><span class="op">(</span></span>
 <span>  <span class="va">fit</span>,</span>
-<span>  states <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Low"</span>, <span class="st">"Average"</span>, <span class="st">"High"</span><span class="op">)</span>,</span>
-<span>  trajectories <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Mostly high"</span>, <span class="st">"Mixed"</span>, <span class="st">"Mostly low"</span><span class="op">)</span></span>
+<span>  trajectories <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Mostly active"</span>, <span class="st">"Mostly average"</span>, <span class="st">"Mostly disengaged"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    trajectory  n proportion mean_within_distance n_observed unique_states</span></span>
-<span><span class="co">#&gt; 1 Mostly high 12  0.3333333                    0          6             3</span></span>
-<span><span class="co">#&gt; 2       Mixed 12  0.3333333                    0          6             3</span></span>
-<span><span class="co">#&gt; 3  Mostly low 12  0.3333333                    0          6             3</span></span>
-<span><span class="co">#&gt;   transitions entropy complexity volatility integrative_potential</span></span>
-<span><span class="co">#&gt; 1           2       1  0.6324555        0.7                   NaN</span></span>
-<span><span class="co">#&gt; 2           2       1  0.6324555        0.7                   NaN</span></span>
-<span><span class="co">#&gt; 3           2       1  0.6324555        0.7                   NaN</span></span>
+<span><span class="co">#&gt;          trajectory  n proportion mean_within_distance n_observed unique_states</span></span>
+<span><span class="co">#&gt; 1     Mostly active 42  0.2957746             2.874564          8      1.880952</span></span>
+<span><span class="co">#&gt; 2    Mostly average 68  0.4788732             3.115013          8      1.985294</span></span>
+<span><span class="co">#&gt; 3 Mostly disengaged 32  0.2253521             3.002016          8      1.843750</span></span>
+<span><span class="co">#&gt;   transitions   entropy complexity volatility integrative_potential</span></span>
+<span><span class="co">#&gt; 1    1.928571 0.4240368  0.3348902  0.4512472                   NaN</span></span>
+<span><span class="co">#&gt; 2    2.220588 0.4625493  0.3735486  0.4894958                   NaN</span></span>
+<span><span class="co">#&gt; 3    2.062500 0.4260927  0.3491121  0.4546131                   NaN</span></span>
 <span><span class="co">#&gt;   negative_exposure</span></span>
 <span><span class="co">#&gt; 1               NaN</span></span>
 <span><span class="co">#&gt; 2               NaN</span></span>
@@ -320,43 +228,42 @@ vector, or only some groups by name.</p>
 <p>Each step accepts the result of the previous step and also runs alone
 with the same automated defaults. Use the steps when intermediate
 results are needed, or when states come from another method.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">states</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/step1_states.html">step1_states</a></span><span class="op">(</span><span class="va">data</span>, n_states <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>                       labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Low"</span>, <span class="st">"Average"</span>, <span class="st">"High"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Detected id = "student", time = "course", variables = 3 numeric indicators.</span></span>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">states</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/step1_states.html">step1_states</a></span><span class="op">(</span><span class="va">engagement</span>, n_states <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>                       labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Disengaged"</span>, <span class="st">"Average"</span>, <span class="st">"Active"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">sequences</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/step2_sequences.html">step2_sequences</a></span><span class="op">(</span><span class="va">states</span><span class="op">)</span></span>
 <span><span class="va">trajectories</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/step3_trajectories.html">step3_trajectories</a></span><span class="op">(</span><span class="va">sequences</span>, n_trajectories <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">description</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/step4_describe.html">step4_describe</a></span><span class="op">(</span></span>
 <span>  <span class="va">trajectories</span>,</span>
-<span>  positive_states <span class="op">=</span> <span class="st">"High"</span>,</span>
-<span>  negative_states <span class="op">=</span> <span class="st">"Low"</span></span>
+<span>  positive_states <span class="op">=</span> <span class="st">"Active"</span>,</span>
+<span>  negative_states <span class="op">=</span> <span class="st">"Disengaged"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">description</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     trajectory  n proportion mean_within_distance n_observed unique_states</span></span>
-<span><span class="co">#&gt; 1 Trajectory 1 12  0.3333333                    0          6             3</span></span>
-<span><span class="co">#&gt; 2 Trajectory 2 12  0.3333333                    0          6             3</span></span>
-<span><span class="co">#&gt; 3 Trajectory 3 12  0.3333333                    0          6             3</span></span>
-<span><span class="co">#&gt;   transitions entropy complexity volatility integrative_potential</span></span>
-<span><span class="co">#&gt; 1           2       1  0.6324555        0.7             0.3333333</span></span>
-<span><span class="co">#&gt; 2           2       1  0.6324555        0.7             0.1428571</span></span>
-<span><span class="co">#&gt; 3           2       1  0.6324555        0.7             0.5238095</span></span>
+<span><span class="co">#&gt; 1 Trajectory 1 42  0.2957746             2.874564          8      1.880952</span></span>
+<span><span class="co">#&gt; 2 Trajectory 2 68  0.4788732             3.115013          8      1.985294</span></span>
+<span><span class="co">#&gt; 3 Trajectory 3 32  0.2253521             3.002016          8      1.843750</span></span>
+<span><span class="co">#&gt;   transitions   entropy complexity volatility integrative_potential</span></span>
+<span><span class="co">#&gt; 1    1.928571 0.4240368  0.3348902  0.4512472             0.7638889</span></span>
+<span><span class="co">#&gt; 2    2.220588 0.4625493  0.3735486  0.4894958             0.1156046</span></span>
+<span><span class="co">#&gt; 3    2.062500 0.4260927  0.3491121  0.4546131             0.0000000</span></span>
 <span><span class="co">#&gt;   negative_exposure</span></span>
-<span><span class="co">#&gt; 1         0.5238095</span></span>
-<span><span class="co">#&gt; 2         0.3333333</span></span>
-<span><span class="co">#&gt; 3         0.1428571</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       0.009259259</span></span>
+<span><span class="co">#&gt; 2       0.118464052</span></span>
+<span><span class="co">#&gt; 3       0.766493056</span></span></code></pre></div>
 <p>Existing states from LPA, LCA, or any other source enter at step 2:
-pass a data frame whose state column is detected (or named with
-<code>state</code>).</p>
+pass a data frame whose state column is detected automatically (or named
+with the <code>state</code> argument).</p>
 </div>
 <div class="section level2">
 <h2 id="state-plots">State plots<a class="anchor" aria-label="anchor" href="#state-plots"></a>
 </h2>
 <p>State results support profile, bar, heatmap, and size plots without
 adding a plotting dependency, plus a combined overview.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">states</span>, type <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="get-started_files/figure-html/state-plots-1.png" class="r-plt" alt="" width="672"></p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">states</span>, type <span class="op">=</span> <span class="st">"profile"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="get-started_files/figure-html/state-profile-1.png" class="r-plt" alt="" width="672"></p>
 </div>
@@ -364,10 +271,10 @@ adding a plotting dependency, plus a combined overview.</p>
 <h2 id="sequence-and-trajectory-plots">Sequence and trajectory plots<a class="anchor" aria-label="anchor" href="#sequence-and-trajectory-plots"></a>
 </h2>
 <p>Every plot containing state sequences is rendered by Nestimate:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trajectories</span>, type <span class="op">=</span> <span class="st">"index"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="get-started_files/figure-html/sequence-plot-1.png" class="r-plt" alt="" width="672"></p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trajectories</span>, type <span class="op">=</span> <span class="st">"distribution"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="get-started_files/figure-html/sequence-plot-2.png" class="r-plt" alt="" width="672"></p>
 </div>
@@ -379,32 +286,31 @@ adding a plotting dependency, plus a combined overview.</p>
 grid across methods and counts and return one tidy row per candidate.
 Nothing is selected silently; pass the inspected
 <code>candidate_id</code> to fit.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">state_options</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/state_choices.html">state_choices</a></span><span class="op">(</span></span>
-<span>  <span class="va">data</span>,</span>
+<span>  <span class="va">engagement</span>,</span>
 <span>  n_states <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fl">4</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"kmeans"</span>, <span class="st">"pam"</span>, <span class="st">"ward.D2"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Detected id = "student", time = "course", variables = 3 numeric indicators.</span></span>
 <span><span class="va">state_options</span></span>
-<span><span class="co">#&gt; VaSStra state choices</span></span>
+<span><span class="co">#&gt; VaSSTra state choices</span></span>
 <span><span class="co">#&gt;   9 candidates | 9 successful | 3 recommended</span></span>
 <span><span class="co">#&gt;  candidate_id n_states  method lpa_model recommendation_criterion silhouette</span></span>
-<span><span class="co">#&gt;             2        3  kmeans      &lt;NA&gt;               silhouette  0.9786523</span></span>
-<span><span class="co">#&gt;             5        3     pam      &lt;NA&gt;               silhouette  0.9786523</span></span>
-<span><span class="co">#&gt;             8        3 ward.D2      &lt;NA&gt;               silhouette  0.9786523</span></span>
+<span><span class="co">#&gt;             1        2  kmeans      &lt;NA&gt;               silhouette  0.3519794</span></span>
+<span><span class="co">#&gt;             4        2     pam      &lt;NA&gt;               silhouette  0.3497139</span></span>
+<span><span class="co">#&gt;             7        2 ward.D2      &lt;NA&gt;               silhouette  0.3312179</span></span>
 <span><span class="co">#&gt;  bic min_size eligible</span></span>
-<span><span class="co">#&gt;   NA       72     TRUE</span></span>
-<span><span class="co">#&gt;   NA       72     TRUE</span></span>
-<span><span class="co">#&gt;   NA       72     TRUE</span></span>
+<span><span class="co">#&gt;   NA      519     TRUE</span></span>
+<span><span class="co">#&gt;   NA      543     TRUE</span></span>
+<span><span class="co">#&gt;   NA      483     TRUE</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">state_options</span>, metric <span class="op">=</span> <span class="st">"silhouette"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="get-started_files/figure-html/state-choices-1.png" class="r-plt" alt="" width="672"></p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">chosen_states</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_state_choice.html">fit_state_choice</a></span><span class="op">(</span></span>
 <span>  <span class="va">state_options</span>,</span>
 <span>  n_states <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"kmeans"</span>,</span>
-<span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Low"</span>, <span class="st">"Average"</span>, <span class="st">"High"</span><span class="op">)</span></span>
+<span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Disengaged"</span>, <span class="st">"Average"</span>, <span class="st">"Active"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><code>fit_state_choice(state_options)</code> with no selection fits
 the recommended candidate; <code>candidate_id</code> remains available
@@ -415,7 +321,7 @@ the best eligible candidate separately for each method rather than
 declaring one algorithm universally best. LPA candidates are recommended
 by conventional BIC, with AIC, silhouette, or native mclust ICL
 available through <code>lpa_criterion</code>.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">trajectory_options</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/trajectory_choices.html">trajectory_choices</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/step2_sequences.html">step2_sequences</a></span><span class="op">(</span><span class="va">chosen_states</span><span class="op">)</span>,</span>
 <span>  n_trajectories <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fl">4</span>,</span>
@@ -423,13 +329,13 @@ available through <code>lpa_criterion</code>.</p>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pam"</span>, <span class="st">"ward.D2"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">trajectory_options</span></span>
-<span><span class="co">#&gt; VaSStra trajectory choices (Nestimate)</span></span>
+<span><span class="co">#&gt; VaSSTra trajectory choices (Nestimate)</span></span>
 <span><span class="co">#&gt;   12 candidates | 4 recommended distance-method solutions</span></span>
 <span><span class="co">#&gt;  candidate_id n_trajectories dissimilarity  method silhouette min_size eligible</span></span>
-<span><span class="co">#&gt;             2              3       hamming     pam          1       12     TRUE</span></span>
-<span><span class="co">#&gt;             5              3           lcs     pam          1       12     TRUE</span></span>
-<span><span class="co">#&gt;             8              3       hamming ward.D2          1       12     TRUE</span></span>
-<span><span class="co">#&gt;            11              3           lcs ward.D2          1       12     TRUE</span></span>
+<span><span class="co">#&gt;             2              3       hamming     pam  0.4376591       35     TRUE</span></span>
+<span><span class="co">#&gt;             5              3           lcs     pam  0.5312267       27     TRUE</span></span>
+<span><span class="co">#&gt;             8              3       hamming ward.D2  0.3926622       33     TRUE</span></span>
+<span><span class="co">#&gt;            11              3           lcs ward.D2  0.4733234       40     TRUE</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">trajectory_options</span>, metric <span class="op">=</span> <span class="st">"silhouette"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="get-started_files/figure-html/trajectory-choices-1.png" class="r-plt" alt="" width="672"></p>
 <p>Recommendations are made within each distance-method pair because

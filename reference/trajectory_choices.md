@@ -79,7 +79,7 @@ choices <- trajectory_choices(
   method = c("pam", "ward.D2")
 )
 choices
-#> VaSStra trajectory choices (Nestimate)
+#> VaSSTra trajectory choices (Nestimate)
 #>   4 candidates | 2 recommended distance-method solutions
 #>  candidate_id n_trajectories dissimilarity  method silhouette min_size eligible
 #>             1              2       hamming     pam          1        3     TRUE

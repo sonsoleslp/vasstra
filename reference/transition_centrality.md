@@ -85,13 +85,13 @@ which is a different claim from attracting movement.
 
 ## See also
 
-[`transition_plot()`](https://pak.dynasite.org/VaSStra/reference/transition_plot.md)
+[`transition_plot()`](https://sonsoles.me/vasstra/reference/transition_plot.md)
 to draw the network.
 
 ## Examples
 
 ``` r
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 transition_centrality(fit)
 #>     state InStrength OutStrength

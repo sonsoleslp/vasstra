@@ -1,7 +1,7 @@
 # Plot Trajectory-Clustering Choices
 
 Draws a compact Nestimate model-selection plot from
-[`trajectory_choices()`](https://pak.dynasite.org/VaSStra/reference/trajectory_choices.md).
+[`trajectory_choices()`](https://sonsoles.me/vasstra/reference/trajectory_choices.md).
 Each line is one distance-method combination. A ring marks the optimal
 eligible value of the plotted metric within each group; hollow points
 mark candidates that fail the requested size constraints.
@@ -61,7 +61,7 @@ The tidy candidate data used in the plot, invisibly.
 ## Examples
 
 ``` r
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 sequences <- step2_sequences(step1_states(engagement, n_states = 3))
 options <- trajectory_choices(sequences, n_trajectories = 2:4)
 plot(options)

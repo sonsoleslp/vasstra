@@ -32,7 +32,7 @@ step3_trajectories(
 
   Number of trajectory groups. One number fits exactly that count,
   several numbers (for example `2:4`) compare those candidates with
-  [`trajectory_choices()`](https://pak.dynasite.org/VaSStra/reference/trajectory_choices.md)
+  [`trajectory_choices()`](https://sonsoles.me/vasstra/reference/trajectory_choices.md)
   and fit the recommended count, and `"auto"` (default) compares 2
   through 6 — or simply matches `labels` when labels are supplied.
   Automatic comparison never selects a solution whose smallest group
@@ -89,7 +89,7 @@ sequences <- step2_sequences(
 )
 trajectories <- step3_trajectories(sequences, n_trajectories = 3)
 trajectories
-#> VaSStra Step 3: Sequences -> Trajectories
+#> VaSSTra Step 3: Sequences -> Trajectories
 #>   6 sequences | 3 trajectories | hamming + pam | silhouette 0.611
 #>   Sizes: Trajectory 1=2, Trajectory 2=2, Trajectory 3=2
 ```

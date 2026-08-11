@@ -4,7 +4,7 @@ Fits a tidy grid of state solutions. No solution is silently selected.
 Hard-clustering recommendations maximize silhouette within each method;
 LPA recommendations use the explicit `lpa_criterion`, subject to the
 requested size constraints. Use
-[`fit_state_choice()`](https://pak.dynasite.org/VaSStra/reference/fit_state_choice.md)
+[`fit_state_choice()`](https://sonsoles.me/vasstra/reference/fit_state_choice.md)
 with a `candidate_id` after inspecting the table.
 
 ## Usage
@@ -39,17 +39,17 @@ state_choices(
 - id:
 
   Name of the subject identifier column. May be omitted when the data
-  carry VaSStra role metadata.
+  carry VaSSTra role metadata.
 
 - time:
 
   Name of the time or ordering column. May be omitted when the data
-  carry VaSStra role metadata.
+  carry VaSSTra role metadata.
 
 - variables:
 
   Character vector naming numeric state indicators. May be omitted when
-  the data carry VaSStra role metadata.
+  the data carry VaSSTra role metadata.
 
 - n_states:
 
@@ -58,7 +58,7 @@ state_choices(
 - method:
 
   State-clustering methods to compare. See
-  [`step1_states()`](https://pak.dynasite.org/VaSStra/reference/step1_states.md).
+  [`step1_states()`](https://sonsoles.me/vasstra/reference/step1_states.md).
 
 - lpa_model:
 
@@ -74,7 +74,7 @@ state_choices(
 - standardize, missing, time_levels, n_start, seed:
 
   Passed to
-  [`step1_states()`](https://pak.dynasite.org/VaSStra/reference/step1_states.md).
+  [`step1_states()`](https://sonsoles.me/vasstra/reference/step1_states.md).
 
 - minimum_size:
 
@@ -111,7 +111,7 @@ choices <- state_choices(
   method = c("kmeans", "pam")
 )
 choices
-#> VaSStra state choices
+#> VaSSTra state choices
 #>   6 candidates | 6 successful | 2 recommended
 #>  candidate_id n_states method lpa_model recommendation_criterion silhouette bic
 #>             2        3 kmeans      <NA>               silhouette          1  NA

@@ -1,11 +1,11 @@
-# Run the Complete VaSStra Workflow
+# Run the Complete VaSSTra Workflow
 
 A one-call wrapper around
-[`step1_states()`](https://pak.dynasite.org/VaSStra/reference/step1_states.md),
-[`step2_sequences()`](https://pak.dynasite.org/VaSStra/reference/step2_sequences.md),
-[`step3_trajectories()`](https://pak.dynasite.org/VaSStra/reference/step3_trajectories.md),
+[`step1_states()`](https://sonsoles.me/vasstra/reference/step1_states.md),
+[`step2_sequences()`](https://sonsoles.me/vasstra/reference/step2_sequences.md),
+[`step3_trajectories()`](https://sonsoles.me/vasstra/reference/step3_trajectories.md),
 and
-[`step4_describe()`](https://pak.dynasite.org/VaSStra/reference/step4_describe.md).
+[`step4_describe()`](https://sonsoles.me/vasstra/reference/step4_describe.md).
 Every argument has a working default, so `vasstra(data)` runs a complete
 analysis: subject, time, and indicator roles come from explicit
 arguments, attached role metadata, or common column names, and the
@@ -25,6 +25,8 @@ vasstra(
   n_states = "auto",
   n_trajectories = "auto",
   state_labels = NULL,
+  state_order = NULL,
+  state_colors = NULL,
   trajectory_labels = NULL,
   state_name = "state",
   standardize = NULL,
@@ -56,12 +58,12 @@ vasstra(
 
 - id:
 
-  Subject identifier column. May be omitted when the data carry VaSStra
+  Subject identifier column. May be omitted when the data carry VaSSTra
   role metadata or use a common identifier name.
 
 - time:
 
-  Time or ordering column. May be omitted when the data carry VaSStra
+  Time or ordering column. May be omitted when the data carry VaSSTra
   role metadata or use a common time name.
 
 - variables:
@@ -90,6 +92,23 @@ vasstra(
 - state_labels:
 
   Optional labels ordered from low to high profile.
+
+- state_order:
+
+  Optional character vector giving the order the states should appear in
+  every plot (stacking, legends, transition nodes, flow nodes). It must
+  list exactly the same states as `state_labels` (or the observed
+  states, for precomputed input), rearranged. When supplied, the state
+  column becomes a factor in this order. Useful when the cluster
+  discovery order does not match the order that reads best.
+
+- state_colors:
+
+  Optional state palette stored on the fit and reused by every plot
+  without repeating `colors`. Either a named vector
+  (`c(Low = "grey", High = "red", ...)`, matched by state name and
+  robust to `state_order` and renaming) or one colour per state in state
+  order. An explicit `colors` argument to a plot still overrides it.
 
 - trajectory_labels:
 
@@ -124,7 +143,7 @@ vasstra(
 - dissimilarity:
 
   Sequence distance passed to
-  [`step3_trajectories()`](https://pak.dynasite.org/VaSStra/reference/step3_trajectories.md).
+  [`step3_trajectories()`](https://sonsoles.me/vasstra/reference/step3_trajectories.md).
 
 - cluster_method:
 
@@ -157,7 +176,7 @@ vasstra(
 - state_method:
 
   State-clustering method passed to
-  [`step1_states()`](https://pak.dynasite.org/VaSStra/reference/step1_states.md).
+  [`step1_states()`](https://sonsoles.me/vasstra/reference/step1_states.md).
   The default `"lpa"` estimates Gaussian-mixture latent profiles.
 
 - lpa_model:
@@ -184,7 +203,7 @@ fit <- vasstra(data)
 #> Selected n_states = 3 (lpa, bic = -184.086); see `diagnostics$selection`.
 #> Selected n_trajectories = 3 (hamming + pam, silhouette = 1.000); see `diagnostics$selection`.
 fit
-#> VaSStra Analysis
+#> VaSSTra Analysis
 #>   15 subjects | 4 times | 3 states | 3 trajectories
 #>   hamming + pam | silhouette 1.000
 
@@ -199,7 +218,7 @@ fit <- vasstra(
 #> Using n_states = 3 to match the supplied labels.
 #> Selected n_trajectories = 3 (hamming + pam, silhouette = 1.000); see `diagnostics$selection`.
 fit
-#> VaSStra Analysis
+#> VaSSTra Analysis
 #>   15 subjects | 4 times | 3 states | 3 trajectories
 #>   hamming + pam | silhouette 1.000
 ```

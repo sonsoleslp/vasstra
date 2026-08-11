@@ -1,4 +1,4 @@
-# VaSStra Tutorial: Variables, States, Sequences, Trajectories
+# VaSSTra Tutorial: Variables, States, Sequences, Trajectories
 
 Longitudinal engagement data have a structural problem: eight indicators
 per student per course are too many dimensions to compare students on,
@@ -21,18 +21,18 @@ of *Learning Analytics Methods and Tutorials*, in this order:
 4.  Sequences: how states unfold over time.
 5.  Trajectories: groups of similar journeys.
 6.  Describing what the trajectories mean.
-7.  Naming groups after inspecting them.
+7.  Relabeling without refitting.
 8.  Full control: explicit steps and grid comparisons.
 
 | Task | Verb |
 |----|----|
-| Complete analysis | [`vasstra()`](https://pak.dynasite.org/VaSStra/reference/vasstra.md) |
-| Compare cluster counts | [`evaluate()`](https://pak.dynasite.org/VaSStra/reference/evaluate.md), [`plot()`](https://rdrr.io/r/graphics/plot.default.html) |
-| Fit statistics | [`fit_indices()`](https://pak.dynasite.org/VaSStra/reference/fit_indices.md) |
-| Rename groups | [`set_labels()`](https://pak.dynasite.org/VaSStra/reference/set_labels.md) |
+| Complete analysis | [`vasstra()`](https://sonsoles.me/vasstra/reference/vasstra.md) |
+| Compare cluster counts | [`evaluate()`](https://sonsoles.me/vasstra/reference/evaluate.md), [`plot()`](https://rdrr.io/r/graphics/plot.default.html) |
+| Fit statistics | [`fit_indices()`](https://sonsoles.me/vasstra/reference/fit_indices.md) |
+| Rename groups | [`set_labels()`](https://sonsoles.me/vasstra/reference/set_labels.md) |
 | Tidy results | [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html), [`summary()`](https://rdrr.io/r/base/summary.html) |
-| Individual steps | [`step1_states()`](https://pak.dynasite.org/VaSStra/reference/step1_states.md) … [`step4_describe()`](https://pak.dynasite.org/VaSStra/reference/step4_describe.md) |
-| Explicit grids | [`state_choices()`](https://pak.dynasite.org/VaSStra/reference/state_choices.md), [`trajectory_choices()`](https://pak.dynasite.org/VaSStra/reference/trajectory_choices.md) |
+| Individual steps | [`step1_states()`](https://sonsoles.me/vasstra/reference/step1_states.md) … [`step4_describe()`](https://sonsoles.me/vasstra/reference/step4_describe.md) |
+| Explicit grids | [`state_choices()`](https://sonsoles.me/vasstra/reference/state_choices.md), [`trajectory_choices()`](https://sonsoles.me/vasstra/reference/trajectory_choices.md) |
 
 ## 1. The complete analysis in one call
 
@@ -47,24 +47,34 @@ distance with Ward clustering follows the chapter’s trajectory analysis.
 
 ``` r
 
-library(VaSStra)
-data("engagement", package = "VaSStra")
+library(VaSSTra)
+data("engagement", package = "VaSSTra")
 
 fit <- vasstra(
   engagement,
   state_labels = c("Disengaged", "Average", "Active"),
+  state_order  = c("Disengaged", "Average", "Active"),
+  state_colors = c(Disengaged = "#D55E00", Average = "#0072B2", Active = "#009E73"),
   dissimilarity = "lcs",
   cluster_method = "ward.D2",
   positive_states = "Active",
   negative_states = "Disengaged"
 )
 #> Using n_states = 3 to match the supplied labels.
+#> Registered S3 method overwritten by 'Nestimate':
+#>   method     from   
+#>   print.mcml cograph
 #> Selected n_trajectories = 3 (lcs + ward.D2, silhouette = 0.514); see `diagnostics$selection`.
 fit
-#> VaSStra Analysis
+#> VaSSTra Analysis
 #>   142 subjects | 8 times | 3 states | 3 trajectories
 #>   lcs + ward.D2 | silhouette 0.514
 ```
+
+`state_order` fixes the order the states read in every plot and
+`state_colors` pins their palette, so the whole analysis below is drawn
+consistently; both are optional and default to the discovery order and
+the package palette.
 
 The one remaining automated decision — the number of trajectories — is
 reported in the message and stored with its full comparison table in the
@@ -79,7 +89,7 @@ which latent classes are treated as spurious.
 A fitted clustering is a claim, and the claim needs two kinds of
 evidence: that the chosen count beats its neighbors, and that the chosen
 solution is internally sound.
-[`evaluate()`](https://pak.dynasite.org/VaSStra/reference/evaluate.md)
+[`evaluate()`](https://sonsoles.me/vasstra/reference/evaluate.md)
 provides both in one object — a candidate table across counts and a
 per-group quality table for the fitted solution.
 
@@ -87,7 +97,7 @@ per-group quality table for the fitted solution.
 
 evaluation <- evaluate(fit)
 evaluation
-#> VaSStra clustering evaluation: states (lpa)
+#> VaSSTra clustering evaluation: states (lpa)
 #>   Fitted: 3 states | silhouette 0.260
 #>   Candidates:
 #>  n_states method lpa_model silhouette      bic      aic classification_entropy
@@ -108,7 +118,7 @@ evaluation
 #>     Average 551      0.485      0.229
 #>      Active 319      0.281      0.261
 #> 
-#> VaSStra clustering evaluation: trajectories (lcs + ward.D2)
+#> VaSSTra clustering evaluation: trajectories (lcs + ward.D2)
 #>   Fitted: 3 trajectories | silhouette 0.514
 #>   Candidates:
 #>  n_trajectories dissimilarity  method silhouette mean_within_distance min_size
@@ -145,12 +155,12 @@ state curve instead *declines* from two: with LPA the count was fixed by
 the three labels, and the panel makes the cost of that substantive
 choice visible (0.26 at three against 0.35 at two) instead of hiding it.
 The silhouette-by-group bars then locate where cohesion comes from: the
-middle trajectory is the most compact (0.56), while the smallest one
-(0.36) is the first place to look when judging whether three groups
-over-merge distinct journeys.
+two flanking groups are the most compact (0.58 and 0.61), while the
+large middle trajectory (0.44) is the first place to look when judging
+whether three groups over-merge distinct journeys.
 
 For the model-based evidence reviewers expect,
-[`fit_indices()`](https://pak.dynasite.org/VaSStra/reference/fit_indices.md)
+[`fit_indices()`](https://sonsoles.me/vasstra/reference/fit_indices.md)
 returns the complete information-criterion family as one tidy row — the
 same content as tidyLPA’s fit table, plus the classification-quality
 columns that usually have to be assembled by hand.
@@ -158,7 +168,7 @@ columns that usually have to be assembled by hand.
 ``` r
 
 fit_indices(fit)
-#> VaSStra fit indices: states (lpa)
+#> VaSSTra fit indices: states (lpa)
 #>  n_states method lpa_model log_likelihood n_parameters      aic      bic
 #>         3    lpa       EEI       -9940.47           34 19948.93 20120.13
 #>     sabic     caic      awe      clc      kic      icl entropy prob_min
@@ -177,7 +187,7 @@ criterion family (AIC through ICL) is there for the comparison table:
 ``` r
 
 fit_indices(fit, compare = TRUE)
-#> VaSStra fit indices: states (lpa)
+#> VaSSTra fit indices: states (lpa)
 #>  n_states method lpa_model log_likelihood n_parameters      aic      bic
 #>         2    lpa       EEI      -10751.56           25 21553.12 21679.00
 #>         3    lpa       EEI       -9940.47           34 19948.93 20120.13
@@ -226,8 +236,8 @@ is exactly what justifies ordered labels. The bars carry the same means
 but grouped by indicator, which is the view for spotting whether any
 single indicator breaks the ordering (none does). The heatmap adds the
 exact magnitudes the lines only sketch — Disengaged is most extreme on
-session count (−1.23) and least on lecture views (−0.85). The sizes
-panel grounds prevalence: Average is the plurality (45%), and no state
+session count (−1.27) and least on lecture views (−0.81). The sizes
+panel grounds prevalence: Average is the plurality (48%), and no state
 is rare enough to question.
 
 ## 4. Sequences: how states unfold over time
@@ -280,12 +290,46 @@ plot(fit, type = "index")
 
 ![](vasstra-tutorial_files/figure-html/trajectories-1.png)
 
+The three groups line up with the three states, so we can name them now
+by the state each mostly holds.
+[`set_labels()`](https://sonsoles.me/vasstra/reference/set_labels.md)
+renames in place — every later table, sequence, and plot follows, and no
+fitted value changes.
+
+``` r
+
+fit <- set_labels(
+  fit,
+  trajectories = c("Mostly active", "Mostly average", "Mostly disengaged")
+)
+```
+
 ``` r
 
 plot(fit, type = "distribution")
 ```
 
-![](vasstra-tutorial_files/figure-html/trajectories-2.png)
+![](vasstra-tutorial_files/figure-html/trajectories-distribution-1.png)
+
+Passing several views in `type` composes them into one figure with **one
+row per trajectory and one column per view**, so each group’s transition
+network sits beside the sequences it summarises and their changing
+composition — the standard per-cluster VaSSTra display in a single call.
+A shared legend labels every panel at once, and the transition column
+requires the suggested `cograph` package.
+
+``` r
+
+plot(fit, type = c( "index", "distribution","transition"))
+```
+
+![](vasstra-tutorial_files/figure-html/trajectories-grid-1.png)
+
+The rows now read as whole stories: the Active group’s network is
+dominated by the Active self-loop and its distribution stays green, the
+Disengaged group mirrors it in orange, and the mixed middle group shows
+the busiest network — the many off-diagonal transitions that its higher
+entropy and mobility counts quantify in the next section.
 
 ## 6. Describing what the trajectories mean
 
@@ -295,10 +339,10 @@ per trajectory.
 ``` r
 
 as.data.frame(fit, unit = "trajectory")
-#>     trajectory  n proportion mean_within_distance n_observed unique_states
-#> 1 Trajectory 1 41  0.2887324             4.258537          8      1.878049
-#> 2 Trajectory 2 73  0.5140845             4.961187          8      1.986301
-#> 3 Trajectory 3 28  0.1971831             3.857143          8      1.821429
+#>          trajectory  n proportion mean_within_distance n_observed unique_states
+#> 1     Mostly active 41  0.2887324             4.258537          8      1.878049
+#> 2    Mostly average 73  0.5140845             4.961187          8      1.986301
+#> 3 Mostly disengaged 28  0.1971831             3.857143          8      1.821429
 #>   transitions   entropy complexity volatility integrative_potential
 #> 1    1.829268 0.4189906  0.3251220  0.4436702             0.7696477
 #> 2    2.328767 0.4736884  0.3865300  0.4973907             0.1149163
@@ -326,13 +370,13 @@ come from the same fit:
 ``` r
 
 head(as.data.frame(fit))
-#>    user_id   trajectory n_observed unique_states transitions   entropy
-#> 1 D2C5F64E Trajectory 1          8             3           3 0.9850568
-#> 2 D7E3D0DC Trajectory 1          8             3           4 0.8194484
-#> 3 2926CF64 Trajectory 3          8             1           0 0.0000000
-#> 4 985AFF35 Trajectory 3          8             2           2 0.6021808
-#> 5 F89100C7 Trajectory 1          8             3           4 0.8868595
-#> 6 AB944042 Trajectory 3          8             2           2 0.3429510
+#>    user_id        trajectory n_observed unique_states transitions   entropy
+#> 1 D2C5F64E     Mostly active          8             3           3 0.9850568
+#> 2 D7E3D0DC     Mostly active          8             3           4 0.8194484
+#> 3 2926CF64 Mostly disengaged          8             1           0 0.0000000
+#> 4 985AFF35 Mostly disengaged          8             2           2 0.6021808
+#> 5 F89100C7     Mostly active          8             3           4 0.8868595
+#> 6 AB944042 Mostly disengaged          8             2           2 0.3429510
 #>   complexity volatility integrative_potential negative_exposure
 #> 1  0.6497440  0.7142857             0.4166667        0.08333333
 #> 2  0.6842925  0.7857143             0.5833333        0.08333333
@@ -342,21 +386,28 @@ head(as.data.frame(fit))
 #> 6  0.3130271  0.4761905             0.0000000        0.88888889
 ```
 
-## 7. Naming groups after inspecting them
+## 7. Relabeling without refitting
 
-Interpretation happens *after* fitting, so labels should be assignable
-afterward without refitting.
-[`set_labels()`](https://pak.dynasite.org/VaSStra/reference/set_labels.md)
-renames in place — every table, sequence, and recorded positive/negative
-state follows, and no fitted value changes. Full vectors rename
-everything; named renames change only what they name.
+Interpretation happens *after* fitting, so labels stay assignable at any
+point without refitting — which is exactly what Section 5 did once the
+groups were visible.
+[`set_labels()`](https://sonsoles.me/vasstra/reference/set_labels.md)
+renames in place, propagating the names through every table, sequence,
+and plot, including the recorded positive and negative states, and
+changing no fitted value. A full vector renames every group; a named
+vector renames only what it names, which is handy for refining a single
+label after a closer look:
 
 ``` r
 
-fit <- set_labels(
-  fit,
-  trajectories = c("Mostly active", "Mostly average", "Mostly disengaged")
-)
+# rename only one group, by name
+fit <- set_labels(fit, trajectories = c("Mostly average" = "Fluctuating"))
+```
+
+The named trajectories now flow through every summary of the fit:
+
+``` r
+
 summary(fit)
 #>          trajectory  n proportion mean_within_distance n_observed unique_states
 #> 1     Mostly active 41  0.2887324             4.258537          8      1.878049
@@ -377,7 +428,7 @@ summary(fit)
 Everything above is also four explicit steps, each with the same
 automated defaults — the route to take when intermediate objects are
 needed, when states come from another method (enter at
-[`step2_sequences()`](https://pak.dynasite.org/VaSStra/reference/step2_sequences.md)
+[`step2_sequences()`](https://sonsoles.me/vasstra/reference/step2_sequences.md)
 with a state column), or when the method itself is under comparison:
 
 ``` r
@@ -391,21 +442,21 @@ description <- step4_describe(trajectories, positive_states = "Active",
 ```
 
 When the clustering method is itself in question,
-[`state_choices()`](https://pak.dynasite.org/VaSStra/reference/state_choices.md)
+[`state_choices()`](https://sonsoles.me/vasstra/reference/state_choices.md)
 and
-[`trajectory_choices()`](https://pak.dynasite.org/VaSStra/reference/trajectory_choices.md)
+[`trajectory_choices()`](https://sonsoles.me/vasstra/reference/trajectory_choices.md)
 fit the full grid and return one tidy row per candidate — nothing is
 selected silently, recommendations are marked within each method
 (silhouette for hard clustering, BIC for LPA, since model-based criteria
-only compare within LPA), and the inspected candidate is fitted by
-describing it:
+only compare within LPA), and the inspected candidate is fitted with
+[`fit_state_choice()`](https://sonsoles.me/vasstra/reference/fit_state_choice.md):
 
 ``` r
 
 state_options <- state_choices(engagement, n_states = 2:4,
                                method = c("lpa", "kmeans"))
 state_options
-#> VaSStra state choices
+#> VaSSTra state choices
 #>   6 candidates | 6 successful | 2 recommended
 #>  candidate_id n_states method lpa_model recommendation_criterion silhouette
 #>             3        4    lpa       EEI                      bic  0.2028840
@@ -425,8 +476,8 @@ states <- fit_state_choice(state_options, n_states = 3, method = "lpa",
 ```
 
 The choice plot and
-[`evaluate()`](https://pak.dynasite.org/VaSStra/reference/evaluate.md)
-show the same silhouette on the same scale, so the method comparison
-here and the count comparison there compose into one argument. Method
-overview and formal background: the [VaSSTra
+[`evaluate()`](https://sonsoles.me/vasstra/reference/evaluate.md) show
+the same silhouette on the same scale, so the method comparison here and
+the count comparison there compose into one argument. Method overview
+and formal background: the [VaSSTra
 chapter](https://lamethods.org/book1/chapters/ch11-vasstra/ch11-vasstra.html).

@@ -55,7 +55,9 @@ transition_plot(x, ...)
 
   Additional arguments passed to
   [`cograph::splot()`](https://sonsoles.me/cograph/reference/splot.html),
-  such as `layout` or `threshold`.
+  such as `layout`, `threshold`, or `edge_label_size` (which defaults to
+  a value slightly larger than cograph's, so the transition
+  probabilities are easy to read).
 
 - size:
 
@@ -93,7 +95,7 @@ transition_plot(x, ...)
 - colors:
 
   Optional colors, one per state, in state order. Defaults to the shared
-  VaSStra palette, so the network matches the sequence and state plots.
+  VaSSTra palette, so the network matches the sequence and state plots.
   Colors are matched to states by name, so a trajectory that never
   reaches a state still colours the rest correctly.
 
@@ -114,24 +116,24 @@ state, invisibly.
 ## Details
 
 Where
-[`flow_plot()`](https://pak.dynasite.org/VaSStra/reference/flow_plot.md)
+[`flow_plot()`](https://sonsoles.me/vasstra/reference/flow_plot.md)
 shows movement resolved over time, `transition_plot()` collapses every
 time step into one network and asks which states attract movement
 overall.
 
 ## See also
 
-[`transition_centrality()`](https://pak.dynasite.org/VaSStra/reference/transition_centrality.md)
+[`transition_centrality()`](https://sonsoles.me/vasstra/reference/transition_centrality.md)
 for the numbers without a plot, and
-[`flow_plot()`](https://pak.dynasite.org/VaSStra/reference/flow_plot.md)
-for time-resolved movement.
+[`flow_plot()`](https://sonsoles.me/vasstra/reference/flow_plot.md) for
+time-resolved movement.
 
 ## Examples
 
 ``` r
 # \donttest{
 if (requireNamespace("cograph", quietly = TRUE)) {
-  data("engagement", package = "VaSStra")
+  data("engagement", package = "VaSSTra")
   fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
   transition_plot(fit)
   transition_plot(fit, weights = "count", size = "OutStrength")

@@ -1,7 +1,7 @@
 # Plot State-Clustering Choices
 
 Draws a compact model-selection plot from
-[`state_choices()`](https://pak.dynasite.org/VaSStra/reference/state_choices.md).
+[`state_choices()`](https://sonsoles.me/vasstra/reference/state_choices.md).
 Each line is one clustering method (and LPA covariance model). A ring
 marks the optimal eligible value of the plotted metric within each
 group; hollow points mark candidates that fail the requested size
@@ -62,7 +62,7 @@ The tidy candidate data used in the plot, invisibly.
 ## Examples
 
 ``` r
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 options <- state_choices(engagement, n_states = 2:4, method = "kmeans")
 plot(options)
 

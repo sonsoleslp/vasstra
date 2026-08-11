@@ -11,6 +11,8 @@ step2_sequences(
   id = NULL,
   time = NULL,
   state = NULL,
+  state_order = NULL,
+  state_colors = NULL,
   time_levels = NULL,
   missing = c("error", "explicit", "keep"),
   missing_label = "Missing"
@@ -37,6 +39,19 @@ step2_sequences(
 
   State column. Inferred from `vasstra_states`, or detected as the
   single categorical non-role column of a plain data frame.
+
+- state_order:
+
+  Optional character vector giving the order the states should appear in
+  every plot. It must list exactly the observed states, rearranged.
+  Defaults to the state factor's levels, or alphabetical order for a
+  character state column.
+
+- state_colors:
+
+  Optional state palette stored on the result and reused by every plot.
+  A named vector (matched by state) or one colour per state in state
+  order. Inherited from a `vasstra_states` input when not given.
 
 - time_levels:
 
@@ -75,6 +90,6 @@ sequences <- step2_sequences(
   state = "engagement"
 )
 sequences
-#> VaSStra Step 2: States -> Sequences
+#> VaSSTra Step 2: States -> Sequences
 #>   3 subjects | 3 times | 3 states | 6 transitions
 ```

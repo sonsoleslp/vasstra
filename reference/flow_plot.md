@@ -67,7 +67,7 @@ flow_plot(x, ...)
 - colors:
 
   Optional colors, one per state, in state order. Defaults to the shared
-  VaSStra palette.
+  VaSSTra palette.
 
 - main:
 
@@ -113,7 +113,7 @@ and the state profiles.
 
 ## See also
 
-[`plot.vasstra_sequences()`](https://pak.dynasite.org/VaSStra/reference/plot.vasstra_sequences.md)
+[`plot.vasstra_sequences()`](https://sonsoles.me/vasstra/reference/plot.vasstra_sequences.md)
 for the Nestimate sequence views.
 
 ## Examples
@@ -121,7 +121,7 @@ for the Nestimate sequence views.
 ``` r
 # \donttest{
 if (requireNamespace("cograph", quietly = TRUE)) {
-  data("engagement", package = "VaSStra")
+  data("engagement", package = "VaSSTra")
   fit <- vasstra(
     engagement,
     state_labels = c("Disengaged", "Average", "Active")

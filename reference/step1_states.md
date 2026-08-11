@@ -17,6 +17,8 @@ step1_states(
   variables = NULL,
   n_states = "auto",
   labels = NULL,
+  state_order = NULL,
+  state_colors = NULL,
   state = "state",
   standardize = NULL,
   missing = NULL,
@@ -38,23 +40,23 @@ step1_states(
 - id:
 
   Name of the subject identifier column. May be omitted when the data
-  carry VaSStra role metadata.
+  carry VaSSTra role metadata.
 
 - time:
 
   Name of the time or ordering column. May be omitted when the data
-  carry VaSStra role metadata.
+  carry VaSSTra role metadata.
 
 - variables:
 
   Character vector naming numeric state indicators. May be omitted when
-  the data carry VaSStra role metadata.
+  the data carry VaSSTra role metadata.
 
 - n_states:
 
   Number of states to estimate. One number fits exactly that count,
   several numbers (for example `2:4`) compare those candidates with
-  [`state_choices()`](https://pak.dynasite.org/VaSStra/reference/state_choices.md)
+  [`state_choices()`](https://sonsoles.me/vasstra/reference/state_choices.md)
   and fit the recommended count, and `"auto"` (default) compares 2
   through 6 — or simply matches `labels` when labels are supplied.
   Automatic comparison never selects a solution whose smallest state
@@ -66,6 +68,19 @@ step1_states(
 
   Optional unique labels, ordered from the lowest to the highest average
   standardized profile.
+
+- state_order:
+
+  Optional character vector giving the order the states should appear in
+  every plot. It must list the same labels rearranged; the state column
+  is stored as a factor in this order. Defaults to the profile
+  (discovery) order.
+
+- state_colors:
+
+  Optional state palette stored on the result and reused by every plot.
+  A named vector (matched by state) or one colour per state in state
+  order.
 
 - state:
 
@@ -132,7 +147,7 @@ states <- step1_states(
 )
 #> Using n_states = 3 to match the supplied labels.
 states
-#> VaSStra Step 1: Variables -> States
+#> VaSSTra Step 1: Variables -> States
 #>   36 rows | 12 subjects | 3 times | 3 states | lpa
 #>   Average silhouette: 0.950
 #>   State sizes: Low=12, Average=12, High=12

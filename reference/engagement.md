@@ -2,7 +2,7 @@
 
 Analysis-ready data from the VaSSTra chapter. The object preserves the
 chapter's eight raw state indicators and adds `_z` versions standardized
-within `course_id`. It also carries VaSStra role metadata, so `id`,
+within `course_id`. It also carries VaSSTra role metadata, so `id`,
 `time`, `variables`, standardization, and indicator missingness do not
 need to be repeated in common package calls.
 
@@ -67,7 +67,7 @@ A data frame with 1,136 observations and 19 variables:
 
   The eight indicators standardized within `course_id` using the sample
   standard deviation. Three singleton courses create 24 intentional
-  missing values; VaSStra's attached metadata requests within-time
+  missing values; VaSSTra's attached metadata requests within-time
   median imputation.
 
 ## Source

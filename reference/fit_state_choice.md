@@ -1,7 +1,7 @@
 # Fit One State Choice
 
 Fits a candidate from
-[`state_choices()`](https://pak.dynasite.org/VaSStra/reference/state_choices.md),
+[`state_choices()`](https://sonsoles.me/vasstra/reference/state_choices.md),
 selected by `candidate_id`, by any combination of `n_states`, `method`,
 and `lpa_model`, or — when nothing is specified — the recommended
 candidate.
@@ -25,7 +25,7 @@ fit_state_choice(
 - choices:
 
   A `vasstra_state_choices` object from
-  [`state_choices()`](https://pak.dynasite.org/VaSStra/reference/state_choices.md).
+  [`state_choices()`](https://sonsoles.me/vasstra/reference/state_choices.md).
 
 - candidate_id:
 
@@ -54,7 +54,7 @@ fit_state_choice(
 ## Value
 
 A `vasstra_states` object from
-[`step1_states()`](https://pak.dynasite.org/VaSStra/reference/step1_states.md)
+[`step1_states()`](https://sonsoles.me/vasstra/reference/step1_states.md)
 with the selected candidate and complete comparison table recorded in
 `diagnostics`.
 
@@ -71,12 +71,12 @@ choices <- state_choices(
 )
 fit_state_choice(choices)             # the recommended candidate
 #> Fitting recommended candidate 2.
-#> VaSStra Step 1: Variables -> States
+#> VaSSTra Step 1: Variables -> States
 #>   36 rows | 12 subjects | 3 times | 3 states | kmeans
 #>   Average silhouette: 1.000
 #>   State sizes: State 1=12, State 2=12, State 3=12
 fit_state_choice(choices, n_states = 3)
-#> VaSStra Step 1: Variables -> States
+#> VaSSTra Step 1: Variables -> States
 #>   36 rows | 12 subjects | 3 times | 3 states | kmeans
 #>   Average silhouette: 1.000
 #>   State sizes: State 1=12, State 2=12, State 3=12

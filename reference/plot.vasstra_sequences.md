@@ -1,4 +1,4 @@
-# Plot VaSStra State Sequences with Nestimate
+# Plot VaSSTra State Sequences with Nestimate
 
 Delegates sequence index, distribution, and heatmap rendering to
 [`Nestimate::sequence_plot()`](https://saqr.me/Nestimate/reference/sequence_plot.html).
@@ -60,13 +60,13 @@ The value returned by
 
 ## See also
 
-[`flow_plot()`](https://pak.dynasite.org/VaSStra/reference/flow_plot.md)
-for alluvial and individual flow views.
+[`flow_plot()`](https://sonsoles.me/vasstra/reference/flow_plot.md) for
+alluvial and individual flow views.
 
 ## Examples
 
 ``` r
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 plot(fit$sequences)
 
