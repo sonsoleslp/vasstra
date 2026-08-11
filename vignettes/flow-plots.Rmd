@@ -1,10 +1,10 @@
 ---
-title: "Flow Plots: Where the Movement Goes"
+title: "Flow Plots"
 output:
   rmarkdown::html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Flow Plots: Where the Movement Goes}
+  %\VignetteIndexEntry{Flow Plots}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -236,8 +236,8 @@ reading the transition table before setting one.
 
 Two arguments are specific to the individual view. `bundle` sets how many
 students one line represents — `"auto"` by default, `FALSE` for every
-student, or a number — and `bundle_max` sets the number of lines that
-triggers automatic bundling.
+student, or a number — and `bundle_max` sets the number of lines above
+which automatic bundling starts (50 by default).
 
 ```{r bundle}
 flow_plot(
@@ -333,7 +333,7 @@ panel, and the argument changes only the layout — the centralities are
 identical either way.
 
 ```{r transition-paired-contrast, fig.width = 10, fig.height = 4.4}
-transition_plot(fit, sequences = TRUE, group = "Mostly disengaged")
+transition_plot(fit, sequences = "heatmap", group = "Mostly disengaged")
 ```
 
 ## Where flow plots fit

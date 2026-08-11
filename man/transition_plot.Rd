@@ -41,7 +41,9 @@ transition_plot(x, ...)
 object.}
 
 \item{...}{Additional arguments passed to \code{\link[cograph:splot]{cograph::splot()}}, such as
-\code{layout} or \code{threshold}.}
+\code{layout}, \code{threshold}, or \code{edge_label_size} (which defaults to a value
+slightly larger than cograph's, so the transition probabilities are
+easy to read).}
 
 \item{size}{Centrality measure that sets node size, or \code{"none"} to draw
 every node at one size. Default \code{"InStrength"}.}

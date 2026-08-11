@@ -220,7 +220,10 @@ flow_plot.vasstra <- function(x, ...) {
   }
   arguments$line_alpha <- 0.5
   arguments$line_width <- 0.5
-  arguments$mid_label_position <- "inside"
+  # Label the states once, beside the end columns (black), as the alluvial
+  # view does. `mid_label_position = "inside"` repeated a label inside every
+  # node, where cograph auto-contrasts it to white -- inconsistent with the
+  # black beside-labels and cluttered.
   arguments$bundle_size <- .vasstra_flow_bundle(
     bundle,
     nrow(sequence_data),

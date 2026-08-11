@@ -8,38 +8,28 @@ states, sequences, and trajectory groups. The whole analysis is one
 call, every part of it is also a simple explicit step, and every
 automated decision is reported and recorded.
 
+## The method
+
+The name is the workflow: **Va**riables become **S**tates, states become
+**S**equences, and sequences become **Tra**jectories. Each step
+compresses the data while keeping what matters for how people change —
+multivariate observations collapse into a few interpretable states, each
+subject’s states ordered in time form a sequence, and subjects with
+similar sequences group into trajectories.
+
+<figure>
+<img src="man/figures/vasstra.png"
+alt="The VaSSTra method: variables are clustered into states, each subject’s states over time form a sequence, and similar sequences are grouped into trajectories." />
+<figcaption aria-hidden="true">The VaSSTra method: variables are
+clustered into states, each subject’s states over time form a sequence,
+and similar sequences are grouped into trajectories.</figcaption>
+</figure>
+
 ## Installation
 
 ``` r
 # install.packages("pak")
 pak::pak("sonsoleslp/vasstra")
-```
-
-Three vignettes ship with the package: `vignette("get-started")` for the
-interface, `vignette("vasstra-tutorial")` for a complete worked analysis
-of the chapter’s longitudinal engagement data, and
-`vignette("flow-plots")` for the alluvial and individual flow views.
-
-## At a glance
-
-One fit describes each trajectory three ways at once: the transition
-network it follows, the individual sequences it groups, and how its
-state composition unfolds over time — all on a shared palette and state
-order.
-
-<img src="man/figures/README-overview-1.png" alt="Per-trajectory grid of transition networks, sequence index plots, and state distributions." width="100%" />
-
-## Interactive app
-
-`launch_app()` opens a Shiny application (requires the suggested `shiny`
-and `DT` packages) that runs the whole workflow interactively: load a
-CSV or the built-in engagement data, map roles, fit with automated or
-explicit counts, read the decisions log, walk the state / sequence /
-trajectory / evaluation / fit-index tabs, rename groups after inspecting
-them, and export every tidy table.
-
-``` r
-VaSSTra::launch_app()
 ```
 
 ## One call
@@ -49,8 +39,6 @@ library(VaSSTra)
 data("engagement", package = "VaSSTra")
 
 fit <- vasstra(engagement)
-#> Selected n_states = 5 (lpa, bic = 19008.964); ...
-#> Selected n_trajectories = 3 (hamming + pam, silhouette = 0.222); ...
 ```
 
 States are estimated by latent profile analysis (mclust `"EEI"`, tidyLPA
@@ -88,10 +76,6 @@ fit <- vasstra(
 )
 #> the chapter analysis: three labels imply three LPA profiles
 ```
-
-The `state_order` argument fixes the order the states read in every plot
-when the discovery order does not match, and `state_colors` stores a
-palette on the fit so every plot reuses it without repeating `colors`.
 
 Tidy tables are returned directly at the requested analysis unit:
 
@@ -242,7 +226,12 @@ plot(fit, type = "index")                 # one panel per trajectory
 plot(fit, type = "distribution")
 ```
 
-<img src="man/figures/README-sequences-1.png" alt="State distribution over time for each trajectory." width="100%" />
+You can also describe each trajectory three ways at once: the transition
+network it follows, the individual sequences it groups, and how its
+state composition unfolds over time — all on a shared palette and state
+order.
+
+<img src="man/figures/README-overview-1.png" alt="Per-trajectory grid of transition networks, sequence index plots, and state distributions." width="100%" />
 
 ## Flow plots
 
@@ -308,6 +297,19 @@ Self-transitions are excluded from the centrality by default, matching
 persistent state looks large merely because its members stay put, which
 is a different claim from attracting movement. See
 `vignette("flow-plots")`.
+
+## Interactive app
+
+`launch_app()` opens a Shiny application (requires the suggested `shiny`
+and `DT` packages) that runs the whole workflow interactively: load a
+CSV or the built-in engagement data, map roles, fit with automated or
+explicit counts, read the decisions log, walk the state / sequence /
+trajectory / evaluation / fit-index tabs, rename groups after inspecting
+them, and export every tidy table.
+
+``` r
+VaSSTra::launch_app()
+```
 
 ## Dependencies
 

@@ -40,7 +40,7 @@ of *Learning Analytics Methods and Tutorials*, in this order:
 4. Sequences: how states unfold over time.
 5. Trajectories: groups of similar journeys.
 6. Describing what the trajectories mean.
-7. Naming groups after inspecting them.
+7. Relabeling without refitting.
 8. Full control: explicit steps and grid comparisons.
 
 | Task | Verb |
@@ -107,7 +107,7 @@ evaluation <- evaluate(fit)
 evaluation
 ```
 
-```{r evaluate-plot, fig.height = 5, fig.width=8}
+```{r evaluate-plot, fig.height = 5, fig.width=9}
 plot(evaluation)
 ```
 
@@ -119,9 +119,9 @@ state curve instead *declines* from two: with LPA the count was fixed by
 the three labels, and the panel makes the cost of that substantive
 choice visible (0.26 at three against 0.35 at two) instead of hiding it.
 The silhouette-by-group bars then locate where cohesion comes from: the
-middle trajectory is the most compact (0.56), while the smallest one
-(0.36) is the first place to look when judging whether three groups
-over-merge distinct journeys.
+two flanking groups are the most compact (0.58 and 0.61), while the
+large middle trajectory (0.44) is the first place to look when judging
+whether three groups over-merge distinct journeys.
 
 For the model-based evidence reviewers expect, `fit_indices()` returns
 the complete information-criterion family as one tidy row — the same
@@ -168,8 +168,8 @@ is exactly what justifies ordered labels. The bars carry the same means
 but grouped by indicator, which is the view for spotting whether any
 single indicator breaks the ordering (none does). The heatmap adds the
 exact magnitudes the lines only sketch — Disengaged is most extreme on
-session count (−1.23) and least on lecture views (−0.85). The sizes
-panel grounds prevalence: Average is the plurality (45%), and no state
+session count (−1.27) and least on lecture views (−0.81). The sizes
+panel grounds prevalence: Average is the plurality (48%), and no state
 is rare enough to question.
 
 ## 4. Sequences: how states unfold over time
@@ -236,7 +236,7 @@ plot(fit, type = c( "index", "distribution","transition"))
 
 The rows now read as whole stories: the Active group's network is
 dominated by the Active self-loop and its distribution stays green, the
-Disengaged group mirrors it in blue, and the mixed middle group shows the
+Disengaged group mirrors it in orange, and the mixed middle group shows the
 busiest network — the many off-diagonal transitions that its higher
 entropy and mobility counts quantify in the next section.
 
@@ -310,7 +310,7 @@ When the clustering method is itself in question, `state_choices()` and
 candidate — nothing is selected silently, recommendations are marked
 within each method (silhouette for hard clustering, BIC for LPA, since
 model-based criteria only compare within LPA), and the inspected
-candidate is fitted by describing it:
+candidate is fitted with `fit_state_choice()`:
 
 ```{r choices, fig.height = 5}
 state_options <- state_choices(engagement, n_states = 2:4,

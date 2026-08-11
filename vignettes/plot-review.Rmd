@@ -1,0 +1,290 @@
+---
+title: "Plotting the results"
+output:
+  html_document:
+    toc: true
+---
+
+```{r setup, include = FALSE}
+# cograph is a suggested package; its flow and transition chunks are skipped
+# when it is not installed, so the vignette still builds.
+has_cograph <- requireNamespace("cograph", quietly = TRUE)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = TRUE,
+  fig.width = 7.5,
+  fig.height = 6,
+  dpi = 120,
+  message = TRUE,
+  warning = TRUE
+)
+```
+
+This review exercises every VaSSTra plot on the longitudinal engagement
+data from
+[Chapter 11 of *Learning Analytics Methods and Tutorials*](https://lamethods.org/book1/chapters/ch11-vasstra/ch11-vasstra.html):
+the state, sequence, and trajectory views (base graphics, no `ggplot2`
+dependency), the combined per-trajectory grid, the `evaluate()` panels,
+and the `cograph`-rendered flow and transition networks. Every view shares
+one state palette and one state order, both of which can be pinned on the
+fit with `state_colors` and `state_order`.
+
+## The whole analysis in one call
+
+`vasstra(engagement)` needs nothing else. Roles come from the attached
+metadata, and the state and trajectory counts are selected by comparing
+two through six candidates. Here BIC favours five states, so the fully
+automatic fit reports five; the chapter analysis below fixes three for
+interpretability. Each decision is reported as a message and recorded in
+the fit.
+
+```{r one-call}
+library(VaSSTra)
+data("engagement", package = "VaSSTra")
+
+fit_auto <- vasstra(engagement)
+fit_auto
+```
+
+## Evaluate the automatic clustering
+
+`evaluate()` returns the candidate comparison with `best` and `fitted`
+markers plus per-cluster silhouette quality; its plot shows the selection
+curve, the per-group silhouette widths, and the group sizes for both
+clustering steps. The state and trajectory rows use distinct palettes, so
+the two groupings are not read as corresponding.
+
+```{r evaluate-auto, fig.height = 7}
+evaluation <- evaluate(fit_auto)
+evaluation
+plot(evaluation)
+```
+
+## The chapter analysis, explicit where it matters
+
+The chapter's substantive choices stay in one readable call. The state
+method defaults to LPA with the chapter's `"EEI"` model, and the three
+labels fix the three profiles used from here on; automation only fills
+what is omitted.
+
+```{r fit}
+fit <- vasstra(
+  engagement,
+  state_labels = c("Disengaged", "Average", "Active"),
+  dissimilarity = "lcs",
+  cluster_method = "ward.D2",
+  trajectory_labels = c(
+    "Mostly active",
+    "Mostly average",
+    "Mostly disengaged"
+  ),
+  positive_states = "Active",
+  negative_states = "Disengaged",
+  seed = 22294
+)
+fit
+```
+
+```{r evaluate-explicit, fig.height = 7}
+plot(evaluate(fit))
+```
+
+## Tidy fit indices
+
+The fitted LPA solution as one tidy row with the complete
+information-criterion family, then the comparison against all candidate
+counts, then the trajectory clustering.
+
+```{r fit-indices}
+fit_indices(fit)
+fit_indices(fit, compare = TRUE)
+fit_indices(fit, step = "trajectories", compare = TRUE)
+```
+
+## Relabel after inspection
+
+`set_labels()` renames groups in place — full vectors or partial named
+renames — and every downstream table follows.
+
+```{r set-labels}
+fit_renamed <- set_labels(
+  fit,
+  states = c("Average" = "Moderate"),
+  trajectories = c("Thriving", "Coasting", "Struggling")
+)
+as.data.frame(fit_renamed, unit = "trajectory")
+```
+
+## Tidy outputs
+
+```{r tidy-outputs}
+head(as.data.frame(fit, unit = "subject"))
+head(as.data.frame(fit, unit = "observation"))
+head(as.data.frame(fit, unit = "state_profile"))
+as.data.frame(fit, unit = "trajectory")
+```
+
+## State overview: profile + bars + heatmap + sizes
+
+`type = "all"` draws the four state views together on the shared palette;
+the profile heatmap reads with the first state as its top row, matching the
+bars, sizes, and legends.
+
+```{r state-all, fig.height = 8}
+plot(fit, which = "states", type = "all")
+```
+
+Each view is also available alone:
+
+```{r state-profile}
+plot(fit, which = "states", type = "profile")
+```
+
+```{r state-bars}
+plot(fit, which = "states", type = "bars")
+```
+
+```{r state-heatmap}
+plot(fit, which = "states", type = "heatmap")
+```
+
+```{r state-sizes}
+plot(fit, which = "states", type = "sizes")
+```
+
+## Palette and state order
+
+`colors` recolours a single plot; the states are coloured by position, so
+supply one colour per state in state order.
+
+```{r palette-oneoff}
+plot(fit, which = "states", type = "sizes",
+     colors = c("#D55E00", "#0072B2", "#009E73"))
+```
+
+To reuse a palette everywhere without repeating `colors`, pin it on the fit
+with `state_colors` (a named vector is matched by state and survives
+reordering and `set_labels()`). `state_order` fixes the order the states
+read in every plot — stacking, legends, transition and flow nodes —
+independent of the order the clusters were discovered in.
+
+```{r palette-stored, fig.height = 5.5}
+fit_styled <- vasstra(
+  engagement,
+  state_labels = c("Disengaged", "Average", "Active"),
+  state_order  = c("Active", "Average", "Disengaged"),
+  state_colors = c(Disengaged = "#D55E00", Average = "#0072B2", Active = "#009E73"),
+  dissimilarity = "lcs",
+  cluster_method = "ward.D2"
+)
+plot(fit_styled, type = "distribution")
+```
+
+## Choice comparisons across methods
+
+The explicit comparison draws a metric-aware plot, on the shared palette
+with light gridlines.
+
+```{r state-choices}
+state_options <- state_choices(
+  engagement,
+  n_states = 2:5,
+  method = c("kmeans", "pam", "ward.D2", "lpa"),
+  lpa_model = "EEI",
+  seed = 22294
+)
+state_options
+plot(state_options, metric = "silhouette")
+plot(state_options, metric = "bic", groups = "lpa/EEI")
+```
+
+## All sequences: heatmap (default), distribution, index
+
+Every plot containing state sequences is rendered by
+`Nestimate::sequence_plot()`. The heatmap is the default view for the
+complete sequence set.
+
+```{r sequences-heatmap}
+plot(fit, which = "sequences")
+```
+
+```{r sequences-distribution}
+plot(fit, which = "sequences", type = "distribution")
+```
+
+```{r sequences-index}
+plot(fit, which = "sequences", type = "index")
+```
+
+## Flow plots (cograph)
+
+`flow_plot()` renders state movement between consecutive time points
+through cograph, on the same palette and state order as every other plot,
+and returns a `ggplot` object rather than drawing base graphics. Aggregated
+bands and individual lines are the two views:
+
+```{r flow-alluvial, eval = has_cograph}
+flow_plot(fit)
+```
+
+```{r flow-individual, eval = has_cograph}
+flow_plot(fit, type = "individual")
+```
+
+The `vignette("flow-plots")` article covers the rest — colouring by
+destination or by first/last state, restricting to one trajectory,
+line bundling, thresholding negligible flows, and tuning a figure for a
+manuscript.
+
+## Transition network (Nestimate builds, cograph draws)
+
+Node size is a transition-network centrality from
+`Nestimate::net_centrality()`; the network comes from
+`Nestimate::build_tna()`. Drawn by `cograph::splot()`; returns the
+tidy node table invisibly. The paired form places the sequences beside the
+network on one shared palette.
+
+```{r transition-default, fig.height = 6, eval = has_cograph}
+transition_plot(fit)
+```
+
+```{r transition-paired, fig.width = 11, fig.height = 4.6, eval = has_cograph}
+transition_plot(fit, sequences = TRUE)
+```
+
+The centralities are also available as a tidy table:
+
+```{r transition-centrality}
+transition_centrality(fit)
+```
+
+See `vignette("flow-plots")` for the centrality-driven node sizing
+(`size`, `weights`, `loops`), the per-trajectory networks, and the other
+paired views.
+
+## Trajectories: distribution, index, heatmap
+
+```{r trajectories-distribution}
+plot(fit, type = "distribution")
+```
+
+```{r trajectories-index}
+plot(fit, type = "index")
+```
+
+```{r trajectories-heatmap}
+plot(fit, type = "heatmap")
+```
+
+## The combined per-trajectory grid
+
+Passing several views in `type` composes them into one figure with **one
+row per trajectory and one column per view**, in the order requested — the
+standard per-cluster VaSSTra display, drawn in a single call with a shared
+ordered legend. The transition column needs the suggested `cograph`
+package.
+
+```{r trajectories-grid, fig.width = 11, fig.height = 8, eval = has_cograph}
+plot(fit, type = c("transition", "index", "distribution"))
+```

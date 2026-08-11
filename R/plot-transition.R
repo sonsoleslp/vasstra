@@ -120,7 +120,9 @@ transition_centrality.vasstra <- function(x, ...) {
 #'   that never reaches a state still colours the rest correctly.
 #' @param main Optional plot title.
 #' @param ... Additional arguments passed to [cograph::splot()], such as
-#'   `layout` or `threshold`.
+#'   `layout`, `threshold`, or `edge_label_size` (which defaults to a value
+#'   slightly larger than cograph's, so the transition probabilities are
+#'   easy to read).
 #'
 #' @return A tidy data frame of the plotted centrality and node size, one
 #'   row per state, invisibly.
@@ -330,7 +332,10 @@ transition_plot.vasstra <- function(x, ...) {
       node_size = node_size$node_size,
       # Match by name: the network orders states alphabetically, and a
       # single trajectory need not visit every state.
-      node_fill = unname(palette[node_states])
+      node_fill = unname(palette[node_states]),
+      # Nudge the transition-probability labels up from cograph's node-coupled
+      # default so they read at a glance; overridable via `...`.
+      edge_label_size = 1.1
     ),
     dots
   )

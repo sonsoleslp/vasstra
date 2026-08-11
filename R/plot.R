@@ -1010,6 +1010,11 @@ plot.vasstra_trajectories <- function(
   arguments$x <- .vasstra_encode_state_order(original, states)
   arguments$state_colors <- .vasstra_ordered_state_colors(palette, states, original)
   arguments$legend <- "bottom"
+  # Drop the generic axis title (keeping the time ticks). Nestimate draws its
+  # bottom-row facet's title just above the reserved legend strip, exactly
+  # where the clean legend is painted below, so leaving it in would clip that
+  # one facet's title. A space suppresses the title without losing the ticks.
+  if (is.null(arguments$xlab)) arguments$xlab <- " "
   old <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old), add = TRUE)
   result <- do.call(Nestimate::sequence_plot, arguments)
@@ -1091,13 +1096,12 @@ plot.vasstra_trajectories <- function(
   left <- right - col_weight / sum(col_weight)
   legend_frac <- if (show_legend) 0.09 else 0
   row_height <- (1 - legend_frac) / n_rows
-  # Each panel insets itself with its own margins, so contiguous screens leave
-  # a gap between neighbours. A vertical bleed grows every screen into that
-  # top/bottom margin whitespace, tightening the rows. Horizontal bleed is left
-  # at zero: columns are drawn left to right, so any overlap lets the next
-  # panel's blank left margin paint over the previous network's right edge.
+  # Screens are contiguous (no bleed). An earlier vertical bleed tightened the
+  # rows but made adjacent screens overlap, so a lower row's top could paint
+  # over the sequence x-axis of the row above it; keeping the rows disjoint
+  # protects every panel's own margins (title on top, time axis on the bottom).
   pad_x <- 0
-  pad_y <- 0.02
+  pad_y <- 0
   # Row-major order matches the (row - 1) * n_cols + col indexing used below.
   figs <- matrix(NA_real_, nrow = n_rows * n_cols, ncol = 4L)
   for (row in seq_len(n_rows)) {
@@ -1146,7 +1150,11 @@ plot.vasstra_trajectories <- function(
           label_size = 0.75,
           # cograph derives edge labels from the node-label size; bump them so
           # the transition probabilities stay legible at grid scale.
-          edge_label_size = 0.9
+          edge_label_size = 0.9,
+          # Pull the nodes inward so the self-loop probability labels on the
+          # outermost states clear the (narrow) panel edges instead of being
+          # clipped; cograph's "auto" scale fills the region too tightly here.
+          layout_scale = 0.5
         )
       } else {
         panel_data <- if (force_order) {

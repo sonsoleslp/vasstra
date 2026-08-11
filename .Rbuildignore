@@ -14,3 +14,5 @@
 ^logo\.png$
 ^vasstra\.Rproj$
 ^README\.Rmd$
+^vignettes/plot-review\.Rmd$
+^vignettes/clustering-algorithms\.Rmd$

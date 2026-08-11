@@ -448,6 +448,20 @@ ui <- fluidPage(
           DT::DTOutput("subject_indices")
         ),
         tabPanel(
+          "Overview",
+          br(),
+          div(
+            class = "help-section",
+            p(
+              "One row per trajectory: its transition network, sequence ",
+              "index plot, and state distribution, drawn together on the ",
+              "shared palette and state order. The transition column needs ",
+              "the suggested ", tags$code("cograph"), " package."
+            )
+          ),
+          plotOutput("fit_grid", height = "760px")
+        ),
+        tabPanel(
           "Evaluation",
           br(),
           plotOutput("evaluation_plot", height = "680px"),
@@ -730,6 +744,19 @@ server <- function(input, output, session) {
     fit <- fit_rv()
     req(fit)
     plot(fit, type = input$trajectory_plot_type)
+  })
+
+  output$fit_grid <- renderPlot({
+    fit <- fit_rv()
+    req(fit)
+    # The transition column needs cograph; fall back to the two sequence
+    # views when it is not installed.
+    views <- if (requireNamespace("cograph", quietly = TRUE)) {
+      c("transition", "index", "distribution")
+    } else {
+      c("index", "distribution")
+    }
+    plot(fit, type = views)
   })
 
   output$subject_indices <- DT::renderDT({
