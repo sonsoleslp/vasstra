@@ -101,6 +101,77 @@ test_that("plot methods render and return Nestimate plot data", {
   )
 })
 
+test_that("state plot type = 'variables' draws per-timepoint boxplots", {
+  data <- make_vasstra_data()
+  fit <- vasstra(
+    data,
+    id = "student",
+    time = "course",
+    variables = c("views", "sessions", "duration"),
+    state_labels = c("Low", "Average", "High"),
+    backend = "base"
+  )
+  path <- tempfile(fileext = ".pdf")
+  grDevices::pdf(path)
+  on.exit(grDevices::dev.off(), add = TRUE)
+
+  summary_stats <- plot(fit, which = "states", type = "variables")
+
+  expect_s3_class(summary_stats, "data.frame")
+  expect_named(summary_stats, c("time", "variable", "state", "median"))
+  expect_equal(
+    nrow(summary_stats),
+    fit$diagnostics$n_times * 3L * fit$diagnostics$n_states
+  )
+  expect_setequal(
+    unique(summary_stats$variable),
+    c("views", "sessions", "duration")
+  )
+  expect_setequal(
+    as.character(unique(summary_stats$state)),
+    c("Low", "Average", "High")
+  )
+
+  pooled <- plot(fit, which = "states", type = "variables", by_time = FALSE)
+  expect_named(pooled, c("variable", "state", "median"))
+  expect_equal(nrow(pooled), 3L * fit$diagnostics$n_states)
+})
+
+test_that("state_descriptives summarises indicators per state", {
+  data <- make_vasstra_data()
+  fit <- vasstra(
+    data,
+    id = "student",
+    time = "course",
+    variables = c("views", "sessions", "duration"),
+    state_labels = c("Low", "Average", "High"),
+    backend = "base"
+  )
+
+  desc <- state_descriptives(fit)
+  expect_s3_class(desc, "data.frame")
+  expect_named(desc, c("state", "variable", "n", "mean", "sd", "median",
+                       "min", "max"))
+  expect_equal(nrow(desc), 3L * fit$diagnostics$n_states)
+  expect_type(desc$n, "integer")
+  # states are ordered by the fit's state order, low to high
+  expect_equal(unique(desc$state), c("Low", "Average", "High"))
+
+  by_time <- state_descriptives(fit, by_time = TRUE)
+  expect_true("time" %in% names(by_time))
+  expect_equal(
+    nrow(by_time),
+    3L * fit$diagnostics$n_states * fit$diagnostics$n_times
+  )
+
+  # a precomputed-state fit has no indicators to summarise
+  expect_error(
+    state_descriptives(vasstra(data, id = "student", time = "course",
+                               state = "true_state")),
+    "no indicators"
+  )
+})
+
 test_that("sequence plot methods expose every Nestimate plot type", {
   data <- make_vasstra_data()
   sequences <- step2_sequences(

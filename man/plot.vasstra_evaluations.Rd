@@ -11,8 +11,10 @@
 \code{vasstra} fit.}
 
 \item{colors}{Optional colors recycled within each evaluation row. By
-default the state and trajectory rows use distinct palettes so the two
-groupings are not read as corresponding.}
+default the state row reuses the palette pinned on the fit
+(\code{state_colors}), so it matches every other state plot, while the
+trajectory row keeps a distinct palette so the two groupings are not
+read as corresponding.}
 
 \item{...}{Additional graphical arguments passed to the panel functions.}
 }

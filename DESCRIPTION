@@ -1,11 +1,12 @@
 Package: VaSSTra
 Title: Simple Variables to States to Sequences to Trajectories
-Version: 0.3.0
+Version: 0.4.0
 Authors@R: c(
     person("Mohammed", "Saqr",
            email = "saqr@saqr.me",
            role = c("aut", "cre", "cph")),
-    person("Sonsoles", "López-Pernas", role = "aut")
+    person("Sonsoles", "López-Pernas",
+           email = "sonsoles.lopez@uef.fi", role = "aut")
     )
 Description: A small, pipe-friendly implementation of the VaSSTra workflow
     for longitudinal multivariate data. It provides explicit steps to turn
@@ -36,6 +37,7 @@ Imports:
     stats,
     utils
 Suggests:
+    bslib,
     cograph (>= 2.4.0),
     DT,
     knitr,

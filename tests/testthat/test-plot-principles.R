@@ -18,7 +18,7 @@ test_that("state plots preserve positional arguments and return exact data", {
   state_plot_method <- utils::getS3method("plot", "vasstra_states")
   expect_identical(
     names(formals(state_plot_method)),
-    c("x", "colors", "main", "...", "type", "scale")
+    c("x", "colors", "main", "...", "type", "scale", "by_time")
   )
 
   positional <- withVisible(plot(

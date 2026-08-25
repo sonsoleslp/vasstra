@@ -1,0 +1,41 @@
+citHeader(
+  "To cite VaSSTra in publications, please cite the method paper. To also",
+  "credit this software implementation, cite the R package."
+)
+
+bibentry(
+  bibtype   = "InProceedings",
+  key       = "vasstra2023",
+  title     = paste(
+    "From Variables to States to Trajectories ({VaSSTra}):",
+    "A Method for Modelling the Longitudinal Dynamics of Learning",
+    "and Behaviour"
+  ),
+  author    = c(
+    person("Sonsoles", "López-Pernas"),
+    person("Mohammed", "Saqr")
+  ),
+  booktitle = paste(
+    "Proceedings TEEM 2022: Tenth International Conference on",
+    "Technological Ecosystems for Enhancing Multiculturality"
+  ),
+  series    = "Lecture Notes in Educational Technology",
+  publisher = "Springer Nature Singapore",
+  address   = "Singapore",
+  year      = "2023",
+  pages     = "1169--1178",
+  doi       = "10.1007/978-981-99-0942-1_123"
+)
+
+bibentry(
+  bibtype  = "Manual",
+  key      = "vasstra-package",
+  title    = "{VaSSTra}: Simple Variables to States to Sequences to Trajectories",
+  author   = c(
+    person("Mohammed", "Saqr"),
+    person("Sonsoles", "López-Pernas")
+  ),
+  year     = format(Sys.Date(), "%Y"),
+  note     = paste("R package version", meta$Version),
+  url      = "https://github.com/sonsoleslp/vasstra"
+)

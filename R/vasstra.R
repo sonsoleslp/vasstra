@@ -38,8 +38,10 @@
 #'   explicit `colors` argument to a plot still overrides it.
 #' @param trajectory_labels Optional labels for stable trajectory groups.
 #' @param state_name Output column name when states are estimated.
-#' @param standardize State-indicator standardization: `"time"`, `"global"`,
-#'   or `"none"`. Analysis-ready package data may provide its own default.
+#' @param standardize State-indicator standardization: `"time"` (within each
+#'   time point), `"subject"` (within each subject, relative to their own
+#'   baseline), `"global"`, or `"none"`. Analysis-ready package data may
+#'   provide its own default.
 #' @param indicator_missing Indicator missingness policy passed to step 1.
 #'   Analysis-ready package data may provide its own default.
 #' @param sequence_missing Structural sequence-gap policy passed to step 2.
@@ -120,7 +122,8 @@ vasstra <- function(
     n_start = 25L,
     seed = 123L,
     state_method = c(
-      "lpa", "kmeans", "pam", "ward.D2", "ward.D", "complete", "average",
+      "lpa", "kmeans", "pam", "clara", "fanny", "diana",
+      "ward.D2", "ward.D", "complete", "average",
       "single", "mcquitty", "median", "centroid"
     ),
     lpa_model = "EEI") {
@@ -160,7 +163,7 @@ vasstra <- function(
       indicator_missing <- "error"
     }
   }
-  standardize <- match.arg(standardize, c("time", "global", "none"))
+  standardize <- match.arg(standardize, c("time", "global", "subject", "none"))
   indicator_missing <- match.arg(
     indicator_missing,
     c("error", "median")

@@ -5,21 +5,33 @@
 #'   size plots; heatmaps use a value-based sequential or diverging palette.
 #' @param main Optional plot title. A type-specific title is used by default.
 #' @param type One of `"profile"` (default), `"heatmap"`, `"bars"`,
-#'   `"sizes"`, or `"all"` for a two-by-two overview of the four types.
+#'   `"sizes"`, `"variables"`, or `"all"` for a two-by-two overview of the
+#'   first four. `"variables"` draws grouped boxplots of the clustering
+#'   indicators, one panel per time point and one box per state within each
+#'   indicator, so it shows whether each indicator keeps separating the states
+#'   at every point rather than only on average.
 #' @param scale Show state profiles on the `"standardized"` (default) or
-#'   `"original"` indicator scale. Ignored by `type = "sizes"`.
+#'   `"original"` indicator scale. Ignored by `type = "sizes"` and
+#'   `type = "variables"` (the latter always uses the scale the states were
+#'   clustered on).
+#' @param by_time Used only by `type = "variables"`: draw one panel per time
+#'   point (`TRUE`, default) or pool the time points into a single panel
+#'   (`FALSE`).
 #' @param ... Additional graphical arguments passed to [graphics::matplot()],
-#'   [graphics::image()], or [graphics::barplot()].
+#'   [graphics::image()], [graphics::barplot()], or [graphics::boxplot()].
 #'
 #' @return For profile, bar, heatmap, and overview plots, the plotted
 #'   indicator-by-state matrix, invisibly. For a size plot, a tidy
-#'   state-size data frame.
+#'   state-size data frame. For `type = "variables"`, a tidy
+#'   time-by-variable-by-state table of medians, invisibly.
 #'
 #' @examples
 #' data("engagement", package = "VaSSTra")
 #' states <- step1_states(engagement, n_states = 3)
 #' plot(states)
 #' plot(states, type = "sizes")
+#' plot(states, type = "variables")
+#' plot(states, type = "variables", by_time = FALSE)
 #' plot(states, type = "all")
 #' @export
 plot.vasstra_states <- function(
@@ -27,8 +39,9 @@ plot.vasstra_states <- function(
     colors = NULL,
     main = NULL,
     ...,
-    type = c("profile", "heatmap", "bars", "sizes", "all"),
-    scale = c("standardized", "original")) {
+    type = c("profile", "heatmap", "bars", "sizes", "variables", "all"),
+    scale = c("standardized", "original"),
+    by_time = TRUE) {
   stopifnot(inherits(x, "vasstra_states"))
   dots <- list(...)
   type <- match.arg(type)
@@ -60,9 +73,10 @@ plot.vasstra_states <- function(
   if (identical(type, "all")) {
     old_layout <- graphics::par(mfrow = c(2L, 2L))
     on.exit(graphics::par(old_layout), add = TRUE)
-    for (panel in c("profile", "bars", "heatmap", "sizes")) {
-      plot(x, colors = colors, type = panel, scale = scale, ...)
-    }
+    invisible(lapply(
+      c("profile", "bars", "heatmap", "sizes"),
+      function(panel) plot(x, colors = colors, type = panel, scale = scale, ...)
+    ))
     return(invisible(.vasstra_state_profile_matrix(x, scale)))
   }
   if (identical(type, "bars")) {
@@ -136,6 +150,18 @@ plot.vasstra_states <- function(
       xpd = TRUE
     )
     return(invisible(size_data))
+  }
+  if (identical(type, "variables")) {
+    if (is.null(main)) {
+      main <- if (isTRUE(by_time)) {
+        "Indicators by state over time"
+      } else {
+        "Indicators by state"
+      }
+    }
+    return(invisible(
+      .vasstra_state_variable_boxplots(x, colors, labels, main, dots, by_time)
+    ))
   }
   profile_matrix <- .vasstra_state_profile_matrix(x, scale)
   if (identical(type, "profile")) {
@@ -259,6 +285,141 @@ plot.vasstra_states <- function(
     defaults[supplied_names[named]] <- supplied[named]
   }
   c(defaults, supplied[!named])
+}
+
+# Grouped boxplots of the clustering indicators, one box per state within each
+# indicator. With `by_time` it draws one panel per time point (showing whether
+# each indicator keeps separating the states at every point rather than only on
+# average); otherwise it pools the time points into a single panel. Indicators
+# are drawn on the scale they were clustered on, so one shared y-axis makes them
+# comparable.
+.vasstra_state_variable_boxplots <- function(x, colors, labels, main, dots,
+                                             by_time = TRUE) {
+  data <- x$data
+  time_col <- x$settings$time
+  state_col <- x$settings$state
+  if (is.null(state_col) || !state_col %in% names(data)) {
+    state_col <- "state"
+  }
+  variables <- x$settings$variables
+  states <- labels
+  n_states <- length(states)
+  n_vars <- length(variables)
+  times <- x$settings$time_levels
+  if (is.null(times)) {
+    times <- sort(unique(data[[time_col]]))
+  }
+  # Long form once: reused for the shared y-range, each panel's boxes, and the
+  # tidy summary returned to the caller.
+  long <- do.call(rbind, lapply(variables, function(v) {
+    data.frame(
+      time = data[[time_col]],
+      state = as.character(data[[state_col]]),
+      variable = v,
+      value = data[[v]],
+      stringsAsFactors = FALSE
+    )
+  }))
+  y_range <- range(long$value, na.rm = TRUE)
+  y_range <- y_range + diff(y_range) * c(-0.02, 0.04)
+  # Compact axis labels: drop a trailing "_z" and turn "_" into spaces.
+  short_labels <- gsub("_", " ", sub("_z$", "", variables))
+  # Draw one grouped boxplot (indicators on x, one box per state) for a
+  # long-form subset, then label the indicator axis.
+  draw_panel <- function(panel_long, panel_main) {
+    box_values <- vector("list", n_vars * n_states)
+    at <- numeric(n_vars * n_states)
+    box_colors <- character(n_vars * n_states)
+    centers <- numeric(n_vars)
+    position <- 0
+    slot <- 0
+    for (j in seq_len(n_vars)) {
+      group_positions <- numeric(n_states)
+      for (k in seq_len(n_states)) {
+        slot <- slot + 1
+        position <- position + 1
+        values <- panel_long$value[
+          panel_long$variable == variables[[j]] &
+            panel_long$state == states[[k]]
+        ]
+        values <- values[is.finite(values)]
+        box_values[[slot]] <- if (length(values)) values else NA_real_
+        at[[slot]] <- position
+        box_colors[[slot]] <- colors[[k]]
+        group_positions[[k]] <- position
+      }
+      centers[[j]] <- mean(group_positions)
+      position <- position + 1 # gap between indicators
+    }
+    suppressWarnings(do.call(
+      graphics::boxplot,
+      .vasstra_graphics_arguments(
+        list(
+          x = box_values, at = at, col = box_colors, border = "grey30",
+          lwd = 0.7, boxwex = 0.7, outline = FALSE, xaxt = "n",
+          ylim = y_range, xlab = "", ylab = "", main = panel_main
+        ),
+        dots
+      )
+    ))
+    graphics::abline(h = 0, col = "grey85", lwd = 0.8)
+    graphics::axis(1, at = centers, labels = short_labels, las = 2,
+                   cex.axis = 0.7)
+  }
+  if (isTRUE(by_time)) {
+    panel_titles <- if (is.numeric(times)) {
+      paste0("T", times)
+    } else {
+      as.character(times)
+    }
+    n_times <- length(times)
+    n_col <- min(3L, n_times)
+    n_row <- ceiling(n_times / n_col)
+    old_layout <- graphics::par(
+      mfrow = c(n_row, n_col),
+      oma = c(3.2, 1.4, 2.6, 0.4),
+      mar = c(5.8, 3.0, 2.0, 0.6)
+    )
+    on.exit(graphics::par(old_layout), add = TRUE)
+    for (ti in seq_len(n_times)) {
+      draw_panel(long[long$time == times[[ti]], , drop = FALSE],
+                 panel_titles[[ti]])
+    }
+    # Title across the top outer margin; legend in the first empty grid cell
+    # when the panels leave one, otherwise along the bottom outer margin.
+    graphics::mtext(main, side = 3, outer = TRUE, line = 0.5, cex = 1.05,
+                    col = "grey10")
+    if (n_row * n_col > n_times) {
+      graphics::plot.new()
+      graphics::legend("center", legend = states, fill = colors, border = NA,
+                       bty = "n", cex = 1.0)
+    } else {
+      old_fig <- graphics::par(fig = c(0, 1, 0, 1), mar = c(0, 0, 0, 0),
+                               new = TRUE)
+      on.exit(graphics::par(old_fig), add = TRUE)
+      graphics::plot.new()
+      graphics::legend("bottom", legend = states, fill = colors, border = NA,
+                       horiz = TRUE, bty = "n", cex = 0.9)
+    }
+    summary_stats <- stats::aggregate(
+      value ~ time + variable + state,
+      data = long,
+      FUN = function(z) stats::median(z, na.rm = TRUE)
+    )
+  } else {
+    old_layout <- graphics::par(mar = c(6.4, 3.8, 2.6, 0.8))
+    on.exit(graphics::par(old_layout), add = TRUE)
+    draw_panel(long, main)
+    graphics::legend("topright", legend = states, fill = colors, border = NA,
+                     bty = "n", cex = 0.85)
+    summary_stats <- stats::aggregate(
+      value ~ variable + state,
+      data = long,
+      FUN = function(z) stats::median(z, na.rm = TRUE)
+    )
+  }
+  names(summary_stats)[names(summary_stats) == "value"] <- "median"
+  summary_stats
 }
 
 .vasstra_state_profile_matrix <- function(
@@ -1070,6 +1231,17 @@ plot.vasstra_trajectories <- function(
     show_legend <- !identical(dots$legend, "none") && !isFALSE(dots$legend)
     dots$legend <- NULL
   }
+  # Transition panels are compact here, so nodes default smaller than the
+  # standalone transition_plot() range. Pulled out of `dots` (rather than
+  # forwarded) because the sequence panels have no `size_range` argument; a
+  # user-supplied value still overrides the default.
+  transition_size_range <- if ("size_range" %in% names(dots)) {
+    value <- dots$size_range
+    dots$size_range <- NULL
+    value
+  } else {
+    c(5, 8)
+  }
 
   if ("transition" %in% types &&
       !requireNamespace("cograph", quietly = TRUE)) {
@@ -1086,16 +1258,38 @@ plot.vasstra_trajectories <- function(
   on.exit(graphics::par(old_style), add = TRUE)
   on.exit(graphics::close.screen(all.screens = TRUE), add = TRUE)
   # Lay the panels out with explicit device coordinates rather than an even
-  # split.screen(c(rows, cols)) grid, so the wide time-course views
-  # (distribution, index, heatmap) get more width than the compact network
-  # column. Each screen is c(left, right, bottom, top) in NDC.
-  col_weight <- vapply(types, function(t) {
-    switch(t, distribution = 1.8, index = 1.45, heatmap = 1.6, transition = 1.15)
-  }, numeric(1))
-  right <- cumsum(col_weight) / sum(col_weight)
-  left <- right - col_weight / sum(col_weight)
+  # split.screen(c(rows, cols)) grid. Each screen is c(left, right, bottom,
+  # top) in NDC. The transition network reads best square, while the
+  # time-course views (index, distribution, heatmap) read best as equal-width
+  # rectangles. A transition column is therefore sized so its region is square
+  # given the device aspect ratio and the row height, and the remaining width
+  # is shared equally among the sequence columns.
   legend_frac <- if (show_legend) 0.09 else 0
   row_height <- (1 - legend_frac) / n_rows
+  din <- graphics::par("din")
+  aspect <- din[[2L]] / din[[1L]]
+  is_transition <- types == "transition"
+  n_seq <- sum(!is_transition)
+  # Square width in NDC: row height (NDC) scaled by the device height/width
+  # ratio, clamped so the sequence columns always keep a usable share.
+  square_width <- max(0.12, min(0.4, row_height * aspect))
+  if (n_seq == 0L || square_width * sum(is_transition) >= 0.9) {
+    # All-transition grids (or a pathological device shape) fall back to an
+    # even split.
+    col_frac <- rep(1 / n_cols, n_cols)
+  } else {
+    # Share the non-transition width by weight: the distribution panel carries
+    # a proportion y-axis, so it gets a little more than the index and heatmap
+    # panels to keep the plotting areas comparable.
+    seq_weight <- vapply(types, function(t) {
+      switch(t, distribution = 1.2, index = 1, heatmap = 1, 0)
+    }, numeric(1))
+    remaining <- 1 - square_width * sum(is_transition)
+    seq_frac <- remaining * seq_weight / sum(seq_weight)
+    col_frac <- ifelse(is_transition, square_width, seq_frac)
+  }
+  right <- cumsum(col_frac)
+  left <- right - col_frac
   # Screens are contiguous (no bleed). An earlier vertical bleed tightened the
   # rows but made adjacent screens overlap, so a lower row's top could paint
   # over the sequence x-axis of the row above it; keeping the rows disjoint
@@ -1103,6 +1297,9 @@ plot.vasstra_trajectories <- function(
   pad_x <- 0
   pad_y <- 0
   # Row-major order matches the (row - 1) * n_cols + col indexing used below.
+  # Explicit loops: this assembles per-panel device coordinates where the
+  # layout arithmetic reads more clearly row by row than vectorized, and the
+  # draw loop below is order-dependent side-effecting device drawing.
   figs <- matrix(NA_real_, nrow = n_rows * n_cols, ncol = 4L)
   for (row in seq_len(n_rows)) {
     for (col in seq_len(n_cols)) {
@@ -1140,6 +1337,9 @@ plot.vasstra_trajectories <- function(
           x,
           group = label,
           colors = palette,
+          # Smaller default node range than standalone transition_plot(); the
+          # grid panels are compact. Overridable via `size_range` in ...
+          size_range = transition_size_range,
           # "" (not NULL) suppresses the title; transition_plot() substitutes
           # its own "<group> (n subjects)" title when main is NULL, which would
           # otherwise duplicate the row title on a non-first transition panel.
@@ -1150,7 +1350,7 @@ plot.vasstra_trajectories <- function(
           label_size = 0.75,
           # cograph derives edge labels from the node-label size; bump them so
           # the transition probabilities stay legible at grid scale.
-          edge_label_size = 0.9,
+          edge_label_size = 1.05,
           # Pull the nodes inward so the self-loop probability labels on the
           # outermost states clear the (narrow) panel edges instead of being
           # clipped; cograph's "auto" scale fills the region too tightly here.
@@ -1248,7 +1448,11 @@ plot.vasstra_evaluation <- function(
   type <- match.arg(type)
   n_clusters <- nrow(x$clusters)
   if (is.null(colors)) {
-    colors <- .vasstra_unit_palette(x$unit, n_clusters)
+    colors <- if (is.null(x$group_colors)) {
+      .vasstra_unit_palette(x$unit, n_clusters)
+    } else {
+      x$group_colors
+    }
   }
   if (length(colors) != n_clusters) {
     stop("`colors` must contain one color per fitted cluster.",
@@ -1294,8 +1498,10 @@ plot.vasstra_evaluation <- function(
 #' @param x A `vasstra_evaluations` object from [evaluate()] on a complete
 #'   `vasstra` fit.
 #' @param colors Optional colors recycled within each evaluation row. By
-#'   default the state and trajectory rows use distinct palettes so the two
-#'   groupings are not read as corresponding.
+#'   default the state row reuses the palette pinned on the fit
+#'   (`state_colors`), so it matches every other state plot, while the
+#'   trajectory row keeps a distinct palette so the two groupings are not
+#'   read as corresponding.
 #' @param ... Additional graphical arguments passed to the panel functions.
 #'
 #' @return The evaluated candidate and cluster tables, invisibly.
@@ -1313,10 +1519,12 @@ plot.vasstra_evaluations <- function(x, colors = NULL, ...) {
   on.exit(graphics::par(old_layout), add = TRUE)
   drawn <- lapply(x, function(evaluation) {
     n_clusters <- nrow(evaluation$clusters)
-    panel_colors <- if (is.null(colors)) {
+    panel_colors <- if (!is.null(colors)) {
+      rep_len(colors, n_clusters)
+    } else if (is.null(evaluation$group_colors)) {
       .vasstra_unit_palette(evaluation$unit, n_clusters)
     } else {
-      rep_len(colors, n_clusters)
+      evaluation$group_colors
     }
     unit_title <- sprintf(
       "%s%s",

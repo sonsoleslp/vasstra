@@ -1,5 +1,35 @@
+# VaSSTra 0.4.0
+
+- `plot()` on states gains `type = "variables"`: grouped boxplots of the
+  clustering indicators split by state, one panel per time point, so each
+  indicator's separation of the states is visible at every point rather than
+  only on average. `by_time = FALSE` pools the time points into a single
+  panel, the boxplot counterpart of the profile plot.
+- Added `state_descriptives()`: the numeric companion to that plot, a tidy
+  per-state, per-indicator table of count, mean, standard deviation, median,
+  and range. `scale = "original"` reports the raw indicators and
+  `by_time = TRUE` breaks the summary out per time point.
+- `plot()` on an `evaluate()` result now colours the state row with the
+  palette pinned on the fit (`state_colors`), so it matches the other state
+  plots; the trajectory row keeps its distinct palette.
+
 # VaSSTra 0.3.0
 
+- `standardize` gains a `"subject"` option that z-scores each indicator
+  within each subject, so states reflect deviations from a person's own
+  baseline rather than absolute level. The default is unchanged (`"time"`),
+  and `"global"` and `"none"` are still available.
+- Added `transition_table()`: the transition counts behind the flow and
+  network views as a tidy `from`/`to`/`count`/`probability` data frame,
+  aggregated over time by default or broken out per consecutive time pair
+  with `by_time = TRUE`. `group` restricts a trajectory fit to one group.
+- Added three state-clustering methods, all from the already-imported
+  `cluster` package: `"clara"` (sampling-based PAM for larger data),
+  `"fanny"` (fuzzy clustering, hardened to its nearest partition), and
+  `"diana"` (divisive hierarchical clustering). They are available through
+  `state_method` in `vasstra()`, `method` in `step1_states()`, and
+  `state_choices()`, and are selected by average silhouette like the other
+  non-LPA methods.
 - `plot()` on an `evaluate()` result now draws the trajectory groups in a
   palette distinct from the states, so the state and trajectory evaluation
   rows are no longer coloured identically (which read as a correspondence

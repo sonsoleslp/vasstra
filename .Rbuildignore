@@ -16,3 +16,5 @@
 ^README\.Rmd$
 ^vignettes/plot-review\.Rmd$
 ^vignettes/clustering-algorithms\.Rmd$
+^vignettes/standardization\.Rmd$
+^vignettes/images$

@@ -32,9 +32,13 @@
 #'   by every plot. A named vector (matched by state) or one colour per state
 #'   in state order.
 #' @param state Name of the state column created in the returned data.
-#' @param standardize One of `"time"` (default for ordinary data),
-#'   `"global"`, or `"none"`. Analysis-ready package data may provide its
-#'   own default through metadata.
+#' @param standardize How to z-score the indicators before clustering:
+#'   `"time"` (default for ordinary data) standardizes within each time
+#'   point, `"subject"` within each subject (removing every person's own
+#'   mean and scale, so states reflect deviations from their baseline),
+#'   `"global"` across the whole sample, and `"none"` leaves the raw values.
+#'   Analysis-ready package data may provide its own default through
+#'   metadata.
 #' @param missing One of `"error"` (default for ordinary data) or
 #'   `"median"`. Analysis-ready package data may provide its own default
 #'   through metadata. Median imputation
@@ -45,10 +49,14 @@
 #' @param n_start Number of random k-means starts.
 #' @param seed Reproducible random seed.
 #' @param method State-clustering method. Choose `"lpa"` (default,
-#'   Gaussian-mixture latent profile analysis via mclust), `"kmeans"`,
-#'   `"pam"`, or a hierarchical method: `"ward.D2"`, `"ward.D"`,
-#'   `"complete"`, `"average"`, `"single"`, `"mcquitty"`, `"median"`, or
-#'   `"centroid"`.
+#'   Gaussian-mixture latent profile analysis via mclust), a partitioning
+#'   method — `"kmeans"`, `"pam"`, `"clara"` (a sampling-based PAM that scales
+#'   to many observations), or `"fanny"` (fuzzy clustering, hardened to its
+#'   nearest partition) — or a hierarchical method: `"diana"` (divisive) and
+#'   the agglomerative linkages `"ward.D2"`, `"ward.D"`, `"complete"`,
+#'   `"average"`, `"single"`, `"mcquitty"`, `"median"`, and `"centroid"`.
+#'   The partitioning and hierarchical methods are selected by average
+#'   silhouette; only `"lpa"` uses BIC.
 #' @param lpa_model Covariance model used only by `method = "lpa"`. The
 #'   default `"EEI"` corresponds to tidyLPA model 1: equal variances and zero
 #'   covariances.
@@ -87,7 +95,8 @@ step1_states <- function(
     n_start = 25L,
     seed = 123L,
     method = c(
-      "lpa", "kmeans", "pam", "ward.D2", "ward.D", "complete", "average",
+      "lpa", "kmeans", "pam", "clara", "fanny", "diana",
+      "ward.D2", "ward.D", "complete", "average",
       "single", "mcquitty", "median", "centroid"
     ),
     lpa_model = "EEI") {
@@ -105,7 +114,7 @@ step1_states <- function(
   variables <- data_specification$variables
   standardize <- match.arg(
     data_specification$standardize,
-    c("time", "global", "none")
+    c("time", "global", "subject", "none")
   )
   missing <- match.arg(
     data_specification$missing,
@@ -281,7 +290,8 @@ step1_states <- function(
     working_data,
     variables,
     time,
-    standardize
+    standardize,
+    id = id
   )
   if (anyNA(standardized) ||
       any(!is.finite(as.matrix(standardized)))) {
@@ -309,6 +319,20 @@ step1_states <- function(
           x = standardized_matrix,
           k = n_states
         ),
+        clara = cluster::clara(
+          x = standardized_matrix,
+          k = n_states,
+          samples = 50L
+        ),
+        fanny = cluster::fanny(
+          x = standardized_matrix,
+          k = n_states,
+          # The default membership exponent often collapses to one fuzzy
+          # cluster on standardized profile data; a smaller exponent keeps
+          # the clusters distinct while staying fuzzy.
+          memb.exp = 1.2
+        ),
+        diana = cluster::diana(x = standardized_matrix),
         lpa = do.call(
           mclust::Mclust,
           list(
@@ -334,11 +358,14 @@ step1_states <- function(
   )
   raw_assignments <- if (identical(method, "kmeans")) {
     as.integer(model$cluster)
-  } else if (identical(method, "pam")) {
+  } else if (method %in% .vasstra_partitioning_methods()) {
+    # pam, clara, and fanny all expose an integer `$clustering`; fanny's is
+    # the nearest hard partition of its fuzzy memberships.
     as.integer(model$clustering)
   } else if (identical(method, "lpa")) {
     as.integer(model$classification)
   } else {
+    # diana and the hclust linkages are trees cut to n_states.
     as.integer(stats::cutree(model, k = n_states))
   }
   if (length(unique(raw_assignments)) != n_states) {

@@ -32,8 +32,8 @@ vasstra(
   omega = 1,
   n_start = 25L,
   seed = 123L,
-  state_method = c("lpa", "kmeans", "pam", "ward.D2", "ward.D", "complete", "average",
-    "single", "mcquitty", "median", "centroid"),
+  state_method = c("lpa", "kmeans", "pam", "clara", "fanny", "diana", "ward.D2",
+    "ward.D", "complete", "average", "single", "mcquitty", "median", "centroid"),
   lpa_model = "EEI"
 )
 }
@@ -80,8 +80,10 @@ explicit \code{colors} argument to a plot still overrides it.}
 
 \item{state_name}{Output column name when states are estimated.}
 
-\item{standardize}{State-indicator standardization: \code{"time"}, \code{"global"},
-or \code{"none"}. Analysis-ready package data may provide its own default.}
+\item{standardize}{State-indicator standardization: \code{"time"} (within each
+time point), \code{"subject"} (within each subject, relative to their own
+baseline), \code{"global"}, or \code{"none"}. Analysis-ready package data may
+provide its own default.}
 
 \item{indicator_missing}{Indicator missingness policy passed to step 1.
 Analysis-ready package data may provide its own default.}

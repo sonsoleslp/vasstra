@@ -14,6 +14,7 @@ knitr::opts_chunk$set(
   fig.width = 7,
   fig.height = 5
 )
+options(digits = 2)
 ```
 
 VaSSTra turns repeated multivariate measurements into states, state
@@ -31,6 +32,48 @@ library(VaSSTra)
 data("engagement", package = "VaSSTra")
 ```
 
+## Using your own data
+
+`vasstra()` needs three roles: the **subject** (`id`), the **time** column
+(`time`), and the numeric **indicators** (`variables`). The `engagement`
+data carry these as attached metadata, so they are found automatically; your
+own data frame will not, so you name the subject and time columns. On
+`engagement` this is redundant, but it is exactly the call you would write
+for data with different column names:
+
+```{r roles}
+fit <- vasstra(
+  engagement,
+  id   = "user_id",            # one row per subject and time point
+  time = "sequence_position",  # the ordering column
+  state_labels = c("Disengaged", "Average", "Active")
+)
+```
+
+`variables` was left out on purpose: the numeric columns that are not the
+`id` or `time` become the indicators (columns ending in `"_z"` are preferred
+when present, so a mix of raw and standardized columns picks the
+standardized set, as it does here). Name them to fit a specific subset. Here
+we keep only the three activity-volume indicators:
+
+```{r variables}
+fit <- vasstra(
+  engagement,
+  id        = "user_id",
+  time      = "sequence_position",
+  variables = c("session_count_z", "total_duration_z", "active_days_z"),
+  state_labels = c("Disengaged", "Average", "Active")
+)
+```
+
+Columns that follow a common convention are detected even without `id` and
+`time` (`id`: `id`, `student`, `subject`, `actor`, …; `time`: `time`,
+`week`, `wave`, `session`, …); anything else raises a clear error asking you
+to supply that role. Two more notes: pass `time_levels` when `time` is a
+character or unordered factor so the chronology is explicit, and use `state`
+instead of `variables` when the data already carry a categorical state
+column (the analysis then starts at `step2_sequences()`).
+
 ## One call
 
 `vasstra()` detects the subject, time, and indicator roles from the attached
@@ -46,8 +89,8 @@ fit
 
 
 Name any decision to take it over; automation only fills what you omit.
-Labels are the shortest way to fix a count — three labels mean three
-states — and a candidate vector such as `n_states = 2:4` compares exactly
+Labels are the shortest way to fix a count (three labels mean three
+states), and a candidate vector such as `n_states = 2:4` compares exactly
 those counts and fits the recommended one. Two more arguments control how
 states display everywhere: `state_order` fixes the order states appear in
 across every plot, and `state_colors` sets a state palette that is stored on
@@ -76,7 +119,7 @@ and group sizes.
 evaluation <- evaluate(fit)
 ```
 
-```{r evaluate-plot, fig.height = 6}
+```{r evaluate-plot, fig.height = 5, fig.width=8.15}
 plot(evaluation)
 ```
 
@@ -104,8 +147,8 @@ fit_indices(fit, step = "trajectories", compare = TRUE)
 
 ## Name groups after inspecting them
 
-`set_labels()` renames fitted states or trajectories in place — nothing
-is refitted, no value changes — and the new names flow through every
+`set_labels()` renames fitted states or trajectories in place (nothing
+is refitted, no value changes), and the new names flow through every
 table, sequence, and plot. Rename everything with a full vector, or only
 some groups by name.
 
@@ -124,7 +167,7 @@ the same automated defaults. Use the steps when intermediate results are
 needed, or when states come from another method.
 
 ```{r steps}
-states <- step1_states(engagement, n_states = 3,
+states <- step1_states(engagement,
                        labels = c("Disengaged", "Average", "Active"))
 sequences <- step2_sequences(states)
 trajectories <- step3_trajectories(sequences, n_trajectories = 3)
@@ -209,7 +252,9 @@ plot(trajectory_options, metric = "silhouette")
 Recommendations are made within each distance-method pair because mean
 within-trajectory distances are only comparable within one dissimilarity.
 
-States default to mclust latent profiles (`"EEI"`, tidyLPA model 1);
+States default to `mclust` latent profiles (`"EEI"`, tidyLPA model 1);
 base R supplies k-means and hierarchical clustering, `cluster` supplies
-PAM, and Nestimate supplies sequence distances, trajectory clustering,
-and plots. No TraMineR plotting path or dependency is required.
+PAM, CLARA, FANNY, and DIANA, and `Nestimate` supplies sequence distances,
+trajectory clustering, and plots. No `TraMineR` plotting path or dependency
+is required. See `vignette("clustering-algorithms")` for the full list of
+state and trajectory methods.

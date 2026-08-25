@@ -19,8 +19,8 @@ step1_states(
   time_levels = NULL,
   n_start = 25L,
   seed = 123L,
-  method = c("lpa", "kmeans", "pam", "ward.D2", "ward.D", "complete", "average",
-    "single", "mcquitty", "median", "centroid"),
+  method = c("lpa", "kmeans", "pam", "clara", "fanny", "diana", "ward.D2", "ward.D",
+    "complete", "average", "single", "mcquitty", "median", "centroid"),
   lpa_model = "EEI"
 )
 }
@@ -60,9 +60,13 @@ in state order.}
 
 \item{state}{Name of the state column created in the returned data.}
 
-\item{standardize}{One of \code{"time"} (default for ordinary data),
-\code{"global"}, or \code{"none"}. Analysis-ready package data may provide its
-own default through metadata.}
+\item{standardize}{How to z-score the indicators before clustering:
+\code{"time"} (default for ordinary data) standardizes within each time
+point, \code{"subject"} within each subject (removing every person's own
+mean and scale, so states reflect deviations from their baseline),
+\code{"global"} across the whole sample, and \code{"none"} leaves the raw values.
+Analysis-ready package data may provide its own default through
+metadata.}
 
 \item{missing}{One of \code{"error"} (default for ordinary data) or
 \code{"median"}. Analysis-ready package data may provide its own default
@@ -78,10 +82,14 @@ character or unordered-factor time columns.}
 \item{seed}{Reproducible random seed.}
 
 \item{method}{State-clustering method. Choose \code{"lpa"} (default,
-Gaussian-mixture latent profile analysis via mclust), \code{"kmeans"},
-\code{"pam"}, or a hierarchical method: \code{"ward.D2"}, \code{"ward.D"},
-\code{"complete"}, \code{"average"}, \code{"single"}, \code{"mcquitty"}, \code{"median"}, or
-\code{"centroid"}.}
+Gaussian-mixture latent profile analysis via mclust), a partitioning
+method — \code{"kmeans"}, \code{"pam"}, \code{"clara"} (a sampling-based PAM that scales
+to many observations), or \code{"fanny"} (fuzzy clustering, hardened to its
+nearest partition) — or a hierarchical method: \code{"diana"} (divisive) and
+the agglomerative linkages \code{"ward.D2"}, \code{"ward.D"}, \code{"complete"},
+\code{"average"}, \code{"single"}, \code{"mcquitty"}, \code{"median"}, and \code{"centroid"}.
+The partitioning and hierarchical methods are selected by average
+silhouette; only \code{"lpa"} uses BIC.}
 
 \item{lpa_model}{Covariance model used only by \code{method = "lpa"}. The
 default \code{"EEI"} corresponds to tidyLPA model 1: equal variances and zero

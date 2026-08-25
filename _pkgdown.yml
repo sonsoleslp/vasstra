@@ -47,6 +47,7 @@ reference:
   - plot.vasstra_state_choices
   - plot.vasstra_trajectory_choices
   - transition_plot
+  - transition_table
   - transition_centrality
   - flow_plot
 
@@ -55,6 +56,7 @@ reference:
   contents:
   - set_labels
   - as.data.frame.vasstra
+  - state_descriptives
 
 - title: Interactive app
   contents:
@@ -73,3 +75,4 @@ articles:
   - flow-plots
   - plot-review
   - clustering-algorithms
+  - standardization

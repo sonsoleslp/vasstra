@@ -143,6 +143,19 @@
 # Resolve the order the states should appear in every plot. `state_order`,
 # when supplied, must list exactly the same labels rearranged; otherwise the
 # discovery order (`labels`) is kept.
+# Indicator column names on the requested scale: the clustering variables as
+# stored ("standardized"), or their raw counterparts with a trailing "_z"
+# dropped, where those columns exist ("original").
+.vasstra_indicator_columns <- function(x, scale) {
+  variables <- x$settings$variables
+  if (identical(scale, "original")) {
+    raw <- sub("_z$", "", variables)
+    resolved <- raw != variables & raw %in% names(x$data)
+    variables[resolved] <- raw[resolved]
+  }
+  variables
+}
+
 .vasstra_state_order <- function(state_order, labels) {
   if (is.null(state_order)) {
     return(labels)
@@ -206,7 +219,8 @@
   force(code)
 }
 
-.vasstra_standardize <- function(data, variables, time, standardize) {
+.vasstra_standardize <- function(data, variables, time, standardize,
+                                 id = NULL) {
   stopifnot(
     is.data.frame(data),
     is.character(variables),
@@ -219,8 +233,17 @@
     values <- lapply(data[variables], as.numeric)
     return(as.data.frame(values, stringsAsFactors = FALSE))
   }
+  # z-score each variable within groups: per time point ("time"), per subject
+  # ("subject", removing each person's own mean and scale), or across the whole
+  # sample ("global").
   groups <- if (identical(standardize, "time")) {
     data[[time]]
+  } else if (identical(standardize, "subject")) {
+    if (is.null(id)) {
+      stop("`standardize = \"subject\"` needs the `id` column.",
+           call. = FALSE)
+    }
+    data[[id]]
   } else {
     rep.int(1L, nrow(data))
   }
@@ -286,6 +309,51 @@
   totals <- stats::ave(result$count, result$from, FUN = sum)
   result$probability <- ifelse(totals == 0, 0, result$count / totals)
   result
+}
+
+# Per-time-step transition counts: one block per consecutive time pair, so it
+# matches the alluvial flow view rather than the aggregated network. `count`
+# is the number of subjects making each move at that step, and `probability`
+# is row-normalized within each (from_time, from). `time_levels` labels the
+# origin and destination columns.
+.vasstra_transition_table_by_time <- function(sequence_matrix, states,
+                                              time_levels) {
+  stopifnot(is.matrix(sequence_matrix), is.character(states))
+  n_times <- ncol(sequence_matrix)
+  if (length(time_levels) != n_times) {
+    time_levels <- colnames(sequence_matrix)
+  }
+  if (n_times < 2L) {
+    empty <- expand.grid(from = states, to = states,
+                         stringsAsFactors = FALSE)
+    return(data.frame(
+      from_time = character(0), to_time = character(0),
+      empty[0L, ], count = integer(0), probability = numeric(0),
+      stringsAsFactors = FALSE
+    ))
+  }
+  steps <- lapply(seq_len(n_times - 1L), function(step) {
+    from <- sequence_matrix[, step]
+    to <- sequence_matrix[, step + 1L]
+    valid <- !is.na(from) & !is.na(to)
+    counts <- table(
+      factor(from[valid], levels = states),
+      factor(to[valid], levels = states)
+    )
+    tidy <- as.data.frame(counts, stringsAsFactors = FALSE)
+    names(tidy) <- c("from", "to", "count")
+    totals <- stats::ave(tidy$count, tidy$from, FUN = sum)
+    data.frame(
+      from_time = as.character(time_levels[[step]]),
+      to_time = as.character(time_levels[[step + 1L]]),
+      from = as.character(tidy$from),
+      to = as.character(tidy$to),
+      count = tidy$count,
+      probability = ifelse(totals == 0, 0, tidy$count / totals),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, steps)
 }
 
 .vasstra_distribution_table <- function(sequence_matrix, states, time_levels) {
@@ -444,9 +512,18 @@
 .vasstra_state_methods <- function() {
   stopifnot(TRUE)
   c(
-    "kmeans", "pam", "ward.D2", "ward.D", "complete", "average",
+    "kmeans", "pam", "clara", "fanny", "diana",
+    "ward.D2", "ward.D", "complete", "average",
     "single", "mcquitty", "median", "centroid", "lpa"
   )
+}
+
+# State-clustering methods handled by cluster::* partitioning (each returns a
+# `$clustering` integer vector), as opposed to LPA, k-means, or the hclust
+# linkages. Kept in one place so the switch and the assignment extraction
+# below agree.
+.vasstra_partitioning_methods <- function() {
+  c("pam", "clara", "fanny")
 }
 
 .vasstra_sequence_distances <- function() {

@@ -88,6 +88,86 @@ transition_centrality.vasstra <- function(x, ...) {
   transition_centrality(x$trajectories, ...)
 }
 
+#' State Transition Table
+#'
+#' The transition counts behind the flow and network views, as a tidy data
+#' frame. By default every consecutive move is aggregated over time (the
+#' numbers [transition_plot()] draws); `by_time = TRUE` instead returns one
+#' block per consecutive time pair, matching the alluvial [flow_plot()].
+#'
+#' @param x A `vasstra_sequences`, `vasstra_trajectories`, or `vasstra`
+#'   object.
+#' @param by_time Return per-time-step transitions (`TRUE`) or the
+#'   time-aggregated table (`FALSE`, default).
+#' @param ... Not used.
+#'
+#' @return A tidy data frame. Aggregated: `from`, `to`, `count`, and
+#'   `probability` (row-normalized within `from`). With `by_time = TRUE`,
+#'   also `from_time` and `to_time`, with `probability` normalized within
+#'   each `(from_time, from)`.
+#'
+#' @seealso [transition_plot()] and [flow_plot()] to draw these movements,
+#'   [transition_centrality()] for network centralities.
+#'
+#' @examples
+#' data("engagement", package = "VaSSTra")
+#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+#' transition_table(fit)
+#' transition_table(fit, by_time = TRUE)
+#' @export
+transition_table <- function(x, ...) {
+  UseMethod("transition_table")
+}
+
+#' @rdname transition_table
+#' @export
+transition_table.vasstra_sequences <- function(x, by_time = FALSE, ...) {
+  stopifnot(inherits(x, "vasstra_sequences"))
+  .vasstra_transition_table_result(
+    sequence_data = x$data,
+    states = x$states,
+    time_levels = x$settings$time_levels,
+    by_time = by_time
+  )
+}
+
+#' @rdname transition_table
+#' @param group Optional trajectory label restricting the table to one
+#'   trajectory's subjects.
+#' @export
+transition_table.vasstra_trajectories <- function(
+    x, by_time = FALSE, group = NULL, ...) {
+  stopifnot(inherits(x, "vasstra_trajectories"))
+  .vasstra_transition_table_result(
+    sequence_data = .vasstra_group_sequences(x, group)$data,
+    states = x$source$states,
+    time_levels = x$source$settings$time_levels,
+    by_time = by_time
+  )
+}
+
+#' @rdname transition_table
+#' @export
+transition_table.vasstra <- function(x, ...) {
+  stopifnot(inherits(x, "vasstra"))
+  transition_table(x$trajectories, ...)
+}
+
+# Shared builder: aggregated or per-time-step transition counts from a wide
+# sequence data frame.
+.vasstra_transition_table_result <- function(sequence_data, states,
+                                             time_levels, by_time) {
+  if (!is.logical(by_time) || length(by_time) != 1L || is.na(by_time)) {
+    stop("`by_time` must be TRUE or FALSE.", call. = FALSE)
+  }
+  sequence_matrix <- as.matrix(sequence_data)
+  if (by_time) {
+    .vasstra_transition_table_by_time(sequence_matrix, states, time_levels)
+  } else {
+    .vasstra_transition_table(sequence_matrix, states)
+  }
+}
+
 #' Plot the State Transition Network
 #'
 #' Draws states as nodes and transitions as directed edges, with node size
