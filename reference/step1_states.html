@@ -15,7 +15,7 @@ indicator level, then optionally given user-supplied labels."><meta property="og
 
     <a class="navbar-brand me-2" href="../index.html">VaSSTra</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,7 @@ indicator level, then optionally given user-supplied labels."><meta property="og
     <li><a class="dropdown-item" href="../articles/flow-plots.html">Flow Plots</a></li>
     <li><a class="dropdown-item" href="../articles/plot-review.html">Plotting the results</a></li>
     <li><a class="dropdown-item" href="../articles/clustering-algorithms.html">Clustering Algorithms in VaSSTra</a></li>
+    <li><a class="dropdown-item" href="../articles/standardization.html">Standardization: how it changes the states</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -73,8 +74,8 @@ indicator level, then optionally given user-supplied labels.</p>
 <span>  time_levels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n_start <span class="op">=</span> <span class="fl">25L</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">123L</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lpa"</span>, <span class="st">"kmeans"</span>, <span class="st">"pam"</span>, <span class="st">"ward.D2"</span>, <span class="st">"ward.D"</span>, <span class="st">"complete"</span>, <span class="st">"average"</span>,</span>
-<span>    <span class="st">"single"</span>, <span class="st">"mcquitty"</span>, <span class="st">"median"</span>, <span class="st">"centroid"</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lpa"</span>, <span class="st">"kmeans"</span>, <span class="st">"pam"</span>, <span class="st">"clara"</span>, <span class="st">"fanny"</span>, <span class="st">"diana"</span>, <span class="st">"ward.D2"</span>, <span class="st">"ward.D"</span>,</span>
+<span>    <span class="st">"complete"</span>, <span class="st">"average"</span>, <span class="st">"single"</span>, <span class="st">"mcquitty"</span>, <span class="st">"median"</span>, <span class="st">"centroid"</span><span class="op">)</span>,</span>
 <span>  lpa_model <span class="op">=</span> <span class="st">"EEI"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -137,9 +138,13 @@ in state order.</p></dd>
 
 
 <dt id="arg-standardize">standardize<a class="anchor" aria-label="anchor" href="#arg-standardize"></a></dt>
-<dd><p>One of <code>"time"</code> (default for ordinary data),
-<code>"global"</code>, or <code>"none"</code>. Analysis-ready package data may provide its
-own default through metadata.</p></dd>
+<dd><p>How to z-score the indicators before clustering:
+<code>"time"</code> (default for ordinary data) standardizes within each time
+point, <code>"subject"</code> within each subject (removing every person's own
+mean and scale, so states reflect deviations from their baseline),
+<code>"global"</code> across the whole sample, and <code>"none"</code> leaves the raw values.
+Analysis-ready package data may provide its own default through
+metadata.</p></dd>
 
 
 <dt id="arg-missing">missing<a class="anchor" aria-label="anchor" href="#arg-missing"></a></dt>
@@ -165,10 +170,14 @@ character or unordered-factor time columns.</p></dd>
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
 <dd><p>State-clustering method. Choose <code>"lpa"</code> (default,
-Gaussian-mixture latent profile analysis via mclust), <code>"kmeans"</code>,
-<code>"pam"</code>, or a hierarchical method: <code>"ward.D2"</code>, <code>"ward.D"</code>,
-<code>"complete"</code>, <code>"average"</code>, <code>"single"</code>, <code>"mcquitty"</code>, <code>"median"</code>, or
-<code>"centroid"</code>.</p></dd>
+Gaussian-mixture latent profile analysis via mclust), a partitioning
+method — <code>"kmeans"</code>, <code>"pam"</code>, <code>"clara"</code> (a sampling-based PAM that scales
+to many observations), or <code>"fanny"</code> (fuzzy clustering, hardened to its
+nearest partition) — or a hierarchical method: <code>"diana"</code> (divisive) and
+the agglomerative linkages <code>"ward.D2"</code>, <code>"ward.D"</code>, <code>"complete"</code>,
+<code>"average"</code>, <code>"single"</code>, <code>"mcquitty"</code>, <code>"median"</code>, and <code>"centroid"</code>.
+The partitioning and hierarchical methods are selected by average
+silhouette; only <code>"lpa"</code> uses BIC.</p></dd>
 
 
 <dt id="arg-lpa-model">lpa_model<a class="anchor" aria-label="anchor" href="#arg-lpa-model"></a></dt>

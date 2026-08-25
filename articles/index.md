@@ -11,3 +11,5 @@
   results](https://sonsoles.me/vasstra/articles/plot-review.md):
 - [Clustering Algorithms in
   VaSSTra](https://sonsoles.me/vasstra/articles/clustering-algorithms.md):
+- [Standardization: how it changes the
+  states](https://sonsoles.me/vasstra/articles/standardization.md):

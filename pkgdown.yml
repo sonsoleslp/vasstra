@@ -6,8 +6,9 @@ articles:
   flow-plots: flow-plots.html
   get-started: get-started.html
   plot-review: plot-review.html
+  standardization: standardization.html
   vasstra-tutorial: vasstra-tutorial.html
-last_built: 2026-08-11T19:44Z
+last_built: 2026-08-25T11:25Z
 urls:
   reference: https://sonsoles.me/vasstra/reference
   article: https://sonsoles.me/vasstra/articles

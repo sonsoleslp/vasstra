@@ -2,12 +2,12 @@
 
 Longitudinal engagement data have a structural problem: eight indicators
 per student per course are too many dimensions to compare students on,
-and averaging them across time destroys exactly the thing that matters —
+and averaging them across time destroys exactly the thing that matters:
 how each student changes. The VaSSTra method solves this in three
 compressions. Multivariate observations become a small set of
 interpretable **states**; each student’s states, ordered in time, become
 a **sequence**; and students whose sequences resemble each other become
-**trajectories** — a person-centered summary of change that a single
+**trajectories**, a person-centered summary of change that a single
 regression coefficient cannot express.
 
 This tutorial runs the complete workflow on the longitudinal engagement
@@ -39,7 +39,7 @@ of *Learning Analytics Methods and Tutorials*, in this order:
 The `engagement` data ship analysis-ready: 142 students at eight course
 positions, with eight course-standardized indicators and attached role
 metadata, so no column plumbing is needed. The chapter’s substantive
-decision — three latent profiles named Disengaged, Average, and Active —
+decision (three latent profiles named Disengaged, Average, and Active)
 is expressed entirely by the labels: three labels mean three states,
 estimated by latent profile analysis (mclust `"EEI"`, the chapter’s
 tidyLPA Model 1) because that is the default state method. The LCS
@@ -53,8 +53,7 @@ data("engagement", package = "VaSSTra")
 fit <- vasstra(
   engagement,
   state_labels = c("Disengaged", "Average", "Active"),
-  state_order  = c("Disengaged", "Average", "Active"),
-  state_colors = c(Disengaged = "#D55E00", Average = "#0072B2", Active = "#009E73"),
+  state_colors = c(Disengaged = "#e01a4f", Average = "#FFDF3C", Active = "#28a41f"),
   dissimilarity = "lcs",
   cluster_method = "ward.D2",
   positive_states = "Active",
@@ -71,12 +70,12 @@ fit
 #>   lcs + ward.D2 | silhouette 0.514
 ```
 
-`state_order` fixes the order the states read in every plot and
-`state_colors` pins their palette, so the whole analysis below is drawn
-consistently; both are optional and default to the discovery order and
-the package palette.
+`state_colors` pins the state palette on the fit, so every plot below is
+drawn on the chapter’s colours. A companion argument, `state_order`,
+fixes the order states read in every plot; here the discovery order is
+already low-to-high, so it is left at its default. Both are optional.
 
-The one remaining automated decision — the number of trajectories — is
+The one remaining automated decision, the number of trajectories, is
 reported in the message and stored with its full comparison table in the
 fit, so it can be defended later rather than taken on faith. Leaving the
 labels out too (`vasstra(engagement)`) automates the state count as
@@ -90,7 +89,7 @@ A fitted clustering is a claim, and the claim needs two kinds of
 evidence: that the chosen count beats its neighbors, and that the chosen
 solution is internally sound.
 [`evaluate()`](https://sonsoles.me/vasstra/reference/evaluate.md)
-provides both in one object — a candidate table across counts and a
+provides both in one object: a candidate table across counts and a
 per-group quality table for the fitted solution.
 
 ``` r
@@ -150,7 +149,7 @@ plot(evaluation)
 The two rows of panels answer different questions. The trajectory
 selection curve peaks at the fitted three groups (silhouette 0.51
 against 0.44 and 0.40 for two and four), so the automated choice is also
-the local optimum — the strongest position a selection can be in. The
+the local optimum, the strongest position a selection can be in. The
 state curve instead *declines* from two: with LPA the count was fixed by
 the three labels, and the panel makes the cost of that substantive
 choice visible (0.26 at three against 0.35 at two) instead of hiding it.
@@ -161,7 +160,7 @@ whether three groups over-merge distinct journeys.
 
 For the model-based evidence reviewers expect,
 [`fit_indices()`](https://sonsoles.me/vasstra/reference/fit_indices.md)
-returns the complete information-criterion family as one tidy row — the
+returns the complete information-criterion family as one tidy row: the
 same content as tidyLPA’s fit table, plus the classification-quality
 columns that usually have to be assembled by hand.
 
@@ -178,9 +177,9 @@ fit_indices(fit)
 ```
 
 Three of these numbers carry the interpretation. Entropy (0.89) says the
-posterior classification is sharp overall; `prob_min` (0.94) says even
-the *worst* class assigns its members with high confidence — entropy
-summarizes the whole matrix, `prob_min` guards its weakest class, and
+posterior classification is sharp overall. `prob_min` (0.94) says even
+the *worst* class assigns its members with high confidence. Entropy
+summarizes the whole matrix and `prob_min` guards its weakest class, so
 reporting both prevents a good average from hiding a bad class. The
 criterion family (AIC through ICL) is there for the comparison table:
 
@@ -208,8 +207,8 @@ fit_indices(fit, compare = TRUE)
 #>     0.973      0.181       33      350      10.61    FALSE FALSE  FALSE
 ```
 
-Every criterion keeps falling through six classes — a nearly linear
-decline with no elbow — which is precisely why the chapter’s three
+Every criterion keeps falling through six classes, a nearly linear
+decline with no elbow. This is precisely why the chapter’s three
 profiles rest on interpretability and the classification-quality columns
 rather than on a BIC minimum. The table makes that argument honest: the
 `best` flag marks what pure criteria would pick, `fitted` marks what was
@@ -230,12 +229,12 @@ plot(fit, which = "states", type = "all")
 
 The profile lines answer *what makes each state itself*: Active sits
 around one standard deviation above course average on every indicator,
-Disengaged about one below, Average on the line — engagement here is a
+Disengaged about one below, Average on the line. Engagement here is a
 level, not a trade-off between, say, forum and lecture activity, which
 is exactly what justifies ordered labels. The bars carry the same means
 but grouped by indicator, which is the view for spotting whether any
 single indicator breaks the ordering (none does). The heatmap adds the
-exact magnitudes the lines only sketch — Disengaged is most extreme on
+exact magnitudes the lines only sketch: Disengaged is most extreme on
 session count (−1.27) and least on lecture views (−0.81). The sizes
 panel grounds prevalence: Average is the plurality (48%), and no state
 is rare enough to question.
@@ -244,7 +243,7 @@ is rare enough to question.
 
 The default sequence view is the heatmap: every aligned sequence as one
 row, rows ordered by similarity, so persistence shows as long unbroken
-bands and instability as speckle — the one view that keeps all 142
+bands and instability as speckle. It is the one view that keeps all 142
 individual journeys visible at once.
 
 ``` r
@@ -255,8 +254,8 @@ plot(fit, which = "sequences")
 ![](vasstra-tutorial_files/figure-html/sequences-heatmap-1.png)
 
 Two further views split the temporal question the heatmap compresses.
-The distribution answers the *aggregate* question — does the composition
-of the cohort drift over the eight positions — while the index plot
+The distribution answers the *aggregate* question (does the composition
+of the cohort drift over the eight positions), while the index plot
 answers the *individual* one on a fixed subject order. The distinction
 matters because a flat distribution can hide heavy individual churn.
 
@@ -280,8 +279,8 @@ Grouping the sequences (LCS distance, Ward linkage) yields three
 trajectories of 41, 73, and 28 students. The grouped index plot is the
 core evidence that the groups mean something: one group is dominated by
 Active rows throughout, one by Disengaged, and the largest mixes Average
-with excursions — visibly different journeys, not arbitrary partitions
-of similar ones.
+with excursions. These are visibly different journeys, not arbitrary
+partitions of similar ones.
 
 ``` r
 
@@ -293,7 +292,7 @@ plot(fit, type = "index")
 The three groups line up with the three states, so we can name them now
 by the state each mostly holds.
 [`set_labels()`](https://sonsoles.me/vasstra/reference/set_labels.md)
-renames in place — every later table, sequence, and plot follows, and no
+renames in place: every later table, sequence, and plot follows, and no
 fitted value changes.
 
 ``` r
@@ -314,9 +313,9 @@ plot(fit, type = "distribution")
 Passing several views in `type` composes them into one figure with **one
 row per trajectory and one column per view**, so each group’s transition
 network sits beside the sequences it summarises and their changing
-composition — the standard per-cluster VaSSTra display in a single call.
-A shared legend labels every panel at once, and the transition column
-requires the suggested `cograph` package.
+composition. This is the standard per-cluster VaSSTra display in one
+call. A shared legend labels every panel at once, and the transition
+column requires the suggested `cograph` package.
 
 ``` r
 
@@ -325,10 +324,10 @@ plot(fit, type = c( "index", "distribution","transition"))
 
 ![](vasstra-tutorial_files/figure-html/trajectories-grid-1.png)
 
-The rows now read as whole stories: the Active group’s network is
-dominated by the Active self-loop and its distribution stays green, the
-Disengaged group mirrors it in orange, and the mixed middle group shows
-the busiest network — the many off-diagonal transitions that its higher
+The rows now read as whole stories. The Active group’s network is
+dominated by the Active self-loop and its distribution stays green, and
+the Disengaged group mirrors it in red. The mixed middle group shows the
+busiest network: the many off-diagonal transitions that its higher
 entropy and mobility counts quantify in the next section.
 
 ## 6. Describing what the trajectories mean
@@ -357,14 +356,14 @@ The two time-weighted columns exist because `positive_states` and
 `negative_states` were declared in the fit: integrative potential is the
 late-weighted share of time in Active, negative exposure the same for
 Disengaged. Here they separate the groups almost completely (0.77 versus
-0.11 versus 0.00 for integrative potential) — later time points count
+0.11 versus 0.00 for integrative potential). Later time points count
 more, so these indices read as *where the student is heading*, which raw
 state proportions cannot say. Entropy and transition counts add the
-stability dimension: the large middle group is not only mixed in state
-but also the most mobile.
+stability dimension: the large middle group is the most mixed in state
+and also the most mobile.
 
-Per-student indices for downstream modeling — one row per student with
-trajectory membership, entropy, complexity, and both exposure indices —
+Per-student indices for downstream modeling (one row per student with
+trajectory membership, entropy, complexity, and both exposure indices)
 come from the same fit:
 
 ``` r
@@ -389,7 +388,7 @@ head(as.data.frame(fit))
 ## 7. Relabeling without refitting
 
 Interpretation happens *after* fitting, so labels stay assignable at any
-point without refitting — which is exactly what Section 5 did once the
+point without refitting, which is exactly what Section 5 did once the
 groups were visible.
 [`set_labels()`](https://sonsoles.me/vasstra/reference/set_labels.md)
 renames in place, propagating the names through every table, sequence,
@@ -426,8 +425,8 @@ summary(fit)
 ## 8. Full control: explicit steps and grid comparisons
 
 Everything above is also four explicit steps, each with the same
-automated defaults — the route to take when intermediate objects are
-needed, when states come from another method (enter at
+automated defaults. This is the route to take when intermediate objects
+are needed, when states come from another method (enter at
 [`step2_sequences()`](https://sonsoles.me/vasstra/reference/step2_sequences.md)
 with a state column), or when the method itself is under comparison:
 
@@ -445,8 +444,8 @@ When the clustering method is itself in question,
 [`state_choices()`](https://sonsoles.me/vasstra/reference/state_choices.md)
 and
 [`trajectory_choices()`](https://sonsoles.me/vasstra/reference/trajectory_choices.md)
-fit the full grid and return one tidy row per candidate — nothing is
-selected silently, recommendations are marked within each method
+fit the full grid and return one tidy row per candidate. Nothing is
+selected silently. Recommendations are marked within each method
 (silhouette for hard clustering, BIC for LPA, since model-based criteria
 only compare within LPA), and the inspected candidate is fitted with
 [`fit_state_choice()`](https://sonsoles.me/vasstra/reference/fit_state_choice.md):

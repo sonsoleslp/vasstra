@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">VaSSTra</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,6 +23,7 @@
     <li><a class="dropdown-item" href="../articles/flow-plots.html">Flow Plots</a></li>
     <li><a class="dropdown-item" href="../articles/plot-review.html">Plotting the results</a></li>
     <li><a class="dropdown-item" href="../articles/clustering-algorithms.html">Clustering Algorithms in VaSSTra</a></li>
+    <li><a class="dropdown-item" href="../articles/standardization.html">Standardization: how it changes the states</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -52,8 +53,9 @@
 <span>  colors <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  main <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span>,</span>
-<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"profile"</span>, <span class="st">"heatmap"</span>, <span class="st">"bars"</span>, <span class="st">"sizes"</span>, <span class="st">"all"</span><span class="op">)</span>,</span>
-<span>  scale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"standardized"</span>, <span class="st">"original"</span><span class="op">)</span></span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"profile"</span>, <span class="st">"heatmap"</span>, <span class="st">"bars"</span>, <span class="st">"sizes"</span>, <span class="st">"variables"</span>, <span class="st">"all"</span><span class="op">)</span>,</span>
+<span>  scale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"standardized"</span>, <span class="st">"original"</span><span class="op">)</span>,</span>
+<span>  by_time <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -76,24 +78,37 @@ size plots; heatmaps use a value-based sequential or diverging palette.</p></dd>
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional graphical arguments passed to <code><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">graphics::matplot()</a></code>,
-<code><a href="https://rdrr.io/r/graphics/image.html" class="external-link">graphics::image()</a></code>, or <code><a href="https://rdrr.io/r/graphics/barplot.html" class="external-link">graphics::barplot()</a></code>.</p></dd>
+<code><a href="https://rdrr.io/r/graphics/image.html" class="external-link">graphics::image()</a></code>, <code><a href="https://rdrr.io/r/graphics/barplot.html" class="external-link">graphics::barplot()</a></code>, or <code><a href="https://rdrr.io/r/graphics/boxplot.html" class="external-link">graphics::boxplot()</a></code>.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
 <dd><p>One of <code>"profile"</code> (default), <code>"heatmap"</code>, <code>"bars"</code>,
-<code>"sizes"</code>, or <code>"all"</code> for a two-by-two overview of the four types.</p></dd>
+<code>"sizes"</code>, <code>"variables"</code>, or <code>"all"</code> for a two-by-two overview of the
+first four. <code>"variables"</code> draws grouped boxplots of the clustering
+indicators, one panel per time point and one box per state within each
+indicator, so it shows whether each indicator keeps separating the states
+at every point rather than only on average.</p></dd>
 
 
 <dt id="arg-scale">scale<a class="anchor" aria-label="anchor" href="#arg-scale"></a></dt>
 <dd><p>Show state profiles on the <code>"standardized"</code> (default) or
-<code>"original"</code> indicator scale. Ignored by <code>type = "sizes"</code>.</p></dd>
+<code>"original"</code> indicator scale. Ignored by <code>type = "sizes"</code> and
+<code>type = "variables"</code> (the latter always uses the scale the states were
+clustered on).</p></dd>
+
+
+<dt id="arg-by-time">by_time<a class="anchor" aria-label="anchor" href="#arg-by-time"></a></dt>
+<dd><p>Used only by <code>type = "variables"</code>: draw one panel per time
+point (<code>TRUE</code>, default) or pool the time points into a single panel
+(<code>FALSE</code>).</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>For profile, bar, heatmap, and overview plots, the plotted
 indicator-by-state matrix, invisibly. For a size plot, a tidy
-state-size data frame.</p>
+state-size data frame. For <code>type = "variables"</code>, a tidy
+time-by-variable-by-state table of medians, invisibly.</p>
     </div>
 
     <div class="section level2">
@@ -104,8 +119,12 @@ state-size data frame.</p>
 <span class="r-plt img"><img src="plot.vasstra_states-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">states</span>, type <span class="op">=</span> <span class="st">"sizes"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot.vasstra_states-2.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">states</span>, type <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">states</span>, type <span class="op">=</span> <span class="st">"variables"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot.vasstra_states-3.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">states</span>, type <span class="op">=</span> <span class="st">"variables"</span>, by_time <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot.vasstra_states-4.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">states</span>, type <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot.vasstra_states-5.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

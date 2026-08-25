@@ -25,8 +25,8 @@ step1_states(
   time_levels = NULL,
   n_start = 25L,
   seed = 123L,
-  method = c("lpa", "kmeans", "pam", "ward.D2", "ward.D", "complete", "average",
-    "single", "mcquitty", "median", "centroid"),
+  method = c("lpa", "kmeans", "pam", "clara", "fanny", "diana", "ward.D2", "ward.D",
+    "complete", "average", "single", "mcquitty", "median", "centroid"),
   lpa_model = "EEI"
 )
 ```
@@ -88,9 +88,12 @@ step1_states(
 
 - standardize:
 
-  One of `"time"` (default for ordinary data), `"global"`, or `"none"`.
-  Analysis-ready package data may provide its own default through
-  metadata.
+  How to z-score the indicators before clustering: `"time"` (default for
+  ordinary data) standardizes within each time point, `"subject"` within
+  each subject (removing every person's own mean and scale, so states
+  reflect deviations from their baseline), `"global"` across the whole
+  sample, and `"none"` leaves the raw values. Analysis-ready package
+  data may provide its own default through metadata.
 
 - missing:
 
@@ -116,9 +119,14 @@ step1_states(
 - method:
 
   State-clustering method. Choose `"lpa"` (default, Gaussian-mixture
-  latent profile analysis via mclust), `"kmeans"`, `"pam"`, or a
-  hierarchical method: `"ward.D2"`, `"ward.D"`, `"complete"`,
-  `"average"`, `"single"`, `"mcquitty"`, `"median"`, or `"centroid"`.
+  latent profile analysis via mclust), a partitioning method —
+  `"kmeans"`, `"pam"`, `"clara"` (a sampling-based PAM that scales to
+  many observations), or `"fanny"` (fuzzy clustering, hardened to its
+  nearest partition) — or a hierarchical method: `"diana"` (divisive)
+  and the agglomerative linkages `"ward.D2"`, `"ward.D"`, `"complete"`,
+  `"average"`, `"single"`, `"mcquitty"`, `"median"`, and `"centroid"`.
+  The partitioning and hierarchical methods are selected by average
+  silhouette; only `"lpa"` uses BIC.
 
 - lpa_model:
 

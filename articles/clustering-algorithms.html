@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">VaSSTra</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,6 +43,7 @@
     <li><a class="dropdown-item" href="../articles/flow-plots.html">Flow Plots</a></li>
     <li><a class="dropdown-item" href="../articles/plot-review.html">Plotting the results</a></li>
     <li><a class="dropdown-item" href="../articles/clustering-algorithms.html">Clustering Algorithms in VaSSTra</a></li>
+    <li><a class="dropdown-item" href="../articles/standardization.html">Standardization: how it changes the states</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -78,11 +79,11 @@ problems that call for different algorithms:</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>States</strong> (step 1) group <em>multivariate
-observations</em> — one student at one time point, described by several
-indicators — into a small set of interpretable profiles.</li>
+observations</em> (one student at one time point, described by several
+indicators) into a small set of interpretable profiles.</li>
 <li>
 <strong>Trajectories</strong> (step 3) group <em>whole
-sequences</em> — one student’s ordered string of states over time — into
+sequences</em> (one student’s ordered string of states over time) into
 groups of similar journeys.</li>
 </ol>
 <p>The first is ordinary multivariate clustering on a numeric matrix;
@@ -90,6 +91,7 @@ the second is clustering on a matrix of pairwise <em>sequence
 distances</em>. This article explains the algorithms VaSSTra offers for
 each, when to reach for them, and how the automated selection
 chooses.</p>
+<p><img src="images/clustering-algorithms.svg"></p>
 <div class="section level2">
 <h2 id="states-from-indicators-to-profiles">States: from indicators to profiles<a class="anchor" aria-label="anchor" href="#states-from-indicators-to-profiles"></a>
 </h2>
@@ -106,15 +108,16 @@ the labels read low-to-high.</p>
 model</strong> with <code>mclust</code>: each state is a multivariate
 Gaussian, and every observation gets a <em>posterior probability</em> of
 belonging to each state rather than a hard assignment.
-<code>lpa_model</code> selects the covariance structure; the default
-<code>"EEI"</code> (equal variances, zero covariances — tidyLPA model 1)
+<code>lpa_model</code> selects the covariance structure. The default
+<code>"EEI"</code> (equal variances, zero covariances, tidyLPA model 1)
 is diagonal and equal across states, the most parsimonious choice.
 Because it is a probability model, the number of states can be compared
 by <strong>BIC</strong>, and classification quality by entropy and the
 posterior probabilities (<code><a href="../reference/fit_indices.html">fit_indices()</a></code>).</p>
 <p><em>Use it when</em> the indicators are roughly continuous and you
 want a model-based solution with soft assignments and information
-criteria — the common default in learning-analytics profile work.</p>
+criteria. This is the common default in learning-analytics profile
+work.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vasstra.html">vasstra</a></span><span class="op">(</span></span>
 <span>  <span class="va">engagement</span>,</span>
@@ -124,9 +127,14 @@ criteria — the common default in learning-analytics profile work.</p>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Using n_states = 3 to match the supplied labels.</span></span>
 <span><span class="co">#&gt; Selected n_trajectories = 3 (hamming + pam, silhouette = 0.435); see `diagnostics$selection`.</span></span>
-<span><span class="fu"><a href="../reference/fit_indices.html">fit_indices</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_states"</span>, <span class="st">"log_likelihood"</span>, <span class="st">"bic"</span>, <span class="st">"entropy"</span>, <span class="st">"prob_min"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt;  n_states log_likelihood      bic entropy prob_min</span></span>
-<span><span class="co">#&gt;         3       -9940.47 20120.13   0.894    0.945</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/fit_indices.html">fit_indices</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="co">#&gt; VaSSTra fit indices: states (lpa)</span></span>
+<span><span class="co">#&gt;  n_states method lpa_model log_likelihood n_parameters   aic   bic sabic  caic</span></span>
+<span><span class="co">#&gt;         3    lpa       EEI          -9940           34 19949 20120 20012 20154</span></span>
+<span><span class="co">#&gt;    awe   clc   kic   icl entropy prob_min prob_max silhouette min_size max_size</span></span>
+<span><span class="co">#&gt;  20461 20145 19986 20384    0.89     0.94     0.96       0.26      266      551</span></span>
+<span><span class="co">#&gt;  size_ratio</span></span>
+<span><span class="co">#&gt;         2.1</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="k-means">k-means<a class="anchor" aria-label="anchor" href="#k-means"></a>
@@ -151,31 +159,53 @@ pairwise distances (here Euclidean on the standardized indicators).</p>
 resistance to outliers, or a representative real profile per state.</p>
 </div>
 <div class="section level3">
+<h3 id="clara-and-fuzzy-clustering">CLARA and fuzzy clustering<a class="anchor" aria-label="anchor" href="#clara-and-fuzzy-clustering"></a>
+</h3>
+<p>Two more <code>cluster</code> partitioning methods sit alongside PAM.
+<code>method = "clara"</code> runs PAM on repeated samples of the data
+and keeps the best medoids, so it reaches PAM-like partitions on many
+more observations than PAM can handle directly.
+<code>method = "fanny"</code> is <em>fuzzy</em>: it assigns every
+observation a membership in each cluster rather than a single hard
+label, and VaSSTra then hardens those memberships to each observation’s
+nearest cluster so the rest of the workflow sees ordinary states.</p>
+<p><em>Use <code>clara</code> when</em> the data are large enough that
+PAM is slow; <em>use <code>fanny</code> when</em> you want a soft,
+membership-based grouping and are comfortable collapsing it to hard
+states.</p>
+</div>
+<div class="section level3">
 <h3 id="hierarchical-clustering">Hierarchical clustering<a class="anchor" aria-label="anchor" href="#hierarchical-clustering"></a>
 </h3>
-<p><code>method</code> also accepts the agglomerative linkages
+<p>VaSSTra offers both directions of hierarchical clustering. The
+divisive method <code>method = "diana"</code> (from
+<code>cluster</code>) starts with all observations in one cluster and
+splits recursively, which can separate a few large, clearly distinct
+groups more naturally than agglomeration. The agglomerative linkages
 <code>"ward.D2"</code>, <code>"ward.D"</code>, <code>"complete"</code>,
 <code>"average"</code>, <code>"single"</code>, <code>"mcquitty"</code>,
 <code>"median"</code>, and <code>"centroid"</code> (base R
-<code>hclust</code>), cut at <code>n_states</code>.
-<strong>Ward</strong> minimises the increase in within-cluster variance
-at each merge and tends to give compact, balanced clusters;
-<strong>complete</strong> and <strong>average</strong> control the
-between-cluster linkage differently; <strong>single</strong> chains and
-is rarely what you want for profiles.</p>
+<code>hclust</code>) build the tree bottom-up; all are cut at
+<code>n_states</code>. <strong>Ward</strong> minimises the increase in
+within-cluster variance at each merge and tends to give compact,
+balanced clusters; <strong>complete</strong> and
+<strong>average</strong> control the between-cluster linkage
+differently; <strong>single</strong> chains and is rarely what you want
+for profiles.</p>
 <p><em>Use it when</em> you want a dendrogram / nested structure, or a
 deterministic linkage rule; <code>ward.D2</code> is the usual first
-choice.</p>
+agglomerative choice and <code>diana</code> the divisive
+alternative.</p>
 </div>
 <div class="section level3">
 <h3 id="what-automation-does">What automation does<a class="anchor" aria-label="anchor" href="#what-automation-does"></a>
 </h3>
 <p>Under <code>n_states = "auto"</code>, VaSSTra compares two through
-six states and selects a recommendation — by <strong>BIC</strong> for
-LPA, by <strong>average silhouette</strong> for the hard methods — and
+six states and selects a recommendation (by <strong>BIC</strong> for
+LPA, by <strong>average silhouette</strong> for the hard methods). It
 never selects a solution whose smallest class holds under
-<strong>5%</strong> of observations (the conventional threshold below
-which a latent class is treated as spurious). Supplying
+<strong>5%</strong> of observations, the conventional threshold below
+which a latent class is treated as spurious. Supplying
 <code>state_labels</code> fixes the count directly.</p>
 </div>
 </div>
@@ -191,9 +221,9 @@ explicitly.</p>
 <div class="section level3">
 <h3 id="sequence-dissimilarities">Sequence dissimilarities<a class="anchor" aria-label="anchor" href="#sequence-dissimilarities"></a>
 </h3>
-<p><code>dissimilarity</code> selects how two sequences are compared —
-they capture genuinely different notions of “different”, so the choice
-is substantive, not cosmetic:</p>
+<p><code>dissimilarity</code> selects how two sequences are compared.
+The options capture genuinely different notions of “different”, so the
+choice is substantive:</p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -216,7 +246,7 @@ moment</em> is what separates journeys</td>
 <td>
 <code>osa</code>, <code>lv</code>, <code>dl</code>
 </td>
-<td>Edit distances — insertions, deletions, substitutions (and
+<td>Edit distances: insertions, deletions, substitutions (and
 transpositions for <code>osa</code>/<code>dl</code>) to turn one
 sequence into the other</td>
 <td>Shape matters more than exact timing; small shifts should cost
@@ -252,14 +282,14 @@ order</td>
 <p><code>hamming</code> and <code>lcs</code> sit at the two ends most
 analyses use: <em>when</em> students are in each state versus <em>what
 ordered pattern</em> they follow. The chapter analysis uses
-<code>lcs</code>. Studer and Ritschard (2015) review how these measures
+<code>lcs</code>. Studer and Ritschard (2016) review how these measures
 differ and what each one privileges.</p>
 </div>
 <div class="section level3">
 <h3 id="clustering-the-distance-matrix">Clustering the distance matrix<a class="anchor" aria-label="anchor" href="#clustering-the-distance-matrix"></a>
 </h3>
 <p><code>method</code> groups the distances: <code>"pam"</code>
-(medoids, robust, a representative sequence per group), the
+(medoids, outlier-resistant, a representative sequence per group), the
 agglomerative linkages <code>"ward.D2"</code> / <code>"ward.D"</code> /
 <code>"complete"</code> / <code>"average"</code> / <code>"single"</code>
 / <code>"mcquitty"</code> / <code>"median"</code> /
@@ -276,8 +306,10 @@ states, <strong>Ward</strong> favours compact balanced groups and
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Using n_states = 3 to match the supplied labels.</span></span>
 <span><span class="co">#&gt; Selected n_trajectories = 3 (lcs + ward.D2, silhouette = 0.514); see `diagnostics$selection`.</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">$</span><span class="va">n_trajectories</span></span>
-<span><span class="co">#&gt; [1] 3</span></span></code></pre></div>
+<span><span class="va">fit</span></span>
+<span><span class="co">#&gt; VaSSTra Analysis</span></span>
+<span><span class="co">#&gt;   142 subjects | 8 times | 3 states | 3 trajectories</span></span>
+<span><span class="co">#&gt;   lcs + ward.D2 | silhouette 0.514</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="backend">Backend<a class="anchor" aria-label="anchor" href="#backend"></a>
@@ -286,7 +318,7 @@ states, <strong>Ward</strong> favours compact balanced groups and
 and clustering through [<code><a href="https://saqr.me/Nestimate/reference/build_clusters.html" class="external-link">Nestimate::build_clusters()</a></code>], which
 supports every distance and method above. <code>backend = "base"</code>
 is a dependency-free fallback that supports only <code>hamming</code>
-and <code>lcs</code> distances — useful for a minimal install.</p>
+and <code>lcs</code> distances, useful for a minimal install.</p>
 </div>
 </div>
 <div class="section level2">
@@ -295,7 +327,7 @@ and <code>lcs</code> distances — useful for a minimal install.</p>
 <p>Two verbs make the comparison explicit rather than automatic.
 <code><a href="../reference/state_choices.html">state_choices()</a></code> and <code><a href="../reference/trajectory_choices.html">trajectory_choices()</a></code> fit a
 full grid of methods and counts and return one tidy row per candidate,
-with the recommendation marked within each method —
+with the recommendation marked within each method:
 <strong>silhouette</strong> for the hard clusterings and
 <strong>BIC</strong> for LPA (model-based criteria only compare within
 LPA). Nothing is selected silently; you fit the inspected candidate by
@@ -319,7 +351,7 @@ scale, so the method comparison here and the count comparison there
 compose into one argument.</p>
 </div>
 <div class="section level2">
-<h2 id="when-to-use-what-a-short-guide">When to use what — a short guide<a class="anchor" aria-label="anchor" href="#when-to-use-what-a-short-guide"></a>
+<h2 id="when-to-use-what-a-short-guide">When to use what: a short guide<a class="anchor" aria-label="anchor" href="#when-to-use-what-a-short-guide"></a>
 </h2>
 <ul>
 <li>
@@ -337,7 +369,7 @@ PAM.</li>
 hierarchical <code>ward.D2</code>.</li>
 <li>
 <strong>Trajectories where timing separates students</strong> →
-<code>dissimilarity = "hamming"</code>.</li>
+<code>dissimilarity =   "hamming"</code>.</li>
 <li>
 <strong>Trajectories where the ordered pattern separates
 students</strong> → <code>dissimilarity = "lcs"</code> (the chapter
@@ -351,62 +383,78 @@ silhouette (and BIC, for LPA) guide you.</li>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<p>The algorithms live in the packages VaSSTra builds on; these are
-their canonical citations (from <code><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation()</a></code>) and the method
-references given in their help pages.</p>
-<p><strong>Packages</strong></p>
+<p>The clustering is carried out by the packages VaSSTra depends on:
+<code>mclust</code>, <code>cluster</code>, and <code>Nestimate</code>,
+together with base R’s <code><a href="https://rdrr.io/r/stats/kmeans.html" class="external-link">kmeans()</a></code> and <code><a href="https://rdrr.io/r/stats/hclust.html" class="external-link">hclust()</a></code>.
+Their canonical citations (from <code><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation()</a></code>) and the
+original method papers (from the corresponding help pages) are below,
+followed by two packages whose conventions VaSSTra follows without
+importing them.</p>
+<p><strong>Packages VaSSTra uses</strong></p>
 <ul>
 <li>Scrucca, L., Fraley, C., Murphy, T. B., &amp; Raftery, A. E. (2023).
 <em>Model-Based Clustering, Classification, and Density Estimation Using
-mclust in R.</em> Chapman &amp; Hall/CRC.
-<code>citation("mclust")</code>. LPA state estimation. See also Scrucca,
-L., Fop, M., Murphy, T. B., &amp; Raftery, A. E. (2016). <em>mclust 5:
-Clustering, Classification and Density Estimation Using Gaussian Finite
-Mixture Models.</em> The R Journal, 8(1), 289–317. <a href="doi:10.32614/RJ-2016-021" class="uri">doi:10.32614/RJ-2016-021</a>.</li>
+mclust in R.</em> Chapman &amp; Hall/CRC, ISBN 978-1032234953. <a href="https://doi.org/10.1201/9781003277965" class="external-link">doi:10.1201/9781003277965</a>.
+LPA state estimation. See also Scrucca, L., Fop, M., Murphy, T. B.,
+&amp; Raftery, A. E. (2016). <em>mclust 5: Clustering, Classification
+and Density Estimation Using Gaussian Finite Mixture Models.</em> The R
+Journal, 8(1), 289–317. <a href="https://doi.org/10.32614/RJ-2016-021" class="external-link">doi:10.32614/RJ-2016-021</a>.</li>
 <li>Maechler, M., Rousseeuw, P., Struyf, A., Hubert, M., &amp; Hornik,
-K. <em>cluster: Cluster Analysis Basics and Extensions.</em> R package.
-<code>citation("cluster")</code>. PAM and silhouette.</li>
-<li>Saqr, M., López-Pernas, S., &amp; Misiejuk, K. <em>Nestimate:
-Network Estimation, Bootstrap, and Higher-Order Analysis.</em> R
-package. <code>citation("Nestimate")</code>. Sequence distances and
-trajectory clustering.</li>
-<li>van der Loo, M. (2026). <em>stringdist: Approximate String Matching,
-Fuzzy Text Search, and String Distance Functions.</em> R package. <a href="https://CRAN.R-project.org/package=stringdist" class="external-link uri">https://CRAN.R-project.org/package=stringdist</a>. The
-definitions the sequence dissimilarities follow (<code>osa</code>,
-<code>lv</code>, <code>dl</code>, <code>qgram</code>,
-<code>cosine</code>, <code>jaccard</code>, <code>jw</code>).</li>
-<li>Rosenberg, J., Beymer, P., Anderson, D., van Lissa, C. J., &amp;
-Schmidt, J. (2018). <em>tidyLPA: An R package to easily carry out latent
-profile analysis (LPA) using open-source or commercial software.</em>
-Journal of Open Source Software, 3(30), 978. <a href="doi:10.21105/joss.00978" class="uri">doi:10.21105/joss.00978</a>.
-The “model 1” naming for the <code>"EEI"</code> covariance
-structure.</li>
-<li>R Core Team. <em>R: A Language and Environment for Statistical
-Computing.</em> R Foundation for Statistical Computing.
-<code><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation()</a></code>. k-means (<code>kmeans</code>) and hierarchical
-clustering (<code>hclust</code>).</li>
+K. (2026). <em>cluster: Cluster Analysis Basics and Extensions.</em> R
+package version 2.1.8.3. <a href="https://CRAN.R-project.org/package=cluster" class="external-link uri">https://CRAN.R-project.org/package=cluster</a>. PAM, CLARA,
+FANNY, DIANA, and silhouette.</li>
+<li>Saqr, M., López-Pernas, S., &amp; Misiejuk, K. (2026).
+<em>Nestimate: Network Estimation, Bootstrap, and Higher-Order
+Analysis.</em> R package version 0.8.4. <a href="https://github.com/mohsaqr/Nestimate" class="external-link uri">https://github.com/mohsaqr/Nestimate</a>. Sequence distances
+and trajectory clustering.</li>
+<li>R Core Team (2025). <em>R: A Language and Environment for
+Statistical Computing.</em> R Foundation for Statistical Computing,
+Vienna, Austria. <a href="https://www.R-project.org/" class="external-link uri">https://www.R-project.org/</a>. k-means
+(<code>kmeans</code>) and hierarchical clustering
+(<code>hclust</code>).</li>
 </ul>
 <p><strong>Methods</strong></p>
 <ul>
 <li>Hartigan, J. A., &amp; Wong, M. A. (1979). <em>Algorithm AS 136: A
 k-means clustering algorithm</em> (<code><a href="https://rdrr.io/r/stats/kmeans.html" class="external-link">?kmeans</a></code>).</li>
-<li>Ward, J. H. (1963), with the <code>ward.D2</code> implementation of
-Murtagh, F., &amp; Legendre, P. (2014), <em>Ward’s hierarchical
-clustering method</em>, <a href="doi:10.1007/s00357-014-9161-z" class="uri">doi:10.1007/s00357-014-9161-z</a>
+<li>Ward, J. H. (1963). <em>Hierarchical Grouping to Optimize an
+Objective Function.</em> Journal of the American Statistical
+Association, 58(301), 236–244. <a href="https://doi.org/10.1080/01621459.1963.10500845" class="external-link">doi:10.1080/01621459.1963.10500845</a>.
+The <code>ward.D2</code> implementation follows Murtagh, F., &amp;
+Legendre, P. (2014). <em>Ward’s Hierarchical Agglomerative Clustering
+Method: Which Algorithms Implement Ward’s Criterion?</em> Journal of
+Classification, 31(3), 274–295. <a href="https://doi.org/10.1007/s00357-014-9161-z" class="external-link">doi:10.1007/s00357-014-9161-z</a>
 (<code><a href="https://rdrr.io/r/stats/hclust.html" class="external-link">?hclust</a></code>).</li>
 <li>Kaufman, L., &amp; Rousseeuw, P. J. (1990). <em>Finding Groups in
-Data: An Introduction to Cluster Analysis</em> — PAM
-(<code>?pam</code>).</li>
+Data: An Introduction to Cluster Analysis</em>. PAM, CLARA, FANNY, and
+DIANA (<code>?pam</code>, <code>?clara</code>, <code>?fanny</code>,
+<code>?diana</code>).</li>
 <li>Rousseeuw, P. J. (1987). <em>Silhouettes: a graphical aid to the
-interpretation and validation of cluster analysis.</em> J. Comput. Appl.
-Math. (<code>?silhouette</code>).</li>
+interpretation and validation of cluster analysis.</em> Journal of
+Computational and Applied Mathematics, 20, 53–65. <a href="https://doi.org/10.1016/0377-0427(87)90125-7" class="external-link">doi:10.1016/0377-0427(87)90125-7</a>.
+(<code>?silhouette</code>).</li>
 <li>Schwarz, G. (1978). <em>Estimating the Dimension of a Model.</em>
-Annals of Statistics, 6(2), 461–464. <a href="doi:10.1214/aos/1176344136" class="uri">doi:10.1214/aos/1176344136</a>. BIC.</li>
-<li>Studer, M., &amp; Ritschard, G. (2015). <em>What Matters in
+Annals of Statistics, 6(2), 461–464. <a href="https://doi.org/10.1214/aos/1176344136" class="external-link">doi:10.1214/aos/1176344136</a>.
+BIC.</li>
+<li>Studer, M., &amp; Ritschard, G. (2016). <em>What Matters in
 Differences Between Life Trajectories: A Comparative Review of Sequence
 Dissimilarity Measures.</em> Journal of the Royal Statistical Society,
-Series A, 179(2), 481–511. <a href="doi:10.1111/rssa.12125" class="uri">doi:10.1111/rssa.12125</a>. On choosing a sequence
-distance.</li>
+Series A, 179(2), 481–511. <a href="https://doi.org/10.1111/rssa.12125" class="external-link">doi:10.1111/rssa.12125</a>. On
+choosing a sequence distance.</li>
+</ul>
+<p><strong>Conventions VaSSTra follows (not dependencies)</strong></p>
+<ul>
+<li>van der Loo, M. (2014). <em>The stringdist package for approximate
+string matching.</em> The R Journal, 6(1), 111–122. <a href="https://doi.org/10.32614/RJ-2014-011" class="external-link">doi:10.32614/RJ-2014-011</a>.
+The definitions the sequence dissimilarities follow (<code>osa</code>,
+<code>lv</code>, <code>dl</code>, <code>qgram</code>,
+<code>cosine</code>, <code>jaccard</code>, <code>jw</code>).</li>
+<li>Rosenberg, J., Beymer, P., Anderson, D., van Lissa, C. J., &amp;
+Schmidt, J. (2018). <em>tidyLPA: An R package to easily carry out latent
+profile analysis (LPA) using open-source or commercial software.</em>
+Journal of Open Source Software, 3(30), 978. <a href="https://doi.org/10.21105/joss.00978" class="external-link">doi:10.21105/joss.00978</a>.
+The “model 1” naming for the <code>"EEI"</code> covariance
+structure.</li>
 </ul>
 <p>Method overview and the substantive analysis: <a href="https://lamethods.org/book1/chapters/ch11-vasstra/ch11-vasstra.html" class="external-link">VaSSTra
 chapter</a> of <em>Learning Analytics Methods and Tutorials</em>.</p>

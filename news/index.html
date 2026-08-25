@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">VaSSTra</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,6 +23,7 @@
     <li><a class="dropdown-item" href="../articles/flow-plots.html">Flow Plots</a></li>
     <li><a class="dropdown-item" href="../articles/plot-review.html">Plotting the results</a></li>
     <li><a class="dropdown-item" href="../articles/clustering-algorithms.html">Clustering Algorithms in VaSSTra</a></li>
+    <li><a class="dropdown-item" href="../articles/standardization.html">Standardization: how it changes the states</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -40,8 +41,20 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.0" id="vasstra-040">VaSSTra 0.4.0<a class="anchor" aria-label="anchor" href="#vasstra-040"></a></h2>
+<ul><li>
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on states gains <code>type = "variables"</code>: grouped boxplots of the clustering indicators split by state, one panel per time point, so each indicator’s separation of the states is visible at every point rather than only on average. <code>by_time = FALSE</code> pools the time points into a single panel, the boxplot counterpart of the profile plot.</li>
+<li>Added <code><a href="../reference/state_descriptives.html">state_descriptives()</a></code>: the numeric companion to that plot, a tidy per-state, per-indicator table of count, mean, standard deviation, median, and range. <code>scale = "original"</code> reports the raw indicators and <code>by_time = TRUE</code> breaks the summary out per time point.</li>
+<li>
+<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on an <code><a href="../reference/evaluate.html">evaluate()</a></code> result now colours the state row with the palette pinned on the fit (<code>state_colors</code>), so it matches the other state plots; the trajectory row keeps its distinct palette.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="vasstra-030">VaSSTra 0.3.0<a class="anchor" aria-label="anchor" href="#vasstra-030"></a></h2>
 <ul><li>
+<code>standardize</code> gains a <code>"subject"</code> option that z-scores each indicator within each subject, so states reflect deviations from a person’s own baseline rather than absolute level. The default is unchanged (<code>"time"</code>), and <code>"global"</code> and <code>"none"</code> are still available.</li>
+<li>Added <code><a href="../reference/transition_table.html">transition_table()</a></code>: the transition counts behind the flow and network views as a tidy <code>from</code>/<code>to</code>/<code>count</code>/<code>probability</code> data frame, aggregated over time by default or broken out per consecutive time pair with <code>by_time = TRUE</code>. <code>group</code> restricts a trajectory fit to one group.</li>
+<li>Added three state-clustering methods, all from the already-imported <code>cluster</code> package: <code>"clara"</code> (sampling-based PAM for larger data), <code>"fanny"</code> (fuzzy clustering, hardened to its nearest partition), and <code>"diana"</code> (divisive hierarchical clustering). They are available through <code>state_method</code> in <code><a href="../reference/vasstra.html">vasstra()</a></code>, <code>method</code> in <code><a href="../reference/step1_states.html">step1_states()</a></code>, and <code><a href="../reference/state_choices.html">state_choices()</a></code>, and are selected by average silhouette like the other non-LPA methods.</li>
+<li>
 <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on an <code><a href="../reference/evaluate.html">evaluate()</a></code> result now draws the trajectory groups in a palette distinct from the states, so the state and trajectory evaluation rows are no longer coloured identically (which read as a correspondence between unrelated groupings).</li>
 <li>Added a <code>state_colors</code> argument to <code><a href="../reference/vasstra.html">vasstra()</a></code>, <code><a href="../reference/step1_states.html">step1_states()</a></code>, and <code><a href="../reference/step2_sequences.html">step2_sequences()</a></code> that stores a state palette on the fit, so every plot reuses it without repeating <code>colors</code>. Accepts a named vector (matched by state, and preserved through <code>state_order</code> and <code><a href="../reference/set_labels.html">set_labels()</a></code>) or one colour per state in state order; an explicit <code>colors</code> on a plot still wins.</li>
 <li>The state profile heatmap now draws the first state as the top row, so it reads in the same order as the profile bars, state sizes, and legends.</li>

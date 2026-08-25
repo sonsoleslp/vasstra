@@ -44,8 +44,8 @@ vasstra(
   omega = 1,
   n_start = 25L,
   seed = 123L,
-  state_method = c("lpa", "kmeans", "pam", "ward.D2", "ward.D", "complete", "average",
-    "single", "mcquitty", "median", "centroid"),
+  state_method = c("lpa", "kmeans", "pam", "clara", "fanny", "diana", "ward.D2",
+    "ward.D", "complete", "average", "single", "mcquitty", "median", "centroid"),
   lpa_model = "EEI"
 )
 ```
@@ -120,8 +120,10 @@ vasstra(
 
 - standardize:
 
-  State-indicator standardization: `"time"`, `"global"`, or `"none"`.
-  Analysis-ready package data may provide its own default.
+  State-indicator standardization: `"time"` (within each time point),
+  `"subject"` (within each subject, relative to their own baseline),
+  `"global"`, or `"none"`. Analysis-ready package data may provide its
+  own default.
 
 - indicator_missing:
 

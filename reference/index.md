@@ -62,6 +62,8 @@ networks and state-flow diagrams.
   : Plot Trajectory-Clustering Choices
 - [`transition_plot()`](https://sonsoles.me/vasstra/reference/transition_plot.md)
   : Plot the State Transition Network
+- [`transition_table()`](https://sonsoles.me/vasstra/reference/transition_table.md)
+  : State Transition Table
 - [`transition_centrality()`](https://sonsoles.me/vasstra/reference/transition_centrality.md)
   : State Transition Network Centralities
 - [`flow_plot()`](https://sonsoles.me/vasstra/reference/flow_plot.md) :
@@ -75,6 +77,8 @@ Rename groups after inspection and extract tidy tables.
   : Relabel Fitted States or Trajectories
 - [`as.data.frame(`*`<vasstra>`*`)`](https://sonsoles.me/vasstra/reference/as.data.frame.vasstra.md)
   : Convert a VaSSTra Analysis to a Tidy Table
+- [`state_descriptives()`](https://sonsoles.me/vasstra/reference/state_descriptives.md)
+  : Descriptive Statistics per State
 
 ## Interactive app
 

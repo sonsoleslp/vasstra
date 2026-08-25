@@ -19,7 +19,7 @@ decision is reported with a message and recorded in the fit."><meta property="og
 
     <a class="navbar-brand me-2" href="../index.html">VaSSTra</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,6 +35,7 @@ decision is reported with a message and recorded in the fit."><meta property="og
     <li><a class="dropdown-item" href="../articles/flow-plots.html">Flow Plots</a></li>
     <li><a class="dropdown-item" href="../articles/plot-review.html">Plotting the results</a></li>
     <li><a class="dropdown-item" href="../articles/clustering-algorithms.html">Clustering Algorithms in VaSSTra</a></li>
+    <li><a class="dropdown-item" href="../articles/standardization.html">Standardization: how it changes the states</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -92,8 +93,8 @@ decision is reported with a message and recorded in the fit.</p>
 <span>  omega <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  n_start <span class="op">=</span> <span class="fl">25L</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">123L</span>,</span>
-<span>  state_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lpa"</span>, <span class="st">"kmeans"</span>, <span class="st">"pam"</span>, <span class="st">"ward.D2"</span>, <span class="st">"ward.D"</span>, <span class="st">"complete"</span>, <span class="st">"average"</span>,</span>
-<span>    <span class="st">"single"</span>, <span class="st">"mcquitty"</span>, <span class="st">"median"</span>, <span class="st">"centroid"</span><span class="op">)</span>,</span>
+<span>  state_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lpa"</span>, <span class="st">"kmeans"</span>, <span class="st">"pam"</span>, <span class="st">"clara"</span>, <span class="st">"fanny"</span>, <span class="st">"diana"</span>, <span class="st">"ward.D2"</span>,</span>
+<span>    <span class="st">"ward.D"</span>, <span class="st">"complete"</span>, <span class="st">"average"</span>, <span class="st">"single"</span>, <span class="st">"mcquitty"</span>, <span class="st">"median"</span>, <span class="st">"centroid"</span><span class="op">)</span>,</span>
 <span>  lpa_model <span class="op">=</span> <span class="st">"EEI"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -169,8 +170,10 @@ explicit <code>colors</code> argument to a plot still overrides it.</p></dd>
 
 
 <dt id="arg-standardize">standardize<a class="anchor" aria-label="anchor" href="#arg-standardize"></a></dt>
-<dd><p>State-indicator standardization: <code>"time"</code>, <code>"global"</code>,
-or <code>"none"</code>. Analysis-ready package data may provide its own default.</p></dd>
+<dd><p>State-indicator standardization: <code>"time"</code> (within each
+time point), <code>"subject"</code> (within each subject, relative to their own
+baseline), <code>"global"</code>, or <code>"none"</code>. Analysis-ready package data may
+provide its own default.</p></dd>
 
 
 <dt id="arg-indicator-missing">indicator_missing<a class="anchor" aria-label="anchor" href="#arg-indicator-missing"></a></dt>
