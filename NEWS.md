@@ -36,14 +36,19 @@
   indicators (`"lca"`, `"multilca"`, or non-numeric columns with the other
   model engines), and accept `missing = "fiml"` instead of median
   imputation.
-- A model engine is evaluated by latents, not by VaSSTra: `evaluate()`
-  returns latents' enumeration of the other counts
+- `evaluate()` evaluates a model engine as it does every engine (candidate
+  silhouettes, group sizes, the same panels in the fit's `state_colors`)
+  and adds latents' own evaluation: its enumeration of the compared counts
   (`enumerate_lpa()`, `enumerate_lca()`, `enumerate_classes()`) and
-  `latents::diagnostics()` of the fitted model, `plot()` draws latents'
-  plots (`plot_enumeration()`, the diagnostics panels; needs ggplot2), and
-  `fit_indices()` returns latents' information-criterion and candidate
-  tables unchanged. AWE thereby includes the classification-entropy term of
-  Banfield and Raftery (1993), which the hand-computed version left out.
+  `latents::diagnostics()` of the fitted model, read with
+  `as.data.frame(x, what = "enumeration" | "classification")` and drawn by
+  latents with `plot(x, type = "enumeration" | "diagnostics")` (needs
+  ggplot2). The trajectory classes of a two-level engine are evaluated the
+  same way, with silhouettes on the Hamming distance.
+- `fit_indices()` of a model engine returns latents' information-criterion
+  and candidate tables unchanged. AWE thereby includes the
+  classification-entropy term of Banfield and Raftery (1993), which the
+  hand-computed version left out.
 - `state_choices()` compares a model engine through one latents
   enumeration, and automatic selection uses the chosen candidate as latents
   fitted it, without refitting. It takes `n_trajectories` for the
