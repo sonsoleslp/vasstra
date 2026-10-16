@@ -6,12 +6,22 @@
 #' with the fitted and recommended solutions marked, and one tidy row per
 #' fitted cluster with its size and mean silhouette width.
 #'
+#' States from a model engine, and the trajectories of a two-level engine,
+#' are a latents model, and their evaluation is latents' own: the compared
+#' counts come from [latents::enumerate_lpa()], [latents::enumerate_lca()]
+#' or [latents::enumerate_classes()], and the fitted model's classification
+#' quality from [latents::diagnostics()]. The result is then a
+#' `vasstra_model_evaluation`: `print()` shows both, `as.data.frame()` returns
+#' latents' candidate table (`what = "classification"` for the
+#' classification table), and `plot()` draws latents' plots (see
+#' [plot.vasstra_model_evaluation()]).
+#'
 #' @param x A `vasstra_states`, `vasstra_trajectories`, or complete
 #'   `vasstra` object.
 #' @param ... Method-specific arguments.
 #'
-#' @return A `vasstra_evaluation` object (or a `vasstra_evaluations` pair for
-#'   a complete fit). `as.data.frame()` returns the candidate comparison;
+#' @return A `vasstra_evaluation` object, or a `vasstra_model_evaluation` for
+#'   a model engine (or a `vasstra_evaluations` pair for a complete fit). `as.data.frame()` returns the candidate comparison;
 #'   `summary()` returns the per-cluster quality table.
 #'
 #' @examples
@@ -20,7 +30,7 @@
 #' level <- rep(c(2, 8, 16), length.out = nrow(data))
 #' data$views <- level + rnorm(nrow(data), sd = 0.4)
 #' data$duration <- level * 3 + rnorm(nrow(data), sd = 0.4)
-#' states <- step1_states(data, n_states = 3)
+#' states <- states(data, n_states = 3)
 #' evaluate(states)
 #' @export
 evaluate <- function(x, ...) {
@@ -137,6 +147,9 @@ evaluate <- function(x, ...) {
 evaluate.vasstra_states <- function(x, n_states = NULL, ...) {
   stopifnot(inherits(x, "vasstra_states"))
   settings <- x$settings
+  if (isTRUE(settings$method %in% .vasstra_model_engines())) {
+    return(.vasstra_model_evaluation(x, "states", n_states))
+  }
   candidates <- .vasstra_state_candidate_table(x, n_states)
   candidates <- .vasstra_drop_empty_columns(
     candidates[c(
@@ -180,6 +193,10 @@ evaluate.vasstra_states <- function(x, n_states = NULL, ...) {
 evaluate.vasstra_trajectories <- function(x, n_trajectories = NULL, ...) {
   stopifnot(inherits(x, "vasstra_trajectories"))
   settings <- x$settings
+  if (identical(settings$method, "model")) {
+    return(.vasstra_model_evaluation(x$source$source, "trajectories",
+                                     n_trajectories))
+  }
   candidates <- .vasstra_trajectory_candidate_table(x, n_trajectories)
   candidates <- candidates[c(
     "n_trajectories", "dissimilarity", "method", "silhouette",
@@ -281,14 +298,19 @@ as.data.frame.vasstra_evaluations <- function(
     optional = FALSE,
     ...) {
   stopifnot(inherits(x, "vasstra_evaluations"))
+  columns <- c(
+    "unit", "k", "silhouette", "bic", "min_size", "max_size", "size_ratio",
+    "eligible", "best", "fitted"
+  )
   parts <- lapply(x, function(evaluation) {
+    if (inherits(evaluation, "vasstra_model_evaluation")) {
+      return(.vasstra_model_evaluation_rows(evaluation, columns))
+    }
     candidates <- evaluation$candidates
     candidates$unit <- evaluation$unit
     names(candidates)[names(candidates) == evaluation$size_column] <- "k"
-    candidates[c(
-      "unit", "k", "silhouette", "min_size", "max_size", "size_ratio",
-      "eligible", "best", "fitted"
-    )]
+    candidates$bic <- NA_real_
+    candidates[columns]
   })
   combined <- do.call(rbind, parts)
   rownames(combined) <- NULL

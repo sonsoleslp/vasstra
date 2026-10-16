@@ -23,6 +23,6 @@ clustering on top and the trajectory clustering below.
 }
 \examples{
 data("engagement", package = "VaSStra")
-fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+fit <- vasstra(engagement, n_states = 3, n_trajectories = 3, n_start = 5L)
 plot(evaluate(fit))
 }

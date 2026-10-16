@@ -138,11 +138,11 @@ the same automated defaults. Use the steps when intermediate results are
 needed, or when states come from another method.
 
 ```{r steps}
-states <- step1_states(data, n_states = 3,
+states <- states(data, n_states = 3,
                        labels = c("Low", "Average", "High"))
-sequences <- step2_sequences(states)
-trajectories <- step3_trajectories(sequences, n_trajectories = 3)
-description <- step4_describe(
+sequences <- sequences(states)
+trajectories <- trajectories(sequences, n_trajectories = 3)
+description <- describe(
   trajectories,
   positive_states = "High",
   negative_states = "Low"
@@ -205,12 +205,12 @@ Average silhouette is the common diagnostic across all methods; larger
 values indicate better-separated groups. Recommendations identify the best
 eligible candidate separately for each method rather than declaring one
 algorithm universally best. LPA candidates are recommended by conventional
-BIC, with AIC, silhouette, or native mclust ICL available through
-`lpa_criterion`.
+BIC, with AIC, silhouette, or the negated ICL (as mclust reports it)
+available through `lpa_criterion`.
 
 ```{r trajectory-choices}
 trajectory_options <- trajectory_choices(
-  step2_sequences(chosen_states),
+  sequences(chosen_states),
   n_trajectories = 2:4,
   dissimilarity = c("hamming", "lcs"),
   method = c("pam", "ward.D2")
@@ -222,7 +222,9 @@ plot(trajectory_options, metric = "silhouette")
 Recommendations are made within each distance-method pair because mean
 within-trajectory distances are only comparable within one dissimilarity.
 
-States default to mclust latent profiles (`"EEI"`, tidyLPA model 1);
-base R supplies k-means and hierarchical clustering, `cluster` supplies
-PAM, and Nestimate supplies sequence distances, trajectory clustering,
-and plots. No TraMineR plotting path or dependency is required.
+States default to latent profiles fitted with the latents package
+(`"EEI"`, tidyLPA model 1), which also supplies the other mixture-model
+engines (see `vignette("engines")`); base R supplies k-means and
+hierarchical clustering, `cluster` supplies PAM, and Nestimate supplies
+sequence distances, trajectory clustering, and plots. No TraMineR plotting
+path or dependency is required.

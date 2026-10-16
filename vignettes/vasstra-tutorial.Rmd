@@ -50,7 +50,7 @@ of *Learning Analytics Methods and Tutorials*, in this order:
 | Fit statistics | `fit_indices()` |
 | Rename groups | `set_labels()` |
 | Tidy results | `as.data.frame()`, `summary()` |
-| Individual steps | `step1_states()` … `step4_describe()` |
+| Individual steps | `states()` … `describe()` |
 | Explicit grids | `state_choices()`, `trajectory_choices()` |
 
 ## 1. The complete analysis in one call
@@ -60,8 +60,8 @@ positions, with eight course-standardized indicators and attached role
 metadata, so no column plumbing is needed. The chapter's substantive
 decision — three latent profiles named Disengaged, Average, and Active —
 is expressed entirely by the labels: three labels mean three states,
-estimated by latent profile analysis (mclust `"EEI"`, the chapter's
-tidyLPA Model 1) because that is the default state method. The LCS
+estimated by latent profile analysis (latents `"EEI"`, the chapter's
+tidyLPA Model 1) because that is the default state engine. The LCS
 distance with Ward clustering follows the chapter's trajectory analysis.
 
 ```{r one-call}
@@ -250,15 +250,15 @@ summary(fit)
 Everything above is also four explicit steps, each with the same
 automated defaults — the route to take when intermediate objects are
 needed, when states come from another method (enter at
-`step2_sequences()` with a state column), or when the method itself is
+`sequences()` with a state column), or when the method itself is
 under comparison:
 
 ```{r steps, eval = FALSE}
-states <- step1_states(engagement, n_states = 3)
-sequences <- step2_sequences(states)
-trajectories <- step3_trajectories(sequences, dissimilarity = "lcs",
+states <- states(engagement, n_states = 3)
+sequences <- sequences(states)
+trajectories <- trajectories(sequences, dissimilarity = "lcs",
                                    method = "ward.D2")
-description <- step4_describe(trajectories, positive_states = "Active",
+description <- describe(trajectories, positive_states = "Active",
                               negative_states = "Disengaged")
 ```
 

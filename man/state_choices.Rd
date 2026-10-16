@@ -10,6 +10,7 @@ state_choices(
   time = NULL,
   variables = NULL,
   n_states = 2:6,
+  n_trajectories = NULL,
   method = c("lpa", "kmeans", "pam", "ward.D2"),
   lpa_model = "EEI",
   lpa_criterion = c("bic", "aic", "silhouette", "icl_native"),
@@ -37,18 +38,25 @@ omitted when the data carry VaSStra role metadata.}
 
 \item{n_states}{Whole-number candidate state counts.}
 
-\item{method}{State-clustering methods to compare. See \code{\link[=step1_states]{step1_states()}}.}
+\item{n_trajectories}{Whole-number candidate trajectory counts for the
+two-level engines (\code{"multilpa"}, \code{"multilca"}, \code{"lta"}), which are
+compared over every combination of states and trajectories. \code{NULL}
+(default) compares 2 through 6.}
 
-\item{lpa_model}{Optional mclust covariance models evaluated when
-\code{method} includes \code{"lpa"}. \code{"EEI"} corresponds to tidyLPA model 1.}
+\item{method}{State engines to compare. See the \code{engine} argument of
+\code{\link[=states]{states()}}.}
 
-\item{lpa_criterion}{Criterion used only to mark LPA recommendations:
-conventional \code{"bic"} (default) or \code{"aic"} (smaller is better),
-\code{"silhouette"} (larger is better), or native mclust \code{"icl_native"}
-(larger is better).}
+\item{lpa_model}{Optional covariance structures of the numeric indicators,
+as mclust codes, evaluated for the model engines. \code{"EEI"} corresponds to
+tidyLPA model 1.}
+
+\item{lpa_criterion}{Criterion used only to mark recommendations among the
+model engines: conventional \code{"bic"} (default) or \code{"aic"} (smaller is
+better), \code{"silhouette"} (larger is better), or \code{"icl_native"} (larger is
+better, the negated ICL as mclust reports it).}
 
 \item{standardize, missing, time_levels, n_start, seed}{Passed to
-\code{\link[=step1_states]{step1_states()}}.}
+\code{\link[=states]{states()}}.}
 
 \item{minimum_size}{Minimum acceptable number of observations in every
 state.}
@@ -61,7 +69,9 @@ ratio.}
 \value{
 A \code{vasstra_state_choices} object. \code{as.data.frame()} returns one
 tidy row per candidate; \verb{$recommendations} contains one transparent
-recommendation per method and LPA model.
+recommendation per method and LPA model. A candidate's warnings, such as
+a model that did not converge, are recorded in its \code{warnings} column
+rather than printed once per candidate.
 }
 \description{
 Fits a tidy grid of state solutions. No solution is silently selected.

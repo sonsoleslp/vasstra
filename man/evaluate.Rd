@@ -28,8 +28,8 @@ automatic comparison when one exists, otherwise 2 through 6.}
 the stored automatic comparison when one exists, otherwise 2 through 6.}
 }
 \value{
-A \code{vasstra_evaluation} object (or a \code{vasstra_evaluations} pair for
-a complete fit). \code{as.data.frame()} returns the candidate comparison;
+A \code{vasstra_evaluation} object, or a \code{vasstra_model_evaluation} for
+a model engine (or a \code{vasstra_evaluations} pair for a complete fit). \code{as.data.frame()} returns the candidate comparison;
 \code{summary()} returns the per-cluster quality table.
 }
 \description{
@@ -39,12 +39,23 @@ quality. The result contains one tidy candidate row per compared count,
 with the fitted and recommended solutions marked, and one tidy row per
 fitted cluster with its size and mean silhouette width.
 }
+\details{
+States from a model engine, and the trajectories of a two-level engine,
+are a latents model, and their evaluation is latents' own: the compared
+counts come from \code{\link[latents:enumerate_lpa]{latents::enumerate_lpa()}}, \code{\link[latents:enumerate_lca]{latents::enumerate_lca()}}
+or \code{\link[latents:enumerate_classes]{latents::enumerate_classes()}}, and the fitted model's classification
+quality from \code{\link[latents:diagnostics]{latents::diagnostics()}}. The result is then a
+\code{vasstra_model_evaluation}: \code{print()} shows both, \code{as.data.frame()} returns
+latents' candidate table (\code{what = "classification"} for the
+classification table), and \code{plot()} draws latents' plots (see
+\code{\link[=plot.vasstra_model_evaluation]{plot.vasstra_model_evaluation()}}).
+}
 \examples{
 set.seed(1)
 data <- expand.grid(student = 1:12, course = 1:3)
 level <- rep(c(2, 8, 16), length.out = nrow(data))
 data$views <- level + rnorm(nrow(data), sd = 0.4)
 data$duration <- level * 3 + rnorm(nrow(data), sd = 0.4)
-states <- step1_states(data, n_states = 3)
+states <- states(data, n_states = 3)
 evaluate(states)
 }

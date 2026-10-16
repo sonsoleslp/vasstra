@@ -1,4 +1,4 @@
-test_that("step4_describe computes interpretable sequence indices", {
+test_that("describe computes interpretable sequence indices", {
   data <- data.frame(
     id = rep(1:6, each = 4),
     time = rep(1:4, 6),
@@ -12,12 +12,12 @@ test_that("step4_describe computes interpretable sequence indices", {
     )
   )
   trajectories <- data |>
-    step2_sequences("id", "time", "state") |>
-    step3_trajectories(
+    sequences("id", "time", "state") |>
+    trajectories(
       n_trajectories = 2,
       backend = "base"
     )
-  result <- step4_describe(
+  result <- describe(
     trajectories,
     positive_states = "A",
     negative_states = "B"
@@ -47,19 +47,19 @@ test_that("step4_describe computes interpretable sequence indices", {
 test_that("step4 rejects unknown state semantics", {
   data <- make_vasstra_data()
   trajectories <- data |>
-    step2_sequences("student", "course", "true_state") |>
-    step3_trajectories(n_trajectories = 3, backend = "base")
+    sequences("student", "course", "true_state") |>
+    trajectories(n_trajectories = 3, backend = "base")
 
   expect_error(
-    step4_describe(trajectories, positive_states = "Unknown"),
+    describe(trajectories, positive_states = "Unknown"),
     "Unknown positive"
   )
   expect_error(
-    step4_describe(trajectories, negative_states = "Unknown"),
+    describe(trajectories, negative_states = "Unknown"),
     "Unknown negative"
   )
   expect_error(
-    step4_describe(trajectories, omega = 0),
+    describe(trajectories, omega = 0),
     "positive"
   )
 })

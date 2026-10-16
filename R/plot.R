@@ -17,7 +17,7 @@
 #'
 #' @examples
 #' data("engagement", package = "VaSStra")
-#' states <- step1_states(engagement, n_states = 3)
+#' states <- states(engagement, n_states = 3)
 #' plot(states)
 #' plot(states, type = "sizes")
 #' plot(states, type = "all")
@@ -34,7 +34,15 @@ plot.vasstra_states <- function(
   type <- match.arg(type)
   scale <- match.arg(scale)
   labels <- x$settings$labels
-  variables <- x$settings$variables
+  # The rows the profile plots draw: indicators, and categories of the
+  # categorical ones.
+  variables <- rownames(.vasstra_state_profile_matrix(x, scale))
+  categorical <- length(x$settings$categorical) > 0L
+  value_label <- if (categorical) {
+    "Mean, or share in category"
+  } else {
+    sprintf("Mean value (%s scale)", scale)
+  }
   if (is.null(main)) {
     main <- switch(
       type,
@@ -43,8 +51,16 @@ plot.vasstra_states <- function(
       } else {
         "State profiles (original scale)"
       },
-      heatmap = sprintf("State profile heatmap (%s scale)", scale),
-      bars = sprintf("State profile bars (%s scale)", scale),
+      heatmap = if (categorical) {
+        "State profile heatmap"
+      } else {
+        sprintf("State profile heatmap (%s scale)", scale)
+      },
+      bars = if (categorical) {
+        "State profile bars"
+      } else {
+        sprintf("State profile bars (%s scale)", scale)
+      },
       sizes = "State sizes",
       all = NULL
     )
@@ -84,7 +100,7 @@ plot.vasstra_states <- function(
           cex.names = 0.8,
           ylim = y_range + diff(y_range) * c(0, 0.18),
           xlab = "",
-          ylab = sprintf("Mean value (%s scale)", scale),
+          ylab = value_label,
           main = main
         ),
         dots
@@ -153,7 +169,7 @@ plot.vasstra_states <- function(
         xaxt = "n",
         ylim = value_range + diff(value_range) * c(-0.06, 0.06),
         xlab = "",
-        ylab = sprintf("Mean value (%s scale)", scale),
+        ylab = value_label,
         main = main
       ),
       dots
@@ -258,31 +274,39 @@ plot.vasstra_states <- function(
   stopifnot(inherits(x, "vasstra_states"))
   scale <- match.arg(scale)
   labels <- x$settings$labels
-  variables <- x$settings$variables
-  if (identical(scale, "standardized")) {
-    profile_data <- x$profiles
-    profile_data$variable <- factor(
-      profile_data$variable,
-      levels = variables
-    )
-    profile_data$state <- factor(
-      profile_data$state,
-      levels = labels
-    )
-    return(stats::xtabs(
-      mean ~ variable + state,
-      data = profile_data
-    ))
+  profile_data <- x$profiles
+  # A categorical indicator contributes one row per category, holding the
+  # share of each state's observations in it, on either scale.
+  categorical <- if ("category" %in% names(profile_data)) {
+    !is.na(profile_data$category)
+  } else {
+    rep(FALSE, nrow(profile_data))
   }
-  state_values <- as.character(x$data[[x$settings$state]])
-  means_by_variable <- vapply(variables, function(variable) {
-    vapply(labels, function(label) {
-      mean(x$data[[variable]][state_values == label], na.rm = TRUE)
-    }, numeric(1L))
-  }, numeric(length(labels)))
-  profile_matrix <- t(means_by_variable)
-  rownames(profile_matrix) <- variables
-  colnames(profile_matrix) <- labels
+  profile_data$key <- ifelse(
+    categorical,
+    paste0(profile_data$variable, ": ", profile_data$category),
+    profile_data$variable
+  )
+  keys <- unique(profile_data$key)
+  profile_matrix <- vapply(labels, function(label) {
+    rows <- profile_data[profile_data$state == label, , drop = FALSE]
+    rows$mean[match(keys, rows$key)]
+  }, numeric(length(keys)))
+  profile_matrix <- matrix(
+    profile_matrix,
+    nrow = length(keys),
+    dimnames = list(variable = keys, state = labels)
+  )
+  if (identical(scale, "original")) {
+    state_values <- as.character(x$data[[x$settings$state]])
+    numeric_keys <- unique(profile_data$key[!categorical])
+    profile_matrix[numeric_keys, ] <- t(vapply(numeric_keys, function(variable) {
+      vapply(labels, function(label) {
+        mean(x$data[[variable]][state_values == label], na.rm = TRUE)
+      }, numeric(1L))
+    }, numeric(length(labels))))
+    dimnames(profile_matrix) <- unname(dimnames(profile_matrix))
+  }
   profile_matrix
 }
 
@@ -422,7 +446,7 @@ plot.vasstra_state_choices <- function(
 #'
 #' @examples
 #' data("engagement", package = "VaSStra")
-#' sequences <- step2_sequences(step1_states(engagement, n_states = 3))
+#' sequences <- sequences(states(engagement, n_states = 3))
 #' options <- trajectory_choices(sequences, n_trajectories = 2:4)
 #' plot(options)
 #' @export
@@ -780,7 +804,7 @@ plot.vasstra_trajectory_choices <- function(
 #'
 #' @examples
 #' data("engagement", package = "VaSStra")
-#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3, n_start = 5L)
 #' plot(fit$sequences)
 #' plot(fit$sequences, type = "distribution")
 #' @export
@@ -857,7 +881,7 @@ plot.vasstra_sequences <- function(
 #'
 #' @examples
 #' data("engagement", package = "VaSStra")
-#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3, n_start = 5L)
 #' plot(fit$trajectories)
 #' plot(fit$trajectories, type = "distribution")
 #' @export
@@ -925,7 +949,7 @@ plot.vasstra_trajectories <- function(
 #'
 #' @examples
 #' data("engagement", package = "VaSStra")
-#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3, n_start = 5L)
 #' evaluation <- evaluate(fit$trajectories)
 #' plot(evaluation)
 #' plot(evaluation, type = "silhouette")
@@ -992,11 +1016,24 @@ plot.vasstra_evaluation <- function(
 #'
 #' @examples
 #' data("engagement", package = "VaSStra")
-#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3, n_start = 5L)
 #' plot(evaluate(fit))
 #' @export
 plot.vasstra_evaluations <- function(x, colors = NULL, ...) {
   stopifnot(inherits(x, "vasstra_evaluations"))
+  # A model engine's evaluation is drawn by latents; each evaluation then
+  # draws on its own page instead of sharing one panel grid.
+  model <- vapply(x, inherits, logical(1L), "vasstra_model_evaluation")
+  if (any(model)) {
+    drawn <- lapply(x, function(evaluation) {
+      if (inherits(evaluation, "vasstra_model_evaluation")) {
+        print(plot(evaluation))
+      } else {
+        plot(evaluation, colors = colors, ...)
+      }
+    })
+    return(invisible(drawn))
+  }
   old_par <- .vasstra_style_par()
   on.exit(graphics::par(old_par), add = TRUE)
   old_layout <- graphics::par(mfrow = c(length(x), 3L))
@@ -1051,7 +1088,7 @@ plot.vasstra_evaluations <- function(x, colors = NULL, ...) {
 #'
 #' @examples
 #' data("engagement", package = "VaSStra")
-#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+#' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3, n_start = 5L)
 #' plot(fit)
 #' plot(fit, which = "states", type = "profile")
 #' plot(fit, which = "sequences")

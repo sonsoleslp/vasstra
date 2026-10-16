@@ -37,5 +37,5 @@
 #' @examples
 #' data(engagement)
 #' str(engagement)
-#' states <- step1_states(engagement, n_states = 3)
+#' states <- states(engagement, n_states = 3)
 "engagement"

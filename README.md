@@ -12,10 +12,11 @@ reported and recorded.
 pak::pak("mohsaqr/vasstra")
 ```
 
-Three vignettes ship with the package: `vignette("get-started")` for the
+Four vignettes ship with the package: `vignette("get-started")` for the
 interface, `vignette("vasstra-tutorial")` for a complete worked analysis of
-the chapter's longitudinal engagement data, and `vignette("flow-plots")`
-for the alluvial and individual flow views.
+the chapter's longitudinal engagement data, `vignette("engines")` for the
+mixture-model engines, and `vignette("flow-plots")` for the alluvial and
+individual flow views.
 
 ## Interactive app
 
@@ -37,15 +38,58 @@ library(VaSStra)
 data("engagement", package = "VaSStra")
 
 fit <- vasstra(engagement)
-#> Selected n_states = 5 (lpa, bic = 19008.964); ...
-#> Selected n_trajectories = 3 (hamming + pam, silhouette = 0.222); ...
+#> Selected n_states = 5 (lpa, bic = 19008.229); ...
+#> Selected n_trajectories = 3 (hamming + pam, silhouette = 0.231); ...
 ```
 
-States are estimated by latent profile analysis (mclust `"EEI"`, tidyLPA
-model 1) by default; `state_method` switches to k-means, PAM, or
-hierarchical clustering. Automatic selection compares 2 through 6
-candidates and never picks a solution whose smallest group holds under
-5 percent of the observations.
+States are estimated by latent profile analysis (the latents package,
+`"EEI"`, tidyLPA model 1) by default; `engine` switches to another mixture
+model or to k-means, PAM, or hierarchical clustering. Automatic selection
+compares 2 through 6 candidates and never picks a solution whose smallest
+group holds under 5 percent of the observations.
+
+## Engines
+
+The `engine` decides how states, and possibly trajectories, are estimated:
+
+| Engine | Indicators | Trajectories |
+|---|---|---|
+| `"lpa"` (default) | numeric, optionally with categorical ones | clustered from the state sequences in step 3 |
+| `"lca"` | categorical | clustered from the state sequences in step 3 |
+| `"multilpa"`, `"multilca"` | numeric / categorical | classes of subjects with their own mix of states, from the same model |
+| `"lta"` | numeric or categorical | classes of subjects with their own transitions, from the same model |
+| `"kmeans"`, `"pam"`, `"ward.D2"`, ... | numeric | clustered from the state sequences in step 3 |
+
+The mixture models come from the latents package. They keep each
+observation's posterior probabilities (`as.data.frame(states, what =
+"posteriors")`), accept `indicator_missing = "fiml"` instead of imputation,
+and are evaluated by latents itself: `evaluate()` and `fit_indices()`
+return latents' enumeration, classification diagnostics and criterion
+tables unchanged, and `plot(evaluate(...))` draws latents' plots. A
+two-level engine
+estimates states and trajectories together, so a subject's uncertain
+states carry into its trajectory:
+
+```r
+vasstra(engagement, engine = "multilpa", n_states = 3, n_trajectories = 3)
+#>   multilpa model | trajectory relative entropy 0.913 | silhouette on hamming 0.541
+vasstra(engagement, engine = "lta", n_states = 3, n_trajectories = 3)
+#>   lta model | trajectory relative entropy 0.775 | silhouette on hamming 0.286
+```
+
+`multilpa` describes a subject by the share of time in each state, `lta` by
+how it moves between states. Their BIC tells whether the order matters: on
+the engagement data `multilpa` (19368.7) beats `lta` (19373.4), so these
+trajectories are about which states students occupy, not the order.
+
+A model fitted with latents can be handed over as it is; its states (and a
+two-level model's trajectory classes) are used as estimated:
+
+```r
+model <- latents::multilpa(data, vars, "user_id", n_profiles = 3,
+                           n_group_classes = 3, time = "sequence_position")
+vasstra(data, engine = model)
+```
 
 `vasstra()` finds the subject, time, and indicator roles from attached
 role metadata or common column names, compares two through six states and
@@ -89,8 +133,10 @@ as.data.frame(fit, unit = "trajectory")         # one row per trajectory
 ## Evaluate the clustering
 
 `evaluate()` compares the fitted counts against the neighboring
-candidates and reports per-cluster quality. Plotting draws the selection
-curve, per-cluster silhouette widths, and group sizes.
+candidates and reports per-cluster quality. For clustered states and
+trajectories, plotting draws the selection curve, per-cluster silhouette
+widths, and group sizes; for a model engine, the evaluation and its plots
+are latents' (see `vignette("engines")`).
 
 ```r
 evaluation <- evaluate(fit)
@@ -109,13 +155,13 @@ evaluate(fit$trajectories)
 ## Tidy fit indices
 
 `fit_indices()` returns the fit statistics of the selected clustering as
-one tidy row — for LPA the complete information-criterion family
-(log-likelihood, AIC, BIC, SABIC, CAIC, AWE, CLC, KIC, ICL), normalized
-entropy, and the minimum and maximum average posterior class
-probabilities, plus silhouette and group sizes. `compare = TRUE` gives
-one row per candidate with `best` and `fitted` markers. Columns that do
-not apply to the fitted method are dropped, so k-means reports its
-within-cluster sum of squares instead of likelihood criteria.
+one tidy row. For a model engine it is latents' information-criterion
+table unchanged (log-likelihood, AIC, KIC, and BIC, SABIC, CAIC, AWE, ICL,
+CLC with groups and individuals as sample size); `compare = TRUE` gives
+latents' candidate table. For a clustering engine it reports silhouette,
+group sizes and the method's own objective (k-means' within-cluster sum of
+squares, PAM's objective), with `best` and `fitted` markers under
+`compare = TRUE`.
 
 ```r
 fit_indices(fit)                            # the fitted state model
@@ -146,12 +192,12 @@ Each step runs alone with the same automated defaults, and each accepts
 the result of the previous step:
 
 ```r
-states <- step1_states(data)                  # roles and count automated
-states <- step1_states(data, n_states = 3,    # or fully explicit
+states <- states(data)                  # roles and count automated
+states <- states(data, n_states = 3,    # or fully explicit
                        labels = c("Low", "Average", "High"))
-sequences <- step2_sequences(states)
-trajectories <- step3_trajectories(sequences)
-description <- step4_describe(
+sequences <- sequences(states)
+trajectories <- trajectories(sequences)
+description <- describe(
   trajectories,
   positive_states = "High",
   negative_states = "Low"
@@ -162,7 +208,7 @@ Existing states from LPA, LCA, or another method enter directly at
 step 2; the state column of a plain data frame is detected or named:
 
 ```r
-sequences <- step2_sequences(data_with_states, state = "engagement_state")
+sequences <- sequences(data_with_states, state = "engagement_state")
 ```
 
 ## Compare candidates in full detail
@@ -276,8 +322,9 @@ a different claim from attracting movement. See `vignette("flow-plots")`.
 
 ## Dependencies
 
-`mclust` powers the default LPA state estimation, base R provides
-k-means and hierarchical clustering, `cluster` provides PAM, and
+`latents` fits the mixture-model engines, including the default latent
+profile analysis, base R provides k-means and hierarchical clustering,
+`cluster` provides PAM, and
 `Nestimate` provides sequence distances, trajectory clustering, and all
 sequence plots. `cograph` is suggested, not required, and renders the flow
 plots. There is no TraMineR plotting path or dependency.

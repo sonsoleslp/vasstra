@@ -11,15 +11,15 @@ test_that("local distances reproduce known Hamming and LCS values", {
       "C", "C", "C", "B"
     )
   )
-  sequences <- step2_sequences(data, "id", "time", "state")
-  hamming <- step3_trajectories(
+  sequences <- sequences(data, "id", "time", "state")
+  hamming <- trajectories(
     sequences,
     n_trajectories = 3,
     dissimilarity = "hamming",
     method = "ward.D2",
     backend = "base"
   )
-  lcs <- step3_trajectories(
+  lcs <- trajectories(
     sequences,
     n_trajectories = 3,
     dissimilarity = "lcs",
@@ -45,13 +45,13 @@ test_that("local distances reproduce known Hamming and LCS values", {
 
 test_that("PAM groups clearly similar sequences", {
   data <- make_vasstra_data()
-  sequences <- step2_sequences(
+  sequences <- sequences(
     data,
     id = "student",
     time = "course",
     state = "true_state"
   )
-  trajectories <- step3_trajectories(
+  trajectories <- trajectories(
     sequences,
     n_trajectories = 3,
     backend = "base",
@@ -70,7 +70,7 @@ test_that("PAM groups clearly similar sequences", {
 
 test_that("step3 validates trajectory counts", {
   data <- make_vasstra_data()
-  sequences <- step2_sequences(
+  sequences <- sequences(
     data,
     id = "student",
     time = "course",
@@ -78,18 +78,18 @@ test_that("step3 validates trajectory counts", {
   )
 
   expect_error(
-    step3_trajectories(sequences, n_trajectories = 1),
+    trajectories(sequences, n_trajectories = 1),
     "at least 2"
   )
   expect_error(
-    step3_trajectories(sequences, n_trajectories = 36),
+    trajectories(sequences, n_trajectories = 36),
     "n - 1"
   )
 })
 
 test_that("Nestimate backend is numerically equivalent", {
   data <- make_vasstra_data()
-  sequences <- step2_sequences(
+  sequences <- sequences(
     data,
     id = "student",
     time = "course",
@@ -97,7 +97,7 @@ test_that("Nestimate backend is numerically equivalent", {
   )
   set.seed(801L)
   random_state <- .Random.seed
-  result <- step3_trajectories(
+  result <- trajectories(
     sequences,
     n_trajectories = 3,
     dissimilarity = "lcs",

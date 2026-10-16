@@ -39,7 +39,7 @@ Fits a candidate from \code{\link[=trajectory_choices]{trajectory_choices()}}, s
 recommended candidate.
 }
 \examples{
-sequences <- step2_sequences(
+sequences <- sequences(
   data.frame(
     id = rep(1:6, each = 3),
     time = rep(1:3, 6),

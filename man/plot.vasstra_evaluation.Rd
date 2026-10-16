@@ -37,7 +37,7 @@ the three panels side by side.
 }
 \examples{
 data("engagement", package = "VaSStra")
-fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+fit <- vasstra(engagement, n_states = 3, n_trajectories = 3, n_start = 5L)
 evaluation <- evaluate(fit$trajectories)
 plot(evaluation)
 plot(evaluation, type = "silhouette")

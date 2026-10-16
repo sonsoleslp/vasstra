@@ -42,7 +42,7 @@ Delegates grouped sequence index, distribution, and heatmap rendering to
 }
 \examples{
 data("engagement", package = "VaSStra")
-fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+fit <- vasstra(engagement, n_states = 3, n_trajectories = 3, n_start = 5L)
 plot(fit$trajectories)
 plot(fit$trajectories, type = "distribution")
 }

@@ -7,14 +7,14 @@ test_that("chapter data runs through the complete Nestimate workflow", {
   )
   data <- data_environment$engagement
 
-  states <- step1_states(
+  states <- states(
     data,
     n_states = 3,
     labels = c("Disengaged", "Average", "Active"),
     seed = 22294L
   )
-  sequences <- step2_sequences(states)
-  trajectories <- step3_trajectories(
+  sequences <- sequences(states)
+  trajectories <- trajectories(
     sequences,
     n_trajectories = 3,
     dissimilarity = "lcs",
@@ -27,7 +27,7 @@ test_that("chapter data runs through the complete Nestimate workflow", {
     ),
     seed = 22295L
   )
-  description <- step4_describe(
+  description <- describe(
     trajectories,
     positive_states = "Active",
     negative_states = "Disengaged"
