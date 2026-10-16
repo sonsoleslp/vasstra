@@ -33,7 +33,7 @@
   </g>
   <text x="164" y="172" class="fam">Model-based</text>
   <text x="164" y="192" class="meth"><tspan class="key">LPA</tspan>: Gaussian mixture, soft assignment, BIC</text>
-  <text x="164" y="208" class="pkg">mclust &#183; default state method</text>
+  <text x="164" y="208" class="pkg">latents &#183; default state method</text>
 
   <!-- Row B: Partitioning (centroids / medoids) -->
   <g transform="translate(48,246)">
@@ -106,7 +106,7 @@
   <text x="648" y="214" class="meth"><tspan class="key">LCS</tspan>: longest common subsequence</text>
   <text x="648" y="232" class="meth"><tspan class="key">OSA, LV, DL</tspan>: edit distances</text>
   <text x="648" y="250" class="meth"><tspan class="key">q-gram</tspan>: shared length-q substrings</text>
-  <text x="648" y="268" class="meth"><tspan class="key">cosine, jaccard</tspan>: token-set overlap</text>
+  <text x="648" y="268" class="meth"><tspan class="key">cosine, jaccard</tspan>: q-gram overlap</text>
   <text x="648" y="286" class="meth"><tspan class="key">jw</tspan>: Jaro-Winkler prefix similarity</text>
 
   <!-- Section 2: cluster the distances (grouped sequences) -->

@@ -1,22 +1,26 @@
 #' Tidy Fit Indices for a Fitted Clustering
 #'
 #' Returns the fit statistics of the selected clustering as one tidy row,
-#' or one row per compared candidate with `compare = TRUE`. LPA solutions
-#' report the complete information-criterion family (log-likelihood, AIC,
-#' BIC, SABIC, CAIC, AWE, CLC, KIC, ICL — all on the conventional
-#' lower-is-better scale), normalized entropy, and the smallest and largest
-#' average posterior class probabilities. Hard clustering methods report
-#' their own objectives (total within-cluster sum of squares, PAM
-#' objective). Silhouette and group sizes are always included, and columns
-#' that do not apply to the fitted method are dropped.
+#' or one row per compared candidate with `compare = TRUE`. Hard clustering
+#' methods report their own objectives (total within-cluster sum of
+#' squares, PAM objective), silhouette, and group sizes; columns that do not
+#' apply to the fitted method are dropped.
+#'
+#' States from a model engine, and the trajectories of a two-level engine,
+#' report latents' tables unchanged: the fitted model's information criteria
+#' (`latents::get_results(fit, "information_criteria")`: log-likelihood,
+#' AIC, KIC, and BIC, SABIC, CAIC, AWE, ICL and CLC with the groups and the
+#' individuals as sample size), or with `compare = TRUE` the candidate table
+#' of latents' enumeration of other counts.
 #'
 #' @param x A `vasstra_states`, `vasstra_trajectories`, or complete
 #'   `vasstra` object.
 #' @param ... Method-specific arguments.
 #'
 #' @return A `vasstra_fit_indices` data frame: one row for the fitted
-#'   solution, or one row per candidate (with `best` and `fitted` markers)
-#'   when `compare = TRUE`.
+#'   solution, or one row per candidate when `compare = TRUE` (with `best`
+#'   and `fitted` markers for a clustering engine; latents' candidate table,
+#'   unmarked, for a model engine).
 #'
 #' @examples
 #' set.seed(1)
@@ -24,7 +28,7 @@
 #' level <- rep(c(2, 8, 16), length.out = nrow(data))
 #' data$views <- level + rnorm(nrow(data), sd = 0.4)
 #' data$duration <- level * 3 + rnorm(nrow(data), sd = 0.4)
-#' states <- step1_states(data, n_states = 3)
+#' states <- states(data, n_states = 3)
 #' fit_indices(states)
 #' fit_indices(states, compare = TRUE)
 #' @export
@@ -70,6 +74,9 @@ fit_indices.vasstra_states <- function(
     length(compare) == 1L,
     !is.na(compare)
   )
+  if (isTRUE(x$settings$method %in% .vasstra_model_engines())) {
+    return(.vasstra_model_fit_indices(x, "states", compare, n_states))
+  }
   if (compare) {
     candidates <- .vasstra_state_candidate_table(x, n_states)
     table <- candidates[c(
@@ -129,6 +136,10 @@ fit_indices.vasstra_trajectories <- function(
     length(compare) == 1L,
     !is.na(compare)
   )
+  if (identical(x$settings$method, "model")) {
+    return(.vasstra_model_fit_indices(x$source$source, "trajectories",
+                                      compare, n_trajectories))
+  }
   method_label <- paste(
     x$settings$dissimilarity,
     x$settings$method,
@@ -210,4 +221,28 @@ print.vasstra_fit_indices <- function(x, digits = 2L, ...) {
                                  digits = digits)
   print.data.frame(shown, row.names = FALSE)
   invisible(x)
+}
+
+# A model engine's fit indices are latents' tables as latents returns them:
+# the fitted model's information criteria, or with `compare = TRUE` the
+# candidate table of the enumeration that compares it with other counts.
+.vasstra_model_fit_indices <- function(states, unit, compare, counts) {
+  stopifnot(inherits(states, "vasstra_states"))
+  table <- if (compare) {
+    enumeration <- .vasstra_model_enumeration(states, unit, counts)
+    if (is.null(enumeration)) {
+      stop(
+        "A fitted latents model was supplied, so there are no other counts to compare.",
+        call. = FALSE
+      )
+    }
+    latents::get_results(enumeration, "candidates")
+  } else {
+    latents::get_results(states$model, "information_criteria")
+  }
+  .vasstra_fit_indices(
+    as.data.frame(table),
+    unit,
+    sprintf("%s, from latents", states$settings$engine)
+  )
 }

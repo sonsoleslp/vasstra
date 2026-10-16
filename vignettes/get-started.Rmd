@@ -53,7 +53,8 @@ fit <- vasstra(
 `variables` was left out on purpose: the numeric columns that are not the
 `id` or `time` become the indicators (columns ending in `"_z"` are preferred
 when present, so a mix of raw and standardized columns picks the
-standardized set, as it does here). Name them to fit a specific subset. Here
+standardized set; on `engagement` the attached metadata names that same
+set). Name them to fit a specific subset. Here
 we keep only the three activity-volume indicators:
 
 ```{r variables}
@@ -72,7 +73,7 @@ Columns that follow a common convention are detected even without `id` and
 to supply that role. Two more notes: pass `time_levels` when `time` is a
 character or unordered factor so the chronology is explicit, and use `state`
 instead of `variables` when the data already carry a categorical state
-column (the analysis then starts at `step2_sequences()`).
+column (the analysis then starts at `sequences()`).
 
 ## One call
 
@@ -113,7 +114,10 @@ fit <- vasstra(
 `evaluate()` compares the fitted numbers of states and trajectories against
 the alternative counts and reports per-cluster quality. Printing shows both
 tables; plotting draws the selection curve, per-cluster silhouette widths,
-and group sizes.
+and group sizes. Because the states here come from a latent profile model,
+the evaluation also carries latents' own comparison and classification
+diagnostics: `plot(evaluation, type = "enumeration")` and
+`type = "diagnostics"` draw them (see `vignette("engines")`).
 
 ```{r evaluate}
 evaluation <- evaluate(fit)
@@ -134,10 +138,11 @@ summary(state_evaluation)
 
 `fit_indices()` reports the fit statistics of the selected clustering as
 one tidy row, or one row per compared candidate with `compare = TRUE`.
-LPA models report the complete information-criterion family together
-with entropy and the extreme average posterior class probabilities;
-hard-clustering methods report their own objectives instead, and columns
-that do not apply are dropped.
+For a latent profile model these are latents' tables unchanged: the
+complete information-criterion family, and with `compare = TRUE` the
+candidates' entropy and average posterior probabilities as well.
+Hard-clustering methods report their own objectives instead, with the
+columns that do not apply dropped.
 
 ```{r fit-indices}
 fit_indices(fit)
@@ -160,6 +165,9 @@ fit <- set_labels(
 summary(fit)
 ```
 
+The two exposure indices are empty here because this fit declared no
+`positive_states` or `negative_states`; the four-step version below does.
+
 ## The same analysis in four explicit steps
 
 Each step accepts the result of the previous step and also runs alone with
@@ -167,11 +175,11 @@ the same automated defaults. Use the steps when intermediate results are
 needed, or when states come from another method.
 
 ```{r steps}
-states <- step1_states(engagement,
-                       labels = c("Disengaged", "Average", "Active"))
-sequences <- step2_sequences(states)
-trajectories <- step3_trajectories(sequences, n_trajectories = 3)
-description <- step4_describe(
+states <- states(engagement,
+                 labels = c("Disengaged", "Average", "Active"))
+sequences <- sequences(states)
+trajectories <- trajectories(sequences, n_trajectories = 3)
+description <- describe(
   trajectories,
   positive_states = "Active",
   negative_states = "Disengaged"
@@ -179,13 +187,14 @@ description <- step4_describe(
 summary(description)
 ```
 
-Existing states from LPA, LCA, or any other source enter at step 2: pass a
-data frame whose state column is detected automatically (or named with the
-`state` argument).
+Existing states from any other source enter at step 2: pass a data frame
+whose state column is detected automatically (or named with the `state`
+argument). A model fitted with latents can instead be passed as `engine`;
+see `vignette("engines")`.
 
 ## State plots
 
-State results support profile, bar, heatmap, and size plots without adding
+State results support profile, bar, heatmap, size, and per-variable plots without adding
 a plotting dependency, plus a combined overview.
 
 ```{r state-plots, fig.height = 6}
@@ -198,7 +207,8 @@ plot(states, type = "profile")
 
 ## Sequence and trajectory plots
 
-Every plot containing state sequences is rendered by Nestimate:
+Sequence index, distribution, and heatmap plots are rendered by Nestimate;
+flow and transition views use cograph:
 
 ```{r sequence-plot}
 plot(trajectories, type = "index")
@@ -234,13 +244,13 @@ candidate; `candidate_id` remains available for exact row selection.
 Average silhouette is the common diagnostic across all methods; larger
 values indicate better-separated groups. Recommendations identify the best
 eligible candidate separately for each method rather than declaring one
-algorithm universally best. LPA candidates are recommended by conventional
-BIC, with AIC, silhouette, or native mclust ICL available through
-`lpa_criterion`.
+algorithm universally best. Model-engine candidates (LPA and the other
+latents engines) are recommended by BIC, with AIC, silhouette, or the
+negated ICL (larger is better) available through `lpa_criterion`.
 
 ```{r trajectory-choices}
 trajectory_options <- trajectory_choices(
-  step2_sequences(chosen_states),
+  sequences(chosen_states),
   n_trajectories = 2:4,
   dissimilarity = c("hamming", "lcs"),
   method = c("pam", "ward.D2")
@@ -252,9 +262,11 @@ plot(trajectory_options, metric = "silhouette")
 Recommendations are made within each distance-method pair because mean
 within-trajectory distances are only comparable within one dissimilarity.
 
-States default to `mclust` latent profiles (`"EEI"`, tidyLPA model 1);
-base R supplies k-means and hierarchical clustering, `cluster` supplies
-PAM, CLARA, FANNY, and DIANA, and `Nestimate` supplies sequence distances,
-trajectory clustering, and plots. No `TraMineR` plotting path or dependency
-is required. See `vignette("clustering-algorithms")` for the full list of
-state and trajectory methods.
+States default to latent profiles fitted with the `latents` package
+(`"EEI"`, tidyLPA model 1), which also supplies the other mixture-model
+engines (see `vignette("engines")`); base R supplies k-means and
+hierarchical clustering, `cluster` supplies PAM, CLARA, FANNY, and DIANA,
+and `Nestimate` supplies sequence distances, trajectory clustering, and
+plots. No `TraMineR` plotting path or dependency is required. See the
+[clustering algorithms article](https://sonsoles.me/vasstra/articles/clustering-algorithms.html)
+for the full list of state and trajectory methods.

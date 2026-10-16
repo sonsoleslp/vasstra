@@ -1,3 +1,66 @@
+# VaSSTra 0.5.0
+
+## Plain step names
+
+- The four steps are now `states()`, `sequences()`, `trajectories()` and
+  `describe()`. `step1_states()`, `step2_sequences()`,
+  `step3_trajectories()` and `step4_describe()` remain as aliases for this
+  release and will be removed in the next.
+- `describe()` shares its name with `psych::describe()` and
+  `Hmisc::describe()`; whichever package is attached last is found first,
+  and `VaSSTra::describe()` always reaches this one.
+
+## Engines
+
+- `states()` and `vasstra()` take an `engine`: the mixture models of
+  the latents package (`"lpa"`, the default, `"lca"`, `"multilpa"`,
+  `"multilca"`, `"lta"`) or the clustering methods (`"kmeans"`, `"pam"`,
+  `"ward.D2"`, ...). `method` (step 1) and `state_method` (`vasstra()`) are
+  superseded by it and still accepted. See `vignette("engines")`.
+- The default latent profile analysis is now fitted with latents instead of
+  mclust, from several random starts. On the engagement data it reaches a
+  higher log likelihood than mclust's single run (3 states: -9940.167
+  against -9940.466), so the automatic selection can differ slightly;
+  `vasstra(engagement)` still selects 5 states and 3 trajectories.
+- The two-level engines (`"multilpa"`, `"multilca"`, `"lta"`) estimate the
+  states and the trajectory classes in one model. `trajectories()`
+  takes the classes from the model (`method = "model"`, the default for
+  such states) unless a distance or clustering method is named, and
+  `n_trajectories` is chosen jointly with `n_states` when either is
+  `"auto"`. A model that leaves a trajectory class empty warns.
+- A fitted latents model can be passed as `engine`; its states, and a
+  two-level model's trajectory classes, are used as estimated, after
+  checking that `data` is the data it was fitted to.
+- Model engines keep each observation's posterior probabilities
+  (`as.data.frame(states, what = "posteriors")`), take categorical
+  indicators (`"lca"`, `"multilca"`, or non-numeric columns with the other
+  model engines), and accept `missing = "fiml"` instead of median
+  imputation.
+- `evaluate()` evaluates a model engine as it does every engine (candidate
+  silhouettes, group sizes, the same panels in the fit's `state_colors`)
+  and adds latents' own evaluation: its enumeration of the compared counts
+  (`enumerate_lpa()`, `enumerate_lca()`, `enumerate_classes()`) and
+  `latents::diagnostics()` of the fitted model, read with
+  `as.data.frame(x, what = "enumeration" | "classification")` and drawn by
+  latents with `plot(x, type = "enumeration" | "diagnostics")` (needs
+  ggplot2). The trajectory classes of a two-level engine are evaluated the
+  same way, with silhouettes on the Hamming distance.
+- `fit_indices()` of a model engine returns latents' information-criterion
+  and candidate tables unchanged. AWE thereby includes the
+  classification-entropy term of Banfield and Raftery (1993), which the
+  hand-computed version left out.
+- `state_choices()` compares a model engine through one latents
+  enumeration, and automatic selection uses the chosen candidate as latents
+  fitted it, without refitting. It takes `n_trajectories` for the
+  two-level engines, and records each candidate's warnings in a `warnings`
+  column instead of dropping them.
+- State profile plots draw a categorical indicator as one row per category,
+  holding the share of each state's observations in it.
+- The Shiny app offers every engine.
+- `latents (>= 0.9.36)` is imported (installed from GitHub through
+  `Remotes:` until that version is on CRAN, which has 0.9.21); mclust moves
+  to Suggests and ggplot2 joins Suggests for latents' plots.
+
 # VaSSTra 0.4.0
 
 - `plot()` on states gains `type = "variables"`: grouped boxplots of the

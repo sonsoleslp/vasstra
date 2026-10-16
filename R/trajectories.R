@@ -6,6 +6,14 @@
 #' `dissimilarity = "lcs"` and `method = "ward.D2"` to follow the worked
 #' VaSSTra chapter.
 #'
+#' When the states come from a two-level engine (`"multilpa"`, `"multilca"`
+#' or `"lta"` in [states()]), the model has already estimated the
+#' trajectory classes, and they are used as estimated (`method = "model"`,
+#' the default for such states). Their silhouette and mean within-trajectory
+#' distance are then reported on the Hamming distance, as a yardstick that
+#' can be compared with the clustering methods. Naming a `dissimilarity` or a
+#' clustering `method` clusters the sequences instead.
+#'
 #' @param data A `vasstra_sequences` object.
 #' @param n_trajectories Number of trajectory groups. One number fits
 #'   exactly that count, several numbers (for example `2:4`) compare those
@@ -18,7 +26,8 @@
 #' @param dissimilarity One of `"hamming"`, `"osa"`, `"lv"`, `"dl"`, `"lcs"`,
 #'   `"qgram"`, `"cosine"`, `"jaccard"`, or `"jw"`.
 #' @param method One of `"pam"`, `"ward.D2"`, `"ward.D"`, `"complete"`,
-#'   `"average"`, `"single"`, `"mcquitty"`, `"median"`, or `"centroid"`.
+#'   `"average"`, `"single"`, `"mcquitty"`, `"median"`, `"centroid"`, or
+#'   `"model"` for the trajectory classes of a two-level engine.
 #' @param backend `"Nestimate"` (default) uses
 #'   [Nestimate::build_clusters()]. Use `"base"` for the small internal
 #'   equivalence backend, which supports only Hamming/LCS distances.
@@ -29,7 +38,7 @@
 #'   sizes, silhouette, and the complete distance matrix.
 #'
 #' @examples
-#' sequences <- step2_sequences(
+#' sequences <- sequences(
 #'   data.frame(
 #'     id = rep(1:6, each = 3),
 #'     time = rep(1:3, 6),
@@ -43,10 +52,10 @@
 #'   time = "time",
 #'   state = "state"
 #' )
-#' trajectories <- step3_trajectories(sequences, n_trajectories = 3)
+#' trajectories <- trajectories(sequences, n_trajectories = 3)
 #' trajectories
 #' @export
-step3_trajectories <- function(
+trajectories <- function(
     data,
     n_trajectories = "auto",
     dissimilarity = c(
@@ -55,15 +64,37 @@ step3_trajectories <- function(
     ),
     method = c(
       "pam", "ward.D2", "ward.D", "complete", "average",
-      "single", "mcquitty", "median", "centroid"
+      "single", "mcquitty", "median", "centroid", "model"
     ),
     backend = c("Nestimate", "base"),
     labels = NULL,
     seed = 123L) {
   stopifnot(inherits(data, "vasstra_sequences"))
+  clustering_requested <- !missing(method) || !missing(dissimilarity)
   dissimilarity <- match.arg(dissimilarity)
   method <- match.arg(method)
   backend <- match.arg(backend)
+  source_states <- data$source
+  model_source <- inherits(source_states, "vasstra_states") &&
+    isTRUE(source_states$settings$engine %in% .vasstra_two_level_engines())
+  if (identical(method, "model") ||
+      (model_source && !clustering_requested)) {
+    if (!model_source) {
+      stop(
+        paste0(
+          "`method = \"model\"` needs states from a two-level engine: ",
+          "multilpa, multilca, or lta."
+        ),
+        call. = FALSE
+      )
+    }
+    return(.vasstra_model_trajectories(
+      data,
+      n_trajectories = n_trajectories,
+      labels = labels,
+      seed = seed
+    ))
+  }
   if (identical(backend, "base") &&
       !dissimilarity %in% c("hamming", "lcs")) {
     stop(
@@ -187,6 +218,42 @@ step3_trajectories <- function(
       silhouette <- .vasstra_silhouette(assignments, distance)
     }
   }
+  .vasstra_assemble_trajectories(
+    data = data,
+    raw_assignments = assignments,
+    n_trajectories = n_trajectories,
+    labels = labels,
+    distance = distance,
+    silhouette = silhouette,
+    model = model,
+    settings = list(
+      dissimilarity = dissimilarity,
+      method = method,
+      backend = resolved_backend,
+      seed = as.integer(seed)
+    ),
+    selection = selection
+  )
+}
+
+# The shared tail of step 3: order and label the trajectories and describe
+# them, whether they were clustered or estimated by a two-level model.
+.vasstra_assemble_trajectories <- function(
+    data,
+    raw_assignments,
+    n_trajectories,
+    labels,
+    distance,
+    silhouette,
+    model,
+    settings,
+    selection,
+    extra_summary = NULL,
+    extra_diagnostics = list()) {
+  stopifnot(inherits(data, "vasstra_sequences"), is.list(settings))
+  sequence_matrix <- as.matrix(data$data)
+  n_sequences <- nrow(data$data)
+  assignments <- raw_assignments
   assignments <- .vasstra_relabel_assignments(
     assignments,
     sequence_matrix
@@ -234,6 +301,9 @@ step3_trajectories <- function(
     mean_within_distance = mean_within,
     stringsAsFactors = FALSE
   )
+  if (!is.null(extra_summary)) {
+    cluster_summary <- cbind(cluster_summary, extra_summary(assignments))
+  }
   structure(
     list(
       data = data$data,
@@ -243,19 +313,19 @@ step3_trajectories <- function(
       distance = distance,
       silhouette = silhouette,
       model = model,
-      settings = list(
-        n_trajectories = n_trajectories,
-        dissimilarity = dissimilarity,
-        method = method,
-        backend = resolved_backend,
-        labels = labels,
-        seed = as.integer(seed)
+      settings = c(
+        list(n_trajectories = n_trajectories),
+        settings,
+        list(labels = labels)
       ),
-      diagnostics = list(
-        n_sequences = n_sequences,
-        sizes = sizes,
-        silhouette = silhouette,
-        selection = selection
+      diagnostics = c(
+        list(
+          n_sequences = n_sequences,
+          sizes = sizes,
+          silhouette = silhouette,
+          selection = selection
+        ),
+        extra_diagnostics
       ),
       source = data
     ),
@@ -267,14 +337,28 @@ step3_trajectories <- function(
 print.vasstra_trajectories <- function(x, ...) {
   stopifnot(inherits(x, "vasstra_trajectories"))
   cat("VaSSTra Step 3: Sequences -> Trajectories\n")
-  cat(sprintf(
-    "  %d sequences | %d trajectories | %s + %s | silhouette %.3f\n",
-    x$diagnostics$n_sequences,
-    x$settings$n_trajectories,
-    x$settings$dissimilarity,
-    x$settings$method,
-    x$silhouette
-  ))
+  if (identical(x$settings$method, "model")) {
+    cat(sprintf(
+      paste0(
+        "  %d sequences | %d trajectories | %s model | relative entropy %.3f",
+        " | silhouette on hamming %.3f\n"
+      ),
+      x$diagnostics$n_sequences,
+      x$settings$n_trajectories,
+      x$settings$engine,
+      x$diagnostics$relative_entropy,
+      x$silhouette
+    ))
+  } else {
+    cat(sprintf(
+      "  %d sequences | %d trajectories | %s + %s | silhouette %.3f\n",
+      x$diagnostics$n_sequences,
+      x$settings$n_trajectories,
+      x$settings$dissimilarity,
+      x$settings$method,
+      x$silhouette
+    ))
+  }
   cat("  Sizes: ", paste(
     sprintf("%s=%d", names(x$diagnostics$sizes), x$diagnostics$sizes),
     collapse = ", "

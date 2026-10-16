@@ -1,19 +1,29 @@
 #' Run the Complete VaSSTra Workflow
 #'
-#' A one-call wrapper around [step1_states()], [step2_sequences()],
-#' [step3_trajectories()], and [step4_describe()]. Every argument has a
+#' A one-call wrapper around [states()], [sequences()],
+#' [trajectories()], and [describe()]. Every argument has a
 #' working default, so `vasstra(data)` runs a complete analysis: subject,
 #' time, and indicator roles come from explicit arguments, attached role
 #' metadata, or common column names, and the numbers of states and
 #' trajectories are selected automatically unless given. Every automated
 #' decision is reported with a message and recorded in the fit.
 #'
+#' The `engine` decides how states, and possibly trajectories, are
+#' estimated. With `"lpa"` (default), `"lca"` or a clustering engine, step 1
+#' estimates states and step 3 clusters the state sequences. With a
+#' two-level engine (`"multilpa"`, `"multilca"`, `"lta"`), one latents model
+#' estimates the states and the trajectory classes together, and step 3 uses
+#' its classes unless `dissimilarity` or `cluster_method` is given. A fitted
+#' latents model passed as `engine` supplies its states (and, for a
+#' two-level model, its trajectory classes) as estimated. See
+#' [states()] for the engines.
+#'
 #' @param data A longitudinal data frame.
 #' @param id Subject identifier column. May be omitted when the data carry
 #'   VaSSTra role metadata or use a common identifier name.
 #' @param time Time or ordering column. May be omitted when the data carry
 #'   VaSSTra role metadata or use a common time name.
-#' @param variables Numeric state indicators. Use either `variables` or
+#' @param variables State indicators. Use either `variables` or
 #'   `state`, but not both. When both are omitted, the numeric non-role
 #'   columns are used (columns ending in `_z` are preferred when present).
 #' @param state Existing state column. Use either `state` or `variables`.
@@ -23,7 +33,8 @@
 #'   determine the count under `"auto"`.
 #' @param n_trajectories Number of trajectory groups: one number, a
 #'   candidate vector to compare, or `"auto"` (default). Supplied
-#'   `trajectory_labels` determine the count under `"auto"`.
+#'   `trajectory_labels` determine the count under `"auto"`. A two-level
+#'   engine estimates this count together with the states.
 #' @param state_labels Optional labels ordered from low to high profile.
 #' @param state_order Optional character vector giving the order the states
 #'   should appear in every plot (stacking, legends, transition nodes, flow
@@ -42,23 +53,28 @@
 #'   time point), `"subject"` (within each subject, relative to their own
 #'   baseline), `"global"`, or `"none"`. Analysis-ready package data may
 #'   provide its own default.
-#' @param indicator_missing Indicator missingness policy passed to step 1.
+#' @param indicator_missing Indicator missingness policy passed to step 1:
+#'   `"error"`, `"median"`, or `"fiml"` for the model engines.
 #'   Analysis-ready package data may provide its own default.
 #' @param sequence_missing Structural sequence-gap policy passed to step 2.
 #' @param missing_label Explicit missing-state label.
 #' @param time_levels Explicit chronological values when needed.
-#' @param dissimilarity Sequence distance passed to [step3_trajectories()].
-#' @param cluster_method Trajectory clustering method.
+#' @param dissimilarity Sequence distance passed to [trajectories()].
+#' @param cluster_method Trajectory clustering method. With a two-level
+#'   engine it defaults to `"model"`, the model's own trajectory classes.
 #' @param backend Clustering backend: `"Nestimate"` (default) or `"base"`.
 #' @param positive_states Optional states considered positive.
 #' @param negative_states Optional states considered negative.
 #' @param omega Later-time weighting exponent for step 4.
-#' @param n_start Number of k-means starts.
+#' @param n_start Number of random starts of k-means or of a model engine.
 #' @param seed Reproducible base seed.
-#' @param state_method State-clustering method passed to [step1_states()].
-#'   The default `"lpa"` estimates Gaussian-mixture latent profiles.
-#' @param lpa_model mclust covariance model used when
-#'   `state_method = "lpa"`. The default `"EEI"` is tidyLPA model 1.
+#' @param engine The state engine passed to [states()]: `"lpa"`
+#'   (default), `"lca"`, `"multilpa"`, `"multilca"`, `"lta"`, a clustering
+#'   method, or a fitted latents model.
+#' @param lpa_model Covariance structure of the numeric indicators for the
+#'   model engines, as an mclust code. The default `"EEI"` is tidyLPA
+#'   model 1.
+#' @param state_method Superseded by `engine`; still accepted.
 #'
 #' @return A `vasstra` object containing all four fitted step objects.
 #'
@@ -121,13 +137,22 @@ vasstra <- function(
     omega = 1,
     n_start = 25L,
     seed = 123L,
-    state_method = c(
-      "lpa", "kmeans", "pam", "clara", "fanny", "diana",
-      "ward.D2", "ward.D", "complete", "average",
-      "single", "mcquitty", "median", "centroid"
-    ),
-    lpa_model = "EEI") {
+    engine = NULL,
+    lpa_model = "EEI",
+    state_method = NULL) {
   stopifnot(is.data.frame(data))
+  clustering_requested <- !missing(cluster_method) || !missing(dissimilarity)
+  engine <- .vasstra_resolve_engine(engine, state_method, "state_method")
+  supplied_fit <- .vasstra_is_latents_fit(engine)
+  engine_name <- if (supplied_fit) .vasstra_fit_engine(engine) else engine
+  two_level <- engine_name %in% .vasstra_two_level_engines()
+  if (supplied_fit) {
+    if (!is.null(state)) {
+      stop("A fitted latents model supplies the states; drop `state`.",
+           call. = FALSE)
+    }
+    variables <- engine$vars
+  }
   metadata <- .vasstra_data_metadata(data)
   if (is.null(id)) {
     id <- metadata$id
@@ -141,7 +166,10 @@ vasstra <- function(
   if (!is.null(variables) && !is.null(state)) {
     stop("Supply at most one of `variables` or `state`.", call. = FALSE)
   }
-  if (is.null(state)) {
+  if (supplied_fit) {
+    if (is.null(standardize)) standardize <- "none"
+    if (is.null(indicator_missing)) indicator_missing <- "error"
+  } else if (is.null(state)) {
     data_specification <- .vasstra_resolve_state_data(
       data,
       id = id,
@@ -166,18 +194,37 @@ vasstra <- function(
   standardize <- match.arg(standardize, c("time", "global", "subject", "none"))
   indicator_missing <- match.arg(
     indicator_missing,
-    c("error", "median")
+    c("error", "median", "fiml")
   )
   sequence_missing <- match.arg(sequence_missing)
   dissimilarity <- match.arg(dissimilarity)
   cluster_method <- match.arg(cluster_method)
   backend <- match.arg(backend)
-  state_method <- match.arg(state_method)
+  if (two_level && !clustering_requested) {
+    cluster_method <- "model"
+  }
   if (!is.numeric(seed) || length(seed) != 1L || !is.finite(seed)) {
     stop("`seed` must be one finite number.", call. = FALSE)
   }
-  if (!is.null(variables)) {
-    states <- step1_states(
+  if (supplied_fit) {
+    states <- states(
+      data = data,
+      id = id,
+      time = time,
+      labels = state_labels,
+      state_order = state_order,
+      state_colors = state_colors,
+      state = state_name,
+      time_levels = time_levels,
+      engine = engine
+    )
+    sequences <- sequences(
+      states,
+      missing = sequence_missing,
+      missing_label = missing_label
+    )
+  } else if (!is.null(variables)) {
+    states <- states(
       data = data,
       id = id,
       time = time,
@@ -192,17 +239,18 @@ vasstra <- function(
       time_levels = time_levels,
       n_start = n_start,
       seed = as.integer(seed),
-      method = state_method,
-      lpa_model = lpa_model
+      engine = engine,
+      lpa_model = lpa_model,
+      n_trajectories = if (two_level) n_trajectories else "auto"
     )
-    sequences <- step2_sequences(
+    sequences <- sequences(
       states,
       missing = sequence_missing,
       missing_label = missing_label
     )
   } else {
     states <- NULL
-    sequences <- step2_sequences(
+    sequences <- sequences(
       data = data,
       id = id,
       time = time,
@@ -214,16 +262,25 @@ vasstra <- function(
       missing_label = missing_label
     )
   }
-  trajectories <- step3_trajectories(
-    sequences,
-    n_trajectories = n_trajectories,
-    dissimilarity = dissimilarity,
-    method = cluster_method,
-    backend = backend,
-    labels = trajectory_labels,
-    seed = as.integer(seed) + 1L
-  )
-  description <- step4_describe(
+  trajectories <- if (identical(cluster_method, "model")) {
+    trajectories(
+      sequences,
+      method = "model",
+      labels = trajectory_labels,
+      seed = as.integer(seed) + 1L
+    )
+  } else {
+    trajectories(
+      sequences,
+      n_trajectories = n_trajectories,
+      dissimilarity = dissimilarity,
+      method = cluster_method,
+      backend = backend,
+      labels = trajectory_labels,
+      seed = as.integer(seed) + 1L
+    )
+  }
+  description <- describe(
     trajectories,
     positive_states = positive_states,
     negative_states = negative_states,
@@ -246,16 +303,12 @@ vasstra <- function(
           states$settings$n_states
         },
         n_trajectories = trajectories$settings$n_trajectories,
-        state_method = if (is.null(variables)) {
+        engine = if (is.null(states)) NA_character_ else engine_name,
+        state_method = if (is.null(states)) NA_character_ else engine_name,
+        lpa_model = if (is.null(states)) {
           NA_character_
         } else {
-          state_method
-        },
-        lpa_model = if (!is.null(variables) &&
-                        identical(state_method, "lpa")) {
-          lpa_model
-        } else {
-          NA_character_
+          states$settings$lpa_model
         },
         dissimilarity = dissimilarity,
         cluster_method = cluster_method,
@@ -284,12 +337,22 @@ print.vasstra <- function(x, ...) {
     x$diagnostics$n_states,
     x$diagnostics$n_trajectories
   ))
-  cat(sprintf(
-    "  %s + %s | silhouette %.3f\n",
-    x$trajectories$settings$dissimilarity,
-    x$trajectories$settings$method,
-    x$diagnostics$silhouette
-  ))
+  settings <- x$trajectories$settings
+  if (identical(settings$method, "model")) {
+    cat(sprintf(
+      "  %s model | trajectory relative entropy %.3f | silhouette on hamming %.3f\n",
+      settings$engine,
+      x$trajectories$diagnostics$relative_entropy,
+      x$diagnostics$silhouette
+    ))
+  } else {
+    cat(sprintf(
+      "  %s + %s | silhouette %.3f\n",
+      settings$dissimilarity,
+      settings$method,
+      x$diagnostics$silhouette
+    ))
+  }
   invisible(x)
 }
 

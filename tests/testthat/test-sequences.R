@@ -1,10 +1,10 @@
-test_that("step2_sequences aligns subjects and computes transitions", {
+test_that("sequences aligns subjects and computes transitions", {
   data <- data.frame(
     id = rep(1:3, each = 3),
     time = rep(1:3, 3),
     state = c("A", "A", "B", "B", "B", "C", "A", "B", "B")
   )
-  result <- step2_sequences(
+  result <- sequences(
     data,
     id = "id",
     time = "time",
@@ -35,15 +35,15 @@ test_that("step2_sequences aligns subjects and computes transitions", {
   expect_s3_class(as.data.frame(result), "data.frame")
 })
 
-test_that("step2_sequences accepts step 1 directly", {
+test_that("sequences accepts step 1 directly", {
   data <- make_vasstra_data()
-  states <- step1_states(
+  states <- states(
     data,
     "student",
     "course",
     c("views", "sessions", "duration")
   )
-  result <- step2_sequences(states)
+  result <- sequences(states)
 
   expect_equal(result$settings$id, "student")
   expect_equal(result$settings$time, "course")
@@ -52,7 +52,7 @@ test_that("step2_sequences accepts step 1 directly", {
   expect_equal(result$diagnostics$n_structural_missing, 0L)
 })
 
-test_that("step2_sequences makes structural missingness explicit", {
+test_that("sequences makes structural missingness explicit", {
   data <- data.frame(
     id = c(1, 1, 1, 2, 2),
     time = c(1, 2, 3, 1, 3),
@@ -60,10 +60,10 @@ test_that("step2_sequences makes structural missingness explicit", {
   )
 
   expect_error(
-    step2_sequences(data, "id", "time", "state"),
+    sequences(data, "id", "time", "state"),
     "missing state cell"
   )
-  explicit <- step2_sequences(
+  explicit <- sequences(
     data,
     "id",
     "time",
@@ -71,7 +71,7 @@ test_that("step2_sequences makes structural missingness explicit", {
     missing = "explicit",
     missing_label = "Gap"
   )
-  kept <- step2_sequences(
+  kept <- sequences(
     data,
     "id",
     "time",
@@ -86,7 +86,7 @@ test_that("step2_sequences makes structural missingness explicit", {
   expect_equal(kept$diagnostics$n_missing, 1L)
 })
 
-test_that("step2_sequences rejects duplicates and guessed character time", {
+test_that("sequences rejects duplicates and guessed character time", {
   data <- data.frame(
     id = c(1, 1, 2, 2),
     time = c("First", "Second", "First", "Second"),
@@ -94,10 +94,10 @@ test_that("step2_sequences rejects duplicates and guessed character time", {
   )
 
   expect_error(
-    step2_sequences(data, "id", "time", "state"),
+    sequences(data, "id", "time", "state"),
     "time_levels"
   )
-  result <- step2_sequences(
+  result <- sequences(
     data,
     "id",
     "time",
@@ -108,7 +108,7 @@ test_that("step2_sequences rejects duplicates and guessed character time", {
 
   duplicate <- rbind(data, data[1L, ])
   expect_error(
-    step2_sequences(
+    sequences(
       duplicate,
       "id",
       "time",

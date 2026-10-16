@@ -247,12 +247,16 @@
   } else {
     rep.int(1L, nrow(data))
   }
+  # Missing values only reach here under `missing = "fiml"`; they stay
+  # missing and do not enter the means and standard deviations.
   standardized <- lapply(data[variables], function(values) {
-    means <- stats::ave(values, groups, FUN = mean)
+    means <- stats::ave(values, groups, FUN = function(group_values) {
+      mean(group_values, na.rm = TRUE)
+    })
     standard_deviations <- stats::ave(
       values,
       groups,
-      FUN = stats::sd
+      FUN = function(group_values) stats::sd(group_values, na.rm = TRUE)
     )
     constant <- !is.finite(standard_deviations) | standard_deviations == 0
     ifelse(constant, 0, (values - means) / standard_deviations)
@@ -465,6 +469,11 @@
   stopifnot(is.numeric(assignments), inherits(distance, "dist"))
   distance_matrix <- as.matrix(distance)
   clusters <- sort(unique(assignments))
+  # A silhouette compares each case with its nearest other cluster, so it is
+  # undefined when a model leaves a single occupied cluster.
+  if (length(clusters) < 2L) {
+    return(rep(NA_real_, length(assignments)))
+  }
   vapply(seq_along(assignments), function(index) {
     own <- which(assignments == assignments[[index]])
     if (length(own) == 1L) {
@@ -511,11 +520,7 @@
 
 .vasstra_state_methods <- function() {
   stopifnot(TRUE)
-  c(
-    "kmeans", "pam", "clara", "fanny", "diana",
-    "ward.D2", "ward.D", "complete", "average",
-    "single", "mcquitty", "median", "centroid", "lpa"
-  )
+  c(.vasstra_cluster_engines(), .vasstra_model_engines())
 }
 
 # State-clustering methods handled by cluster::* partitioning (each returns a

@@ -60,7 +60,7 @@
 #' level <- rep(c(2, 8, 16), length.out = nrow(data))
 #' data$views <- level + rnorm(nrow(data), sd = 0.4)
 #' data$duration <- level * 3 + rnorm(nrow(data), sd = 0.4)
-#' states <- step1_states(data, n_states = 3)
+#' states <- states(data, n_states = 3)
 #' states <- set_labels(states, c("Low", "Average", "High"))
 #' summary(states)
 #' @export
@@ -79,6 +79,9 @@ set_labels.vasstra_states <- function(x, labels, ...) {
   levels(x$data[[x$settings$state]]) <- new
   x$profiles$state <- new[match(x$profiles$state, old)]
   names(x$diagnostics$state_sizes) <- new
+  if (!is.null(x$posteriors)) {
+    levels(x$posteriors[[x$settings$state]]) <- new
+  }
   if (!is.null(x$state_colors)) {
     names(x$state_colors) <- new[match(names(x$state_colors), old)]
   }

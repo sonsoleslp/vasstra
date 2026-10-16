@@ -26,8 +26,9 @@ A state distribution that stays flat across time is ambiguous evidence. It
 is equally consistent with a cohort in which nobody moves and a cohort in
 which everybody swaps places, because both leave the same number of
 students in each state at each moment. The engagement data turn out to be
-the second kind: the share of disengaged students stays between a fifth
-and a quarter of the cohort at every one of the eight course positions,
+the second kind: the share of disengaged students stays between about a
+fifth (19 percent at its lowest) and a quarter of the cohort at every one
+of the eight course positions,
 yet almost a third of consecutive observations are a change of state.
 Nothing in a
 distribution plot, and nothing in a sequence plot sorted by similarity,
@@ -90,16 +91,16 @@ transition_table(fit)
 ```
 
 Two facts drive everything below. First, persistence is high but far from
-total: 696 of the 994 consecutive pairs stay put, so 30 percent are moves.
-A distribution plot renders those 298 moves as a flat band, because they
-cancel: 73 students leave Disengaged for Average while 73 travel the
-other way, and 72 move up from Average to Active against 73 coming back
+total: 693 of the 994 consecutive pairs stay put, so 30 percent are moves.
+A distribution plot renders those 301 moves as a flat band, because they
+cancel: 73 students leave Disengaged for Average while 75 travel the
+other way, and 72 move up from Average to Active against 75 coming back
 down. The composition is stable precisely *because* the exchange is
 balanced. That is a different claim from stability, and it has different
 consequences for anyone designing an intervention.
 
 Second, the corners of the table are nearly empty. Only 5 of 994
-transitions run from Disengaged straight to Active, and only 2 run the
+transitions run from Disengaged straight to Active, and only 1 runs the
 other way. Movement between the extremes essentially always passes
 through Average, which makes the middle state a waypoint rather than
 an intermediate label. That is a structural claim about the state
@@ -135,9 +136,9 @@ recruits from) and is one argument away.
 flow_plot(fit, color_by = "destination")
 ```
 
-The colours, the state order, and the time labels come from the fit, so
-this figure and the sequence heatmap from the tutorial can be placed side
-by side without re-reading a legend.
+The colours and the state order come from the fit, so this figure and
+the sequence heatmap from the tutorial can be placed side by side without
+re-reading a legend.
 
 ## 3. Individual flows: one line per student
 
@@ -153,8 +154,8 @@ Colouring by first state makes early position followable to the end: the
 green lines beginning in Active stay largely within the lower band, while
 the orange lines that begin in Average are the ones ranging across the
 full height of the figure. This is the visual counterpart of the trajectory
-description's mobility columns: the Average-heavy group records 2.33
-transitions per student against 1.83 and 1.89 for the two extreme groups,
+description's mobility columns: the Average-heavy group records 2.38
+transitions per student against 1.78 and 1.83 for the two extreme groups,
 and here that difference is the visible fanning of the orange lines.
 
 With 142 students the lines would overplot, so `flow_plot()` bundles them
@@ -182,9 +183,9 @@ flow_plot(fit, group = "Mostly average", type = "individual")
 ```
 
 The label survives the check: the group is overwhelmingly a single orange
-band, with a thin blue thread of excursions into Disengaged and a small
-Active block that never grows. Its mean within-trajectory distance is the
-largest of the three (4.96 against 4.26 and 3.86), and this is what that
+band, with orange threads of excursions into a modest Disengaged block and
+a small Active block that never takes hold. Its mean within-trajectory distance is the
+largest of the three (5.17 against 3.99 and 3.16), and this is what that
 looseness looks like: one journey with the most frequent small departures
 from it, rather than a mixture of different journeys.
 
@@ -194,8 +195,8 @@ flow_plot(fit, group = "Mostly disengaged")
 
 The most disengaged group is the tightest, and its aggregated flows show
 why: the Disengaged block absorbs nearly everything at every step, with
-its negative exposure of 0.82 and integrative potential of exactly zero
-meaning no student in this group is in the Active state at the end. The
+its negative exposure of 0.84 and integrative potential of exactly zero
+meaning no student in this group is ever in the Active state. The
 contrast with the previous figure is the substantive result: these
 trajectories differ in their movement as well as in their average level.
 
@@ -229,7 +230,7 @@ ordered state system better than the categorical default.
 data set makes the choice unusually easy to defend. Counted step by step,
 the corner transitions between Disengaged and Active never exceed two
 students, while the smallest transition between neighbouring states is
-five. A threshold of three therefore removes every corner transition and
+six. A threshold of three therefore removes every corner transition and
 retains every neighbouring one, which is why the criss-cross survives
 intact above while the hair-thin diagonals are gone. Thresholds chosen
 without that check will quietly delete real movement, so read the
@@ -285,19 +286,20 @@ transition_table(fit)
 head(transition_table(fit, by_time = TRUE))
 ```
 
-Average's in-strength of 0.57 is more than three times either extreme, and
+Average's in-strength of 0.58 is more than three times either extreme, and
 that single number is the quantitative form of the waypoint result from
 section 1: movement accumulates at Average rather than passing through it.
 The two extremes are almost indistinguishable on this measure
-(0.159 against 0.171) even though their self-transition probabilities
-differ noticeably (0.67 for Disengaged against 0.73 for Active), because
+(0.160 against 0.172) even though their self-transition probabilities
+differ noticeably (0.65 for Disengaged against 0.74 for Active), because
 in-strength excludes self-loops by default. Persistence and attraction are
 genuinely different properties, and keeping them apart is the reason for
 that default.
 
-Setting `loops = TRUE` folds persistence back in, and the ordering changes
-character entirely: the nodes become nearly equal in size because every
-state mostly retains its own members.
+Setting `loops = TRUE` folds persistence back in, and the contrast
+shrinks: the nodes come much closer in size (in-strength 1.28, 0.91 and
+0.81), because every state mostly retains its own members, though Average
+stays the largest.
 
 ```{r transition-loops, fig.height = 5.5}
 transition_plot(fit, loops = TRUE)
@@ -335,7 +337,7 @@ transition_plot(fit, sequences = TRUE, group = "Mostly active")
 
 The pairing is what makes each panel legible. The left panel shows a green
 field with orange interruptions, and the right explains its shape: Active
-retains 0.84 of its members from one position to the next, and the only
+retains 0.85 of its members from one position to the next, and the only
 substantial route out of it leads to Average rather than to Disengaged,
 whose node is barely present. Reading either panel alone would leave the
 other half of that statement unsupported.

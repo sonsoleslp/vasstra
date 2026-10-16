@@ -45,7 +45,7 @@ made within each distance-method pair; no distance or algorithm is silently
 chosen for the user.
 }
 \examples{
-sequences <- step2_sequences(
+sequences <- sequences(
   data.frame(
     id = rep(1:6, each = 3),
     time = rep(1:3, 6),

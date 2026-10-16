@@ -1,9 +1,9 @@
-test_that("step1_states returns tidy reproducible state results", {
+test_that("states returns tidy reproducible state results", {
   data <- make_vasstra_data()
   set.seed(901L)
   random_state <- .Random.seed
 
-  first <- step1_states(
+  first <- states(
     data,
     id = "student",
     time = "course",
@@ -12,7 +12,7 @@ test_that("step1_states returns tidy reproducible state results", {
     labels = c("Low", "Average", "High"),
     seed = 44L
   )
-  second <- step1_states(
+  second <- states(
     data,
     id = "student",
     time = "course",
@@ -26,7 +26,8 @@ test_that("step1_states returns tidy reproducible state results", {
   expect_named(
     first,
     c(
-      "data", "profiles", "state_colors", "standardized", "model",
+      "data", "profiles", "state_colors", "standardized", "posteriors",
+      "model",
       "settings", "diagnostics"
     )
   )
@@ -49,14 +50,14 @@ test_that("step1_states returns tidy reproducible state results", {
   expect_s3_class(as.data.frame(first), "data.frame")
 })
 
-test_that("step1_states validates structure and indicator types", {
+test_that("states validates structure and indicator types", {
   data <- make_vasstra_data()
   duplicated <- rbind(data, data[1L, ])
   nonnumeric <- data
   nonnumeric$views <- as.character(nonnumeric$views)
 
   expect_error(
-    step1_states(
+    states(
       duplicated,
       "student",
       "course",
@@ -64,21 +65,24 @@ test_that("step1_states validates structure and indicator types", {
     ),
     "subject-time"
   )
+  # The clustering engines need two or more numeric indicators; the model
+  # engines take categorical and single indicators (tested with the engines).
   expect_error(
-    step1_states(
+    states(
       nonnumeric,
       "student",
       "course",
-      c("views", "sessions")
+      c("views", "sessions"),
+      engine = "kmeans"
     ),
     "numeric"
   )
   expect_error(
-    step1_states(data, "student", "course", "views"),
+    states(data, "student", "course", "views", engine = "kmeans"),
     "at least two"
   )
   expect_error(
-    step1_states(
+    states(
       data,
       "student",
       "course",
@@ -88,7 +92,7 @@ test_that("step1_states validates structure and indicator types", {
     ),
     "one unique"
   )
-  implied <- suppressMessages(step1_states(
+  implied <- suppressMessages(states(
     data,
     "student",
     "course",
@@ -98,13 +102,13 @@ test_that("step1_states validates structure and indicator types", {
   expect_identical(implied$settings$n_states, 2L)
 })
 
-test_that("step1_states handles missing and zero-variance indicators explicitly", {
+test_that("states handles missing and zero-variance indicators explicitly", {
   data <- make_vasstra_data()
   data$views[c(1L, 20L)] <- NA_real_
   data$constant <- 1
 
   expect_error(
-    step1_states(
+    states(
       data,
       "student",
       "course",
@@ -112,7 +116,7 @@ test_that("step1_states handles missing and zero-variance indicators explicitly"
     ),
     "Missing indicator"
   )
-  imputed <- step1_states(
+  imputed <- states(
     data,
     "student",
     "course",
@@ -122,7 +126,7 @@ test_that("step1_states handles missing and zero-variance indicators explicitly"
   expect_equal(imputed$diagnostics$missing_imputed, 2L)
   expect_false(anyNA(imputed$standardized))
   expect_warning(
-    constant <- suppressMessages(step1_states(
+    constant <- suppressMessages(states(
       data,
       "student",
       "course",
@@ -143,7 +147,7 @@ test_that("standardize supports time, subject, global, and none", {
   data$b <- baseline * 2 + (data$t %% 2) + rnorm(nrow(data), sd = 0.1)
 
   for (s in c("time", "subject", "global", "none")) {
-    states <- step1_states(
+    states <- states(
       data, "person", "t", c("a", "b"),
       n_states = 3, method = "kmeans", standardize = s
     )
@@ -152,9 +156,9 @@ test_that("standardize supports time, subject, global, and none", {
   }
 
   # "none" keeps the raw scale; the standardizing options shrink it.
-  raw <- step1_states(data, "person", "t", c("a", "b"), n_states = 3,
+  raw <- states(data, "person", "t", c("a", "b"), n_states = 3,
                       method = "kmeans", standardize = "none")
-  subject <- step1_states(data, "person", "t", c("a", "b"), n_states = 3,
+  subject <- states(data, "person", "t", c("a", "b"), n_states = 3,
                           method = "kmeans", standardize = "subject")
   expect_gt(stats::sd(raw$standardized$a), stats::sd(subject$standardized$a))
 })
@@ -164,7 +168,7 @@ test_that("clara, fanny, and diana produce valid state clusterings", {
   variables <- c("views", "sessions", "duration")
 
   for (m in c("clara", "fanny", "diana")) {
-    states <- step1_states(
+    states <- states(
       data, "student", "course", variables,
       n_states = 3, method = m,
       labels = c("Low", "Average", "High")
@@ -185,7 +189,7 @@ test_that("character time requires explicit chronology", {
   data$course <- paste0("Wave ", data$course)
 
   expect_error(
-    step1_states(
+    states(
       data,
       "student",
       "course",
@@ -193,7 +197,7 @@ test_that("character time requires explicit chronology", {
     ),
     "time_levels"
   )
-  result <- step1_states(
+  result <- states(
     data,
     "student",
     "course",

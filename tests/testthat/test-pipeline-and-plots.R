@@ -1,6 +1,6 @@
 test_that("vasstra runs the full indicators-to-trajectories pipeline", {
   data <- make_vasstra_data()
-  fit <- vasstra(
+  fit <- allow_failed_starts(vasstra(
     data,
     id = "student",
     time = "course",
@@ -12,7 +12,7 @@ test_that("vasstra runs the full indicators-to-trajectories pipeline", {
     negative_states = "Low",
     backend = "base",
     seed = 51L
-  )
+  ))
 
   expect_s3_class(fit, "vasstra")
   expect_s3_class(fit$states, "vasstra_states")
@@ -174,13 +174,13 @@ test_that("state_descriptives summarises indicators per state", {
 
 test_that("sequence plot methods expose every Nestimate plot type", {
   data <- make_vasstra_data()
-  sequences <- step2_sequences(
+  sequences <- sequences(
     data,
     id = "student",
     time = "course",
     state = "true_state"
   )
-  trajectories <- step3_trajectories(
+  trajectories <- trajectories(
     sequences,
     n_trajectories = 3,
     backend = "base"
@@ -212,8 +212,8 @@ test_that("sequence plot methods expose every Nestimate plot type", {
 test_that("a single trajectory type keeps the faceted Nestimate figure", {
   data <- make_vasstra_data()
   trajectories <- data |>
-    step2_sequences("student", "course", "true_state") |>
-    step3_trajectories(n_trajectories = 3, backend = "base")
+    sequences("student", "course", "true_state") |>
+    trajectories(n_trajectories = 3, backend = "base")
   path <- tempfile(fileext = ".pdf")
   grDevices::pdf(path)
   on.exit(grDevices::dev.off(), add = TRUE)
@@ -306,8 +306,8 @@ test_that("state_colors are stored on the fit and reused by every plot", {
 test_that("a vector of types draws the per-trajectory grid", {
   data <- make_vasstra_data()
   trajectories <- data |>
-    step2_sequences("student", "course", "true_state") |>
-    step3_trajectories(n_trajectories = 3, backend = "base")
+    sequences("student", "course", "true_state") |>
+    trajectories(n_trajectories = 3, backend = "base")
   path <- tempfile(fileext = ".pdf")
   grDevices::pdf(path)
   on.exit(grDevices::dev.off(), add = TRUE)
@@ -327,8 +327,8 @@ test_that("a vector of types draws the per-trajectory grid", {
 test_that("Nestimate trajectory index plots handle singleton groups", {
   data <- make_vasstra_data()
   trajectories <- data |>
-    step2_sequences("student", "course", "true_state") |>
-    step3_trajectories(n_trajectories = 3, backend = "base")
+    sequences("student", "course", "true_state") |>
+    trajectories(n_trajectories = 3, backend = "base")
   singleton_labels <- c("Singleton", "Other")
   trajectories$assignments <- factor(
     c("Singleton", rep("Other", nrow(trajectories$data) - 1L)),
@@ -355,7 +355,7 @@ test_that("Nestimate distribution plots show missingness only when present", {
     time = c(1, 2, 3, 1, 3),
     state = c("A", "B", "A", "B", "A")
   )
-  sequences <- step2_sequences(
+  sequences <- sequences(
     data,
     "id",
     "time",

@@ -2,7 +2,7 @@
 #'
 #' Fits a tidy grid of state solutions. No solution is silently selected.
 #' Hard-clustering recommendations maximize silhouette within each method;
-#' LPA recommendations use the explicit `lpa_criterion`, subject to the
+#' model-engine recommendations use the explicit `lpa_criterion`, subject to the
 #' requested size constraints. Use [fit_state_choice()] with a `candidate_id`
 #' after inspecting the table.
 #'
@@ -14,15 +14,21 @@
 #' @param variables Character vector naming numeric state indicators. May be
 #'   omitted when the data carry VaSSTra role metadata.
 #' @param n_states Whole-number candidate state counts.
-#' @param method State-clustering methods to compare. See [step1_states()].
-#' @param lpa_model Optional mclust covariance models evaluated when
-#'   `method` includes `"lpa"`. `"EEI"` corresponds to tidyLPA model 1.
-#' @param lpa_criterion Criterion used only to mark LPA recommendations:
-#'   conventional `"bic"` (default) or `"aic"` (smaller is better),
-#'   `"silhouette"` (larger is better), or native mclust `"icl_native"`
-#'   (larger is better).
+#' @param n_trajectories Whole-number candidate trajectory counts for the
+#'   two-level engines (`"multilpa"`, `"multilca"`, `"lta"`), which are
+#'   compared over every combination of states and trajectories. `NULL`
+#'   (default) compares 2 through 6.
+#' @param method State engines to compare. See the `engine` argument of
+#'   [states()].
+#' @param lpa_model Optional covariance structures of the numeric indicators,
+#'   as mclust codes, evaluated for the model engines. `"EEI"` corresponds to
+#'   tidyLPA model 1.
+#' @param lpa_criterion Criterion used only to mark recommendations among the
+#'   model engines: conventional `"bic"` (default) or `"aic"` (smaller is
+#'   better), `"silhouette"` (larger is better), or `"icl_native"` (larger is
+#'   better, the negated ICL as mclust reports it).
 #' @param standardize,missing,time_levels,n_start,seed Passed to
-#'   [step1_states()].
+#'   [states()].
 #' @param minimum_size Minimum acceptable number of observations in every
 #'   state.
 #' @param minimum_proportion Minimum acceptable proportion in every state.
@@ -31,7 +37,9 @@
 #'
 #' @return A `vasstra_state_choices` object. `as.data.frame()` returns one
 #'   tidy row per candidate; `$recommendations` contains one transparent
-#'   recommendation per method and LPA model.
+#'   recommendation per method and LPA model. A candidate's warnings, such as
+#'   a model that did not converge, are recorded in its `warnings` column
+#'   rather than printed once per candidate.
 #'
 #' @examples
 #' data <- expand.grid(student = 1:12, course = 1:3)
@@ -58,6 +66,7 @@ state_choices <- function(
     time = NULL,
     variables = NULL,
     n_states = 2:6,
+    n_trajectories = NULL,
     method = c("lpa", "kmeans", "pam", "ward.D2"),
     lpa_model = "EEI",
     lpa_criterion = c("bic", "aic", "silhouette", "icl_native"),
@@ -83,11 +92,11 @@ state_choices <- function(
   variables <- data_specification$variables
   standardize <- match.arg(
     data_specification$standardize,
-    c("time", "global", "none")
+    c("time", "global", "subject", "none")
   )
   missing <- match.arg(
     data_specification$missing,
-    c("error", "median")
+    c("error", "median", "fiml")
   )
   lpa_criterion <- match.arg(lpa_criterion)
   method <- unique(match.arg(
@@ -121,7 +130,8 @@ state_choices <- function(
   )
   roles <- .vasstra_validate_roles(data, id, time)
   variables <- .vasstra_columns(data, variables, "variables")
-  if (length(variables) < 2L) {
+  clustering <- any(method %in% .vasstra_cluster_engines())
+  if (clustering && length(variables) < 2L) {
     stop("`variables` must name at least two numeric indicators.",
          call. = FALSE)
   }
@@ -129,8 +139,25 @@ state_choices <- function(
     stop("`variables` cannot include the `id` or `time` column.",
          call. = FALSE)
   }
+  two_level <- any(method %in% .vasstra_two_level_engines())
+  if (two_level) {
+    n_subjects <- length(unique(data[[roles$id]]))
+    if (is.null(n_trajectories)) {
+      n_trajectories <- .vasstra_auto_range(n_subjects)
+    }
+    if (!is.numeric(n_trajectories) || length(n_trajectories) == 0L ||
+        anyNA(n_trajectories) || any(!is.finite(n_trajectories)) ||
+        any(n_trajectories != floor(n_trajectories)) ||
+        any(n_trajectories < 2L) || any(n_trajectories > n_subjects - 1L)) {
+      stop(
+        "`n_trajectories` must contain whole numbers from 2 through the number of subjects - 1.",
+        call. = FALSE
+      )
+    }
+    n_trajectories <- unique(as.integer(n_trajectories))
+  }
   numeric_variables <- vapply(data[variables], is.numeric, logical(1L))
-  if (!all(numeric_variables)) {
+  if (clustering && !all(numeric_variables)) {
     stop(sprintf(
       "All state indicators must be numeric; check: %s.",
       paste(variables[!numeric_variables], collapse = ", ")
@@ -148,54 +175,161 @@ state_choices <- function(
     c(names(data), ".vasstra_choice_state")
   )[[ncol(data) + 1L]]
   candidate_grid <- do.call(rbind, lapply(method, function(method_name) {
-    models <- if (identical(method_name, "lpa")) {
+    continuous <- any(numeric_variables) &&
+      !method_name %in% .vasstra_categorical_engines()
+    models <- if (method_name %in% .vasstra_model_engines() && continuous) {
       lpa_model
     } else {
       NA_character_
     }
+    trajectories <- if (method_name %in% .vasstra_two_level_engines()) {
+      n_trajectories
+    } else {
+      NA_integer_
+    }
     grid <- expand.grid(
       n_states = n_states,
+      n_trajectories = trajectories,
       lpa_model = models,
       KEEP.OUT.ATTRS = FALSE,
       stringsAsFactors = FALSE
     )
     grid$method <- method_name
-    grid[c("n_states", "method", "lpa_model")]
+    grid[c("n_states", "n_trajectories", "method", "lpa_model")]
   }))
   rownames(candidate_grid) <- NULL
-  candidate_rows <- lapply(seq_len(nrow(candidate_grid)), function(index) {
-    candidate <- candidate_grid[index, , drop = FALSE]
+  model_rows <- candidate_grid$method %in% .vasstra_model_engines()
+  cluster_grid <- candidate_grid[!model_rows, , drop = FALSE]
+  # A model engine is compared by one latents enumeration over its counts;
+  # each (engine, covariance structure) pair is enumerated once and kept, so
+  # a chosen candidate is used as fitted rather than refitted.
+  model_keys <- unique(candidate_grid[model_rows, c("method", "lpa_model"),
+                                      drop = FALSE])
+  enumerations <- lapply(seq_len(nrow(model_keys)), function(index) {
+    engine <- model_keys$method[[index]]
+    prepared <- .vasstra_prepare_indicators(
+      data,
+      id = roles$id,
+      time = roles$time,
+      variables = variables,
+      engine = engine,
+      standardize = standardize,
+      missing = missing,
+      time_levels = time_levels
+    )
+    # latents records each candidate's warnings in its candidate table,
+    # which becomes this table's `warnings` column; those are not repeated.
+    # Any other warning (about the data as a whole) is passed on.
+    caught <- list()
+    enumeration <- withCallingHandlers(
+      .vasstra_enumerate_latents(
+        engine,
+        frame = prepared$frame,
+        variables = variables,
+        categorical = prepared$categorical,
+        id = roles$id,
+        n_states = n_states,
+        n_trajectories = if (engine %in% .vasstra_two_level_engines()) {
+          n_trajectories
+        } else {
+          1L
+        },
+        lpa_model = if (is.na(model_keys$lpa_model[[index]])) {
+          "EEI"
+        } else {
+          model_keys$lpa_model[[index]]
+        },
+        missing = missing,
+        n_start = n_start,
+        seed = seed
+      ),
+      warning = function(warning) {
+        caught[[length(caught) + 1L]] <<- warning
+        invokeRestart("muffleWarning")
+      }
+    )
+    recorded <- latents::get_results(enumeration, "candidates")$warnings
+    recorded <- recorded[!is.na(recorded)]
+    invisible(lapply(caught, function(warning) {
+      if (!any(grepl(conditionMessage(warning), recorded, fixed = TRUE))) {
+        warning(warning)
+      }
+    }))
+    enumeration
+  })
+  names(enumerations) <- paste(model_keys$method, model_keys$lpa_model,
+                               sep = ":")
+  enumerated_rows <- lapply(seq_len(nrow(model_keys)), function(index) {
+    engine <- model_keys$method[[index]]
+    .vasstra_enumeration_rows(
+      enumerations[[index]],
+      engine = engine,
+      lpa_model = model_keys$lpa_model[[index]],
+      values = .vasstra_prepare_indicators(
+        data,
+        id = roles$id,
+        time = roles$time,
+        variables = variables,
+        engine = engine,
+        standardize = standardize,
+        missing = missing,
+        time_levels = time_levels
+      )$standardized
+    )
+  })
+  candidate_rows <- lapply(seq_len(nrow(cluster_grid)), function(index) {
+    candidate <- cluster_grid[index, , drop = FALSE]
     candidate_lpa_model <- if (is.na(candidate$lpa_model[[1L]])) {
       "EEI"
     } else {
       candidate$lpa_model[[1L]]
     }
+    # Each candidate's warnings are recorded in its row and passed on there,
+    # instead of repeating once per candidate at the console.
+    recorded <- character(0L)
     attempt <- tryCatch(
-      list(
-        result = step1_states(
-          data = data,
-          id = roles$id,
-          time = roles$time,
-          variables = variables,
-          n_states = candidate$n_states[[1L]],
-          state = state_name,
-          standardize = standardize,
-          missing = missing,
-          time_levels = time_levels,
-          n_start = n_start,
-          seed = seed,
-          method = candidate$method[[1L]],
-          lpa_model = candidate_lpa_model
+      withCallingHandlers(
+        list(
+          result = states(
+            data = data,
+            id = roles$id,
+            time = roles$time,
+            variables = variables,
+            n_states = candidate$n_states[[1L]],
+            n_trajectories = if (is.na(candidate$n_trajectories[[1L]])) {
+              "auto"
+            } else {
+              candidate$n_trajectories[[1L]]
+            },
+            state = state_name,
+            standardize = standardize,
+            missing = missing,
+            time_levels = time_levels,
+            n_start = n_start,
+            seed = seed,
+            engine = candidate$method[[1L]],
+            lpa_model = candidate_lpa_model
+          ),
+          error = NULL
         ),
-        error = NULL
+        warning = function(warning) {
+          recorded <<- c(recorded, conditionMessage(warning))
+          invokeRestart("muffleWarning")
+        }
       ),
       error = function(error) {
         list(result = NULL, error = conditionMessage(error))
       }
     )
+    warning_text <- if (length(recorded) == 0L) {
+      NA_character_
+    } else {
+      paste(unique(recorded), collapse = " | ")
+    }
     if (is.null(attempt$result)) {
       return(data.frame(
         n_states = candidate$n_states,
+        n_trajectories = candidate$n_trajectories,
         method = candidate$method,
         lpa_model = candidate$lpa_model,
         status = "failed",
@@ -223,13 +357,22 @@ state_choices <- function(
         max_size = NA_integer_,
         min_proportion = NA_real_,
         size_ratio = NA_real_,
+        min_trajectory_proportion = NA_real_,
+        warnings = warning_text,
         stringsAsFactors = FALSE
       ))
     }
     diagnostics <- attempt$result$diagnostics
     sizes <- as.integer(diagnostics$state_sizes)
+    trajectory_sizes <- if (is.na(candidate$n_trajectories[[1L]])) {
+      NA_integer_
+    } else {
+      fitted <- attempt$result$model
+      tabulate(fitted$group_classes, nbins = fitted$n_group_classes)
+    }
     data.frame(
       n_states = candidate$n_states,
+      n_trajectories = candidate$n_trajectories,
       method = candidate$method,
       lpa_model = candidate$lpa_model,
       status = "ok",
@@ -257,16 +400,24 @@ state_choices <- function(
       max_size = max(sizes),
       min_proportion = min(sizes) / nrow(data),
       size_ratio = max(sizes) / min(sizes),
+      min_trajectory_proportion = min(trajectory_sizes) /
+        sum(trajectory_sizes),
+      warnings = warning_text,
       stringsAsFactors = FALSE
     )
   })
-  candidates <- do.call(rbind, candidate_rows)
+  candidates <- do.call(rbind, c(candidate_rows, enumerated_rows))
   rownames(candidates) <- NULL
   candidates$candidate_id <- seq_len(nrow(candidates))
+  # A two-level candidate must also leave no trajectory class below the
+  # minimum proportion.
+  trajectory_floor <- is.na(candidates$min_trajectory_proportion) |
+    candidates$min_trajectory_proportion >= constraints$minimum_proportion
   candidates$eligible <- candidates$status == "ok" &
     candidates$min_size >= constraints$minimum_size &
     candidates$min_proportion >= constraints$minimum_proportion &
-    candidates$size_ratio <= constraints$maximum_size_ratio
+    candidates$size_ratio <= constraints$maximum_size_ratio &
+    trajectory_floor
   candidates$silhouette_rank <- NA_integer_
   rankable <- which(
     candidates$status == "ok" & is.finite(candidates$silhouette)
@@ -284,18 +435,19 @@ state_choices <- function(
     candidates$is_max_silhouette[eligible] <-
       candidates$silhouette[eligible] == maximum
   }
+  model_candidate <- candidates$method %in% .vasstra_model_engines()
   candidates$recommendation_criterion <- ifelse(
-    candidates$method == "lpa",
+    model_candidate,
     lpa_criterion,
     "silhouette"
   )
   candidates$recommendation_direction <- ifelse(
-    candidates$method == "lpa" & lpa_criterion %in% c("bic", "aic"),
+    model_candidate & lpa_criterion %in% c("bic", "aic"),
     "min",
     "max"
   )
   candidates$is_recommended <- FALSE
-  hard_indices <- which(candidates$method != "lpa")
+  hard_indices <- which(!model_candidate)
   if (length(hard_indices) > 0L) {
     candidates$is_recommended[hard_indices] <-
       .vasstra_recommendation_flags(
@@ -306,7 +458,7 @@ state_choices <- function(
         direction = "max"
       )
   }
-  lpa_indices <- which(candidates$method == "lpa")
+  lpa_indices <- which(model_candidate)
   if (length(lpa_indices) > 0L) {
     candidates$is_recommended[lpa_indices] <-
       .vasstra_recommendation_flags(
@@ -318,14 +470,16 @@ state_choices <- function(
       )
   }
   candidates <- candidates[c(
-    "candidate_id", "n_states", "method", "lpa_model", "status", "error",
+    "candidate_id", "n_states", "n_trajectories", "method", "lpa_model",
+    "status", "error", "warnings",
     "silhouette", "silhouette_rank", "total_withinss", "pam_objective",
     "aic", "bic", "sabic", "caic", "awe", "clc", "kic", "icl",
     "prob_min", "prob_max", "bic_native", "icl_native",
     "classification_entropy",
     "mean_uncertainty", "log_likelihood", "n_parameters",
     "min_size", "max_size", "min_proportion",
-    "size_ratio", "eligible", "is_max_silhouette",
+    "size_ratio", "min_trajectory_proportion", "eligible",
+    "is_max_silhouette",
     "recommendation_criterion", "recommendation_direction",
     "is_recommended"
   )]
@@ -341,12 +495,14 @@ state_choices <- function(
       settings = c(
         list(
           n_states = n_states,
+          n_trajectories = if (two_level) n_trajectories else NULL,
           method = method,
           lpa_model = lpa_model,
           lpa_criterion = lpa_criterion
         ),
         constraints
       ),
+      enumerations = enumerations,
       source = list(
         data = data,
         id = roles$id,
@@ -438,11 +594,13 @@ state_choices <- function(
 #' @param labels Optional state labels ordered from low to high profile.
 #' @param state Name of the state column created in the returned data.
 #' @param n_states Optional state count used to select the candidate.
-#' @param method Optional clustering method used to select the candidate.
+#' @param n_trajectories Optional trajectory count used to select the
+#'   candidate of a two-level engine.
+#' @param method Optional state engine used to select the candidate.
 #' @param lpa_model Optional LPA covariance model used to select the
 #'   candidate.
 #'
-#' @return A `vasstra_states` object from [step1_states()] with the selected
+#' @return A `vasstra_states` object from [states()] with the selected
 #'   candidate and complete comparison table recorded in `diagnostics`.
 #'
 #' @examples
@@ -464,13 +622,15 @@ fit_state_choice <- function(
     state = "state",
     n_states = NULL,
     method = NULL,
-    lpa_model = NULL) {
+    lpa_model = NULL,
+    n_trajectories = NULL) {
   stopifnot(inherits(choices, "vasstra_state_choices"))
   selected <- .vasstra_select_candidate(
     choices,
     candidate_id,
     filters = list(
       n_states = n_states,
+      n_trajectories = n_trajectories,
       method = method,
       lpa_model = lpa_model
     )
@@ -494,12 +654,17 @@ fit_state_choice <- function(
   } else {
     selected$lpa_model[[1L]]
   }
-  result <- step1_states(
+  result <- states(
     data = source$data,
     id = source$id,
     time = source$time,
     variables = source$variables,
     n_states = selected$n_states[[1L]],
+    n_trajectories = if (is.na(selected$n_trajectories[[1L]])) {
+      "auto"
+    } else {
+      selected$n_trajectories[[1L]]
+    },
     labels = labels,
     state = state,
     standardize = source$standardize,
@@ -507,7 +672,7 @@ fit_state_choice <- function(
     time_levels = source$time_levels,
     n_start = source$n_start,
     seed = source$seed,
-    method = selected$method[[1L]],
+    engine = selected$method[[1L]],
     lpa_model = lpa_model
   )
   result$diagnostics$selection <- list(
@@ -527,15 +692,24 @@ print.vasstra_state_choices <- function(x, ...) {
     sum(x$candidates$status == "ok"),
     nrow(x$recommendations)
   ))
+  warned <- sum(!is.na(x$candidates$warnings))
+  if (warned > 0L) {
+    cat(sprintf(
+      "  %d candidate%s raised warnings; see the `warnings` column.\n",
+      warned,
+      if (warned == 1L) "" else "s"
+    ))
+  }
   if (nrow(x$recommendations) > 0L) {
-    print.data.frame(
-      x$recommendations[c(
-        "candidate_id", "n_states", "method", "lpa_model",
-        "recommendation_criterion", "silhouette", "bic",
-        "min_size", "eligible"
-      )],
-      row.names = FALSE
+    columns <- c(
+      "candidate_id", "n_states", "n_trajectories", "method", "lpa_model",
+      "recommendation_criterion", "silhouette", "bic",
+      "min_size", "eligible"
     )
+    if (all(is.na(x$recommendations$n_trajectories))) {
+      columns <- setdiff(columns, "n_trajectories")
+    }
+    print.data.frame(x$recommendations[columns], row.names = FALSE)
   }
   invisible(x)
 }
@@ -583,7 +757,7 @@ as.data.frame.vasstra_state_choices <- function(
 #'   combinations.
 #'
 #' @examples
-#' sequences <- step2_sequences(
+#' sequences <- sequences(
 #'   data.frame(
 #'     id = rep(1:6, each = 3),
 #'     time = rep(1:3, 6),
@@ -740,7 +914,7 @@ trajectory_choices <- function(
 #'   complete comparison table recorded in `diagnostics`.
 #'
 #' @examples
-#' sequences <- step2_sequences(
+#' sequences <- sequences(
 #'   data.frame(
 #'     id = rep(1:6, each = 3),
 #'     time = rep(1:3, 6),
@@ -777,7 +951,7 @@ fit_trajectory_choice <- function(
       call. = FALSE
     )
   }
-  result <- step3_trajectories(
+  result <- trajectories(
     data = choices$source,
     n_trajectories = selected$n_trajectories[[1L]],
     dissimilarity = selected$dissimilarity[[1L]],

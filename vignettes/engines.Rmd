@@ -1,0 +1,198 @@
+---
+title: "Engines: Mixture Models for States and Trajectories"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Engines: Mixture Models for States and Trajectories}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7.5,
+  fig.height = 4.6,
+  dpi = 120
+)
+```
+
+VaSSTra estimates states first and groups the state sequences second. The
+`engine` decides how. A clustering engine (k-means, PAM, hierarchical)
+assigns every observation to one state. A mixture-model engine, fitted with
+the latents package, estimates how probable each state is for every
+observation, so the uncertainty of a state is kept rather than discarded.
+Two-level mixture models go one step further: they estimate the states and
+the trajectory groups in one model.
+
+| Engine | Indicators | Trajectories |
+|---|---|---|
+| `"lpa"` (default) | numeric, optionally with categorical ones | clustered from the state sequences |
+| `"lca"` | categorical | clustered from the state sequences |
+| `"multilpa"`, `"multilca"` | numeric / categorical | classes of subjects with their own mix of states |
+| `"lta"` | numeric or categorical | classes of subjects with their own transitions |
+| `"kmeans"`, `"pam"`, `"ward.D2"`, ... | numeric | clustered from the state sequences |
+
+```{r library}
+library(VaSSTra)
+data("engagement", package = "VaSSTra")
+```
+
+## Latent profiles as states
+
+The default engine is latent profile analysis. Each state is a profile with
+its own mean on every indicator, and the engagement data's metadata names
+the eight course-standardized indicators.
+
+```{r lpa}
+states <- states(engagement, n_states = 3,
+                 labels = c("Disengaged", "Average", "Active"))
+states
+```
+
+Every observation keeps its probability of each state. `uncertainty` is
+what the most probable state leaves unexplained:
+
+```{r posteriors}
+head(as.data.frame(states, what = "posteriors"))
+```
+
+## Missing values without imputation
+
+The engagement data carry 24 missing values from three singleton courses,
+which are filled with within-time medians by default for every engine (the
+data's metadata asks for it). A model engine can instead use whatever each
+observation has (`missing = "fiml"`):
+
+```{r fiml}
+states(engagement, n_states = 3, missing = "fiml")
+```
+
+## States and trajectories in one model
+
+With `"multilpa"`, students belong to classes that differ in how often they
+are in each state. Those classes are the trajectories, estimated with the
+states, so step 3 takes them from the model instead of clustering:
+
+```{r multilpa}
+by_mix <- vasstra(
+  engagement,
+  engine = "multilpa",
+  n_states = 3,
+  n_trajectories = 3,
+  state_labels = c("Disengaged", "Average", "Active"),
+  n_start = 10L
+)
+by_mix
+as.data.frame(by_mix, unit = "trajectory")
+```
+
+`average_posterior` is how surely the model places the students of each
+trajectory. The silhouette is reported on the Hamming distance as a
+yardstick that can be compared with the clustering methods.
+
+With `"lta"`, the classes differ in how students move between states:
+each class has its own transition probabilities.
+
+```{r lta}
+by_movement <- vasstra(
+  engagement,
+  engine = "lta",
+  n_states = 3,
+  n_trajectories = 3,
+  state_labels = c("Disengaged", "Average", "Active"),
+  n_start = 10L
+)
+by_movement
+```
+
+`multilpa` is the special case of `lta` in which a student's state does not
+depend on the previous one, so their BIC answers whether the order of
+states matters here:
+
+```{r order-matters}
+fit_indices(by_mix)
+fit_indices(by_movement)
+```
+
+The model without transitions has the lower BIC, narrowly (19368.68
+against 19373.37), while AIC and SABIC prefer the transition model. By BIC,
+these trajectories are more about which states the students occupy than
+the order in which they pass through them.
+
+## Evaluating a model engine
+
+`evaluate()` compares the fitted states with other numbers of states as it
+does for every engine: silhouette and group sizes for each candidate, and
+the fitted states' sizes and silhouettes, drawn as the usual panels. A
+model engine's states are a latents model, so the evaluation also carries
+latents' own comparison (its enumeration of the candidates) and the fitted
+model's classification diagnostics, as latents returns and draws them.
+
+```{r evaluate}
+evaluation <- evaluate(states, n_states = 2:5)
+evaluation
+```
+
+```{r evaluate-panels, fig.height = 4.2, fig.width = 9}
+plot(evaluation)
+```
+
+```{r evaluate-latents, fig.height = 5}
+plot(evaluation, type = "enumeration")
+plot(evaluation, type = "diagnostics")
+head(as.data.frame(evaluation, what = "enumeration"))
+```
+
+The recommended count of a model engine (`best`) is the lowest BIC among
+eligible candidates, while the curve plots silhouette. latents' plots
+number the profiles in its own order, not by the VaSSTra labels.
+
+The criteria of the fitted model are latents' table as it is:
+
+```{r fit-indices}
+fit_indices(states)
+```
+
+## Categorical indicators
+
+Latent class analysis takes categorical indicators. Here, three of the raw
+counts are cut into three equal-width bands:
+
+```{r lca}
+levels_data <- within(engagement, {
+  views <- cut(course_view_count, 3, labels = c("low", "mid", "high"))
+  forum <- cut(forum_consume_count, 3, labels = c("low", "mid", "high"))
+  days <- cut(active_days, 3, labels = c("low", "mid", "high"))
+})
+classes <- states(
+  levels_data,
+  variables = c("views", "forum", "days"),
+  n_states = 3,
+  engine = "lca"
+)
+head(summary(classes))
+plot(classes, type = "bars")
+```
+
+## A model fitted with latents
+
+A model fitted directly with latents can be handed over as it is. Its
+states, and a two-level model's trajectory classes, are used as estimated;
+`data` must be the data the model was fitted to.
+
+```{r supplied}
+indicators <- c(
+  "course_view_count_z", "forum_consume_count_z", "forum_contribute_count_z",
+  "lecture_view_count_z", "course_view_regularity_z", "session_count_z",
+  "total_duration_z", "active_days_z"
+)
+model <- latents::multilpa(
+  engagement, indicators, "user_id",
+  n_profiles = 3, n_group_classes = 3, time = "sequence_position",
+  model = "EEI", missing = "fiml", n_starts = 10, seed = 1
+)
+vasstra(engagement, engine = model)
+```

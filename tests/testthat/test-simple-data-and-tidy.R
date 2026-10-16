@@ -112,13 +112,13 @@ test_that("role metadata makes state and complete workflow calls concise", {
     missing = "error"
   )
 
-  automatic_states <- step1_states(
+  automatic_states <- allow_failed_starts(states(
     data,
     n_states = 3,
     labels = c("Low", "Average", "High"),
     seed = 241L
-  )
-  explicit_states <- step1_states(
+  ))
+  explicit_states <- allow_failed_starts(states(
     data,
     id = "student",
     time = "course",
@@ -128,7 +128,7 @@ test_that("role metadata makes state and complete workflow calls concise", {
     standardize = "time",
     missing = "error",
     seed = 241L
-  )
+  ))
   expect_identical(
     automatic_states$data$state,
     explicit_states$data$state
@@ -194,7 +194,7 @@ test_that("complete fits expose tidy tables at four analysis units", {
     standardize = "time",
     missing = "error"
   )
-  fit <- vasstra(
+  fit <- allow_failed_starts(vasstra(
     data,
     n_states = 3,
     n_trajectories = 3,
@@ -202,7 +202,7 @@ test_that("complete fits expose tidy tables at four analysis units", {
     positive_states = "High",
     negative_states = "Low",
     seed = 247L
-  )
+  ))
 
   subject <- as.data.frame(fit)
   observation <- as.data.frame(fit, unit = "observation")
@@ -251,7 +251,7 @@ test_that("complete fits expose tidy tables at four analysis units", {
 test_that("missing state roles are detected transparently or refused", {
   data <- make_vasstra_data()
   expect_message(
-    states <- step1_states(data, n_states = 3),
+    states <- states(data, n_states = 3),
     "Detected id = \"student\", time = \"course\""
   )
   expect_identical(states$settings$id, "student")
@@ -264,20 +264,20 @@ test_that("missing state roles are detected transparently or refused", {
   opaque <- data
   names(opaque)[names(opaque) == "student"] <- "alpha"
   expect_error(
-    suppressMessages(step1_states(opaque, n_states = 3)),
+    suppressMessages(states(opaque, n_states = 3)),
     "Supply `id` explicitly"
   )
   no_time <- data
   names(no_time)[names(no_time) == "course"] <- "beta"
   expect_error(
-    suppressMessages(step1_states(no_time, n_states = 3)),
+    suppressMessages(states(no_time, n_states = 3)),
     "Supply `time` explicitly"
   )
 
   malformed <- data
   attr(malformed, "vasstra") <- "not a list"
   expect_error(
-    step1_states(malformed, n_states = 3),
+    states(malformed, n_states = 3),
     "must be a named list"
   )
 })

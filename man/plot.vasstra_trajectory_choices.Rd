@@ -29,7 +29,7 @@ display, such as \code{"lcs + ward.D2"}.}
 
 \item{show_legend}{Show the group and marker legends.}
 
-\item{...}{Additional arguments passed to \code{\link[graphics:plot]{graphics::plot()}}.}
+\item{...}{Additional arguments passed to \code{\link[graphics:plot.default]{graphics::plot()}}.}
 }
 \value{
 The tidy candidate data used in the plot, invisibly.
@@ -43,7 +43,7 @@ constraints.
 }
 \examples{
 data("engagement", package = "VaSSTra")
-sequences <- step2_sequences(step1_states(engagement, n_states = 3))
+sequences <- sequences(states(engagement, n_states = 3))
 options <- trajectory_choices(sequences, n_trajectories = 2:4)
 plot(options)
 }

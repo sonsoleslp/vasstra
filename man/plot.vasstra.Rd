@@ -25,7 +25,7 @@ Plot a Complete VaSSTra Analysis
 }
 \examples{
 data("engagement", package = "VaSSTra")
-fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+fit <- vasstra(engagement, n_states = 3, n_trajectories = 3, n_start = 5L)
 plot(fit)
 plot(fit, which = "states", type = "profile")
 plot(fit, which = "sequences")

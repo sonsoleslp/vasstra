@@ -44,7 +44,7 @@ Every figure below is drawn from one fit, and to keep the gallery about the
 plots rather than the tuning, that fit is the fully automatic default:
 `vasstra(engagement)` detects the roles, selects the number of states and
 trajectories, and fits them. It settles on five states and three
-trajectories here, drawn in their discovery order on the default palette.
+trajectories here, drawn from the lowest to the highest profile on the default palette.
 Naming, reordering, and recolouring are shown in *Palette and state order*
 below; they change how a plot reads, not which plot each call draws.
 
@@ -127,7 +127,7 @@ Two arguments control how states display everywhere. `state_colors` pins a
 palette on the fit (a named vector is matched by state and survives
 reordering and `set_labels()`), and `state_order` fixes the order the states
 read in every plot (stacking, legends, transition and flow nodes),
-independent of the order the clusters were discovered in. Both are stored on
+independent of the default low-to-high profile order. Both are stored on
 the fit and reused by every plot, so the styling is set once; a `colors`
 argument on an individual `plot()` call overrides them for that call alone.
 
@@ -187,8 +187,10 @@ plot(fit, type = c("index", "distribution", "transition"))
 
 ## Evaluation panels
 
-`plot(evaluate(fit))` draws the selection curve, per-cluster silhouette
-widths, and group sizes for both clustering steps. The state and trajectory
+`plot(evaluate(fit))` draws the silhouette across the compared counts,
+per-cluster silhouette widths, and group sizes for both clustering steps
+(the states themselves were chosen by BIC; see the latents criteria
+below). The state and trajectory
 rows use distinct palettes, so the two groupings are not read as
 corresponding.
 
@@ -196,10 +198,22 @@ corresponding.
 plot(evaluate(fit))
 ```
 
+The states are a latent profile model fitted with latents, so the
+evaluation also carries latents' own plots of the state step: the
+information criteria across the compared numbers of profiles here (and,
+with `type = "diagnostics"`, the classification diagnostics of the fitted
+model). The ring marks the lowest criterion, at six profiles, which
+VaSSTra does not select because one of its profiles holds under 5 percent
+of the observations; the fitted model is the five-profile solution.
+
+```{r evaluation-latents, fig.height = 4}
+plot(evaluate(fit), type = "enumeration")
+```
+
 ## Choice comparisons across methods
 
-The explicit comparison draws a metric-aware plot, on the shared palette
-with light gridlines.
+The explicit comparison draws a metric-aware plot with light gridlines;
+colours are assigned to the groups shown, so a subset is recoloured.
 
 ```{r state-choices}
 state_options <- state_choices(

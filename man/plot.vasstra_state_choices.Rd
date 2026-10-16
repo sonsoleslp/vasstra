@@ -29,7 +29,7 @@ such as \code{"kmeans"} or \code{"lpa/EEI"}.}
 
 \item{show_legend}{Show the group and marker legends.}
 
-\item{...}{Additional arguments passed to \code{\link[graphics:plot]{graphics::plot()}}.}
+\item{...}{Additional arguments passed to \code{\link[graphics:plot.default]{graphics::plot()}}.}
 }
 \value{
 The tidy candidate data used in the plot, invisibly.

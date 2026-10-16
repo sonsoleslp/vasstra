@@ -101,7 +101,7 @@ test_that("flow plots reject inputs with too few time points", {
     engagement = c("Low", "High", "High", "High",
                    "Low", "Low", "High", "Low")
   )
-  sequences <- step2_sequences(
+  sequences <- sequences(
     states,
     id = "student",
     time = "course",

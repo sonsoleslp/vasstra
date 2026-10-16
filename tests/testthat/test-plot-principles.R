@@ -2,7 +2,7 @@ test_that("state plots preserve positional arguments and return exact data", {
   data <- make_vasstra_data()
   variables <- c("views", "sessions", "duration")
   labels <- c("Low", "Average", "High")
-  states <- step1_states(
+  states <- allow_failed_starts(states(
     data,
     id = "student",
     time = "course",
@@ -10,7 +10,7 @@ test_that("state plots preserve positional arguments and return exact data", {
     n_states = 3,
     labels = labels,
     seed = 211L
-  )
+  ))
   path <- tempfile(fileext = ".pdf")
   grDevices::pdf(path)
   on.exit(grDevices::dev.off(), add = TRUE)
@@ -325,7 +325,7 @@ test_that("state choice plots return candidates and recompute metric optima", {
 
 test_that("trajectory choice plots return exact metric-specific optima", {
   data <- make_vasstra_data()
-  sequences <- step2_sequences(
+  sequences <- sequences(
     data,
     id = "student",
     time = "course",

@@ -71,7 +71,8 @@ is rarely what you want unless the indicators are already comparable.
 
 The built-in `engagement` data ship pre-standardized (the `_z` columns), so to
 see the effect we use the **raw** count columns, which live on very different
-scales: from a handful of forum posts to thousands of seconds of duration.
+scales: from a regularity share between 0 and 1 to total durations in the tens
+of thousands.
 
 ```{r raw}
 raw_indicators <- c(
@@ -88,16 +89,17 @@ We estimate three states with k-means on the raw indicators, changing only
 `standardize`; the method, count, and seed are held fixed, so any difference
 is the rescaling. K-means is used on purpose: it clusters by Euclidean
 distance, so it reacts directly to scale (which is what `standardize`
-controls) and separates states by profile *shape*. The default LPA models
-each indicator's variance separately, so it barely reacts to standardization
-and would hide the effect this article is about.
+controls) and separates states by profile *shape*. The default LPA gives
+each indicator its own variance, so rescaling an indicator as a whole
+(`"none"` against `"global"`) leaves it unchanged; k-means shows every
+scheme's effect.
 
 ```{r fits}
 fits <- list()
 for (s in c("none", "global", "time", "subject")) {
-  fits[[s]] <- step1_states(
+  fits[[s]] <- states(
     engagement, variables = raw_indicators,
-    n_states = 3, method = "kmeans", standardize = s, seed = 1
+    n_states = 3, engine = "kmeans", standardize = s, seed = 1
   )
 }
 ```
@@ -123,12 +125,12 @@ cbind(
 ```
 
 The three groups are carved differently under each scheme: the balance
-shifts by dozens of students.
+shifts by dozens to more than a hundred observations.
 
 ### Assignments reshuffle
 
 The clearest measure is how much the *membership* changes. The **adjusted
-Rand index** (ARI) compares two groupings of the same students by looking at
+Rand index** (ARI) compares two groupings of the same observations by looking at
 every *pair* of them and asking whether the two solutions agree: either both
 put the pair in one state, or both keep them apart. It is **1** when the
 groupings are identical and about **0** when they agree no more than chance
@@ -158,7 +160,8 @@ The profile plots show what each scheme calls a state. Under peer-relative
 standardization (`"time"`) the three states are an **ordered engagement
 ladder**: three roughly parallel lines at high, middle, and low levels
 across every indicator, so a state is "more" or "less" engaged. Under
-within-subject standardization (`"subject"`) the lines **cross**. Because
+within-subject standardization (`"subject"`) the lines of the upper two states
+**cross**. Because
 each person's overall level has been removed, the states no longer stack by
 level but separate on *which* activities a student is above or below their
 own baseline on. The same three-way split, but about a different thing.
@@ -176,7 +179,8 @@ plot(fits[["subject"]], type = "profile", main = 'standardize = "subject"')
 
 - **`"time"`** (default) when the question is comparative: who stands out at
   each point relative to the cohort. This is the usual choice for
-  learning-analytics engagement data and the one the VaSSTra chapter uses.
+  learning-analytics engagement data, and close to what the VaSSTra chapter
+  does (it standardizes within each course, as the `_z` columns are).
 - **`"subject"`** when the question is about *change*: whether a person rises,
   holds, or falls relative to their own baseline, regardless of their level.
   Useful when absolute level is a nuisance (e.g. trait differences you want to

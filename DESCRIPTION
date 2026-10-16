@@ -1,6 +1,6 @@
 Package: VaSSTra
 Title: Simple Variables to States to Sequences to Trajectories
-Version: 0.4.0
+Version: 0.5.0
 Authors@R: c(
     person("Mohammed", "Saqr",
            email = "saqr@saqr.me",
@@ -14,9 +14,11 @@ Description: A small, pipe-friendly implementation of the VaSSTra workflow
     trajectory groups, followed by tidy trajectory descriptions. A single
     call runs the complete analysis with transparent, overridable automation
     of data roles and cluster counts, and an evaluation verb compares the
-    fitted clustering against its alternatives. 'Nestimate' provides the
-    default sequence-clustering backend and all sequence plots. No
-    'TraMineR' dependency is required.
+    fitted clustering against its alternatives. States come from the mixture
+    models of 'latents' (latent profile, latent class, two-level and latent
+    transition models, which can also estimate the trajectories) or from
+    hard clustering. 'Nestimate' provides the default sequence-clustering
+    backend and all sequence plots. No 'TraMineR' dependency is required.
 License: MIT + file LICENSE
 URL: https://sonsoles.me/vasstra/,
     https://github.com/sonsoleslp/vasstra,
@@ -32,7 +34,7 @@ Imports:
     cluster,
     graphics,
     grDevices,
-    mclust (>= 6.1.0),
+    latents (>= 0.9.36),
     Nestimate (>= 0.8.0),
     stats,
     utils
@@ -40,10 +42,15 @@ Suggests:
     bslib,
     cograph (>= 2.4.0),
     DT,
+    ggplot2,
     knitr,
+    mclust (>= 6.1.0),
     rmarkdown,
     shiny,
     testthat (>= 3.0.0)
+Remotes:
+    mohsaqr/latents
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.3.3

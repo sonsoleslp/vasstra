@@ -33,11 +33,12 @@ The tidy data drawn by the requested panel, invisibly. The
 \description{
 Draws the selection curve, per-cluster silhouette widths, and cluster
 sizes for one \code{\link[=evaluate]{evaluate()}} result. The default \code{"summary"} layout places
-the three panels side by side.
+the three panels side by side. The evaluation of a mixture-model engine
+adds latents' own plots; see \code{\link[=plot.vasstra_model_evaluation]{plot.vasstra_model_evaluation()}}.
 }
 \examples{
 data("engagement", package = "VaSSTra")
-fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+fit <- vasstra(engagement, n_states = 3, n_trajectories = 3, n_start = 5L)
 evaluation <- evaluate(fit$trajectories)
 plot(evaluation)
 plot(evaluation, type = "silhouette")

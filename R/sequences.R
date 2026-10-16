@@ -35,7 +35,7 @@
 #'                  "Average", "Average", "High",
 #'                  "Low", "Low", "Average")
 #' )
-#' sequences <- step2_sequences(
+#' sequences <- sequences(
 #'   states,
 #'   id = "student",
 #'   time = "course",
@@ -43,7 +43,7 @@
 #' )
 #' sequences
 #' @export
-step2_sequences <- function(
+sequences <- function(
     data,
     id = NULL,
     time = NULL,

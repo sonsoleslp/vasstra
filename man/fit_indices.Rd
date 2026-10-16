@@ -37,19 +37,24 @@ exists, otherwise 2 through 6.}
 }
 \value{
 A \code{vasstra_fit_indices} data frame: one row for the fitted
-solution, or one row per candidate (with \code{best} and \code{fitted} markers)
-when \code{compare = TRUE}.
+solution, or one row per candidate when \code{compare = TRUE} (with \code{best}
+and \code{fitted} markers for a clustering engine; latents' candidate table,
+unmarked, for a model engine).
 }
 \description{
 Returns the fit statistics of the selected clustering as one tidy row,
-or one row per compared candidate with \code{compare = TRUE}. LPA solutions
-report the complete information-criterion family (log-likelihood, AIC,
-BIC, SABIC, CAIC, AWE, CLC, KIC, ICL — all on the conventional
-lower-is-better scale), normalized entropy, and the smallest and largest
-average posterior class probabilities. Hard clustering methods report
-their own objectives (total within-cluster sum of squares, PAM
-objective). Silhouette and group sizes are always included, and columns
-that do not apply to the fitted method are dropped.
+or one row per compared candidate with \code{compare = TRUE}. Hard clustering
+methods report their own objectives (total within-cluster sum of
+squares, PAM objective), silhouette, and group sizes; columns that do not
+apply to the fitted method are dropped.
+}
+\details{
+States from a model engine, and the trajectories of a two-level engine,
+report latents' tables unchanged: the fitted model's information criteria
+(\code{latents::get_results(fit, "information_criteria")}: log-likelihood,
+AIC, KIC, and BIC, SABIC, CAIC, AWE, ICL and CLC with the groups and the
+individuals as sample size), or with \code{compare = TRUE} the candidate table
+of latents' enumeration of other counts.
 }
 \examples{
 set.seed(1)
@@ -57,7 +62,7 @@ data <- expand.grid(student = 1:12, course = 1:3)
 level <- rep(c(2, 8, 16), length.out = nrow(data))
 data$views <- level + rnorm(nrow(data), sd = 0.4)
 data$duration <- level * 3 + rnorm(nrow(data), sd = 0.4)
-states <- step1_states(data, n_states = 3)
+states <- states(data, n_states = 3)
 fit_indices(states)
 fit_indices(states, compare = TRUE)
 }

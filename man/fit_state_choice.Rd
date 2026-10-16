@@ -11,7 +11,8 @@ fit_state_choice(
   state = "state",
   n_states = NULL,
   method = NULL,
-  lpa_model = NULL
+  lpa_model = NULL,
+  n_trajectories = NULL
 )
 }
 \arguments{
@@ -25,13 +26,16 @@ fit_state_choice(
 
 \item{n_states}{Optional state count used to select the candidate.}
 
-\item{method}{Optional clustering method used to select the candidate.}
+\item{method}{Optional state engine used to select the candidate.}
 
 \item{lpa_model}{Optional LPA covariance model used to select the
 candidate.}
+
+\item{n_trajectories}{Optional trajectory count used to select the
+candidate of a two-level engine.}
 }
 \value{
-A \code{vasstra_states} object from \code{\link[=step1_states]{step1_states()}} with the selected
+A \code{vasstra_states} object from \code{\link[=states]{states()}} with the selected
 candidate and complete comparison table recorded in \code{diagnostics}.
 }
 \description{

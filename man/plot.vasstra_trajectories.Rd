@@ -59,7 +59,7 @@ the bottom; pass \code{legend = "none"} (or \code{legend = FALSE}) to omit it.
 }
 \examples{
 data("engagement", package = "VaSSTra")
-fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
+fit <- vasstra(engagement, n_states = 3, n_trajectories = 3, n_start = 5L)
 plot(fit$trajectories)
 plot(fit$trajectories, type = "distribution")
 \donttest{

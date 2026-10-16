@@ -1,6 +1,6 @@
 make_lpa_states <- function() {
   data <- make_vasstra_data()
-  suppressMessages(step1_states(
+  suppressMessages(states(
     data,
     id = "student",
     time = "course",
@@ -10,36 +10,37 @@ make_lpa_states <- function() {
   ))
 }
 
-test_that("fit_indices returns the complete LPA index family", {
-  states <- make_lpa_states()
+test_that("fit_indices of LPA states is latents' criterion table", {
+  states <- allow_failed_starts(make_lpa_states())
   indices <- fit_indices(states)
   expect_s3_class(indices, "vasstra_fit_indices")
   expect_s3_class(indices, "data.frame")
   expect_identical(nrow(indices), 1L)
-  expect_true(all(c(
-    "n_states", "method", "lpa_model", "log_likelihood", "n_parameters",
-    "aic", "bic", "sabic", "caic", "awe", "clc", "kic", "icl",
-    "entropy", "prob_min", "prob_max", "silhouette",
-    "min_size", "max_size", "size_ratio"
-  ) %in% names(indices)))
+  expect_equal(
+    as.data.frame(indices),
+    as.data.frame(latents::get_results(states$model,
+                                       "information_criteria")),
+    ignore_attr = TRUE
+  )
 
+  # The formulas behind latents' columns, with the observations as n.
   log_likelihood <- indices$log_likelihood
   n_parameters <- indices$n_parameters
   n_observations <- states$diagnostics$n_rows
   expect_equal(indices$aic, -2 * log_likelihood + 2 * n_parameters,
                tolerance = 1e-8)
   expect_equal(
-    indices$bic,
+    indices$bic_individual,
     -2 * log_likelihood + n_parameters * log(n_observations),
     tolerance = 1e-8
   )
   expect_equal(
-    indices$sabic,
+    indices$sabic_individual,
     -2 * log_likelihood + n_parameters * log((n_observations + 2) / 24),
     tolerance = 1e-8
   )
   expect_equal(
-    indices$caic,
+    indices$caic_individual,
     -2 * log_likelihood + n_parameters * (log(n_observations) + 1),
     tolerance = 1e-8
   )
@@ -48,21 +49,19 @@ test_that("fit_indices returns the complete LPA index family", {
     -2 * log_likelihood + 3 * (n_parameters + 1),
     tolerance = 1e-8
   )
-  expect_true(indices$icl >= indices$bic)
-  expect_true(indices$prob_min > 0 && indices$prob_max <= 1)
-  expect_true(indices$entropy > 0 && indices$entropy <= 1)
+  expect_true(indices$icl_individual >= indices$bic_individual)
 })
 
 test_that("fit_indices compares candidates and adapts to hard methods", {
-  states <- make_lpa_states()
-  comparison <- fit_indices(states, compare = TRUE)
+  states <- allow_failed_starts(make_lpa_states())
+  comparison <- allow_failed_starts(fit_indices(states, compare = TRUE))
   expect_true(nrow(comparison) >= 5L)
-  expect_identical(sum(comparison$fitted), 1L)
-  expect_true(any(comparison$best))
-  expect_true(all(c("sabic", "awe", "prob_min") %in% names(comparison)))
+  expect_true(all(c("n_profiles", "bic_individual", "awe_individual",
+                    "avepp_min") %in% names(comparison)))
+  expect_true(3L %in% comparison$n_profiles)
 
   data <- make_vasstra_data()
-  kmeans_states <- suppressMessages(step1_states(
+  kmeans_states <- suppressMessages(states(
     data,
     id = "student",
     time = "course",
@@ -75,8 +74,8 @@ test_that("fit_indices compares candidates and adapts to hard methods", {
   expect_true("total_withinss" %in% names(kmeans_indices))
   expect_true("silhouette" %in% names(kmeans_indices))
 
-  trajectories <- step3_trajectories(
-    step2_sequences(kmeans_states),
+  trajectories <- trajectories(
+    sequences(kmeans_states),
     n_trajectories = 3
   )
   trajectory_indices <- fit_indices(trajectories)
@@ -93,7 +92,8 @@ test_that("fit_indices compares candidates and adapts to hard methods", {
     n_states = 3,
     n_trajectories = 3
   ))
-  expect_identical(fit_indices(fit)$n_states, 3L)
+  expect_identical(nrow(fit_indices(fit)), 1L)
+  expect_true("bic_individual" %in% names(fit_indices(fit)))
   expect_identical(
     fit_indices(fit, step = "trajectories")$n_trajectories,
     3L

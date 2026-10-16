@@ -30,8 +30,10 @@ and similar sequences are grouped into trajectories.</figcaption>
 
 ## Package features
 
-- **State clustering:** LPA, k-means, PAM, CLARA, FANNY, DIANA, and
-  hierarchical linkages.
+- **State engines:** latent profile, latent class, two-level and latent
+  transition models from the `latents` package (the two-level ones
+  estimate the trajectories too), or k-means, PAM, CLARA, FANNY, DIANA,
+  and hierarchical linkages.
 - **Trajectory clustering:** nine sequence distances with PAM or
   hierarchical linkages.
 - **Standardization:** within time, within subject, global, or none.
@@ -62,19 +64,19 @@ library(VaSSTra)
 data("engagement", package = "VaSSTra")
 
 vasstra(engagement)
-#> Selected n_states = 5 (lpa, bic = 19008.964); see `diagnostics$selection`.
-#> Selected n_trajectories = 3 (hamming + pam, silhouette = 0.222); see `diagnostics$selection`.
+#> Selected n_states = 5 (lpa, bic = 19008.229); see `diagnostics$selection`.
+#> Selected n_trajectories = 3 (hamming + pam, silhouette = 0.231); see `diagnostics$selection`.
 #> VaSSTra Analysis
 #>   142 subjects | 8 times | 5 states | 3 trajectories
-#>   hamming + pam | silhouette 0.222
+#>   hamming + pam | silhouette 0.231
 ```
 
-States are estimated by latent profile analysis by default;
-`state_method` switches to k-means, PAM, or hierarchical clustering.
-Automatic selection compares 2 through 6 candidates. Here it settles on
-five states. Naming the states fixes the count instead, and naming any
-other decision takes it over. This is the fit the figure below is drawn
-from:
+States are estimated by latent profile analysis, fitted with `latents`,
+by default; `engine` switches to another mixture model or to k-means,
+PAM, or hierarchical clustering. Automatic selection compares 2 through
+6 candidates. Here it settles on five states. Naming the states fixes
+the count instead, and naming any other decision takes it over. This is
+the fit the figure below is drawn from:
 
 ``` r
 fit <- vasstra(
@@ -91,15 +93,35 @@ fit <- vasstra(
 
 ## What you get
 
-One fit describes each trajectory three ways at once: the transition
-network it follows, the sequences it groups, and how its state
-composition unfolds over time, all on a shared palette and state order.
+One fit describes each trajectory three ways at once: the sequences it
+groups, how its state composition unfolds over time, and the transition
+network it follows, all on a shared palette and state order.
 
 ``` r
-plot(fit, type = c( "index", "distribution", "transition"))
+plot(fit, type = c("index", "distribution", "transition"))
 ```
 
-<img src="man/figures/README-overview-1.png" alt="Per-trajectory grid of transition networks, sequence index plots, and state distributions." width="100%" />
+<img src="man/figures/README-overview-1.png" alt="Per-trajectory grid of sequence index plots, state distributions, and transition networks." width="100%" />
+
+## Engines
+
+The `engine` decides how states, and possibly trajectories, are
+estimated:
+
+| Engine | Indicators | Trajectories |
+|----|----|----|
+| `"lpa"` (default) | numeric, optionally with categorical ones | clustered from the state sequences |
+| `"lca"` | categorical | clustered from the state sequences |
+| `"multilpa"`, `"multilca"` | numeric / categorical | classes of subjects with their own mix of states, from the same model |
+| `"lta"` | numeric or categorical | classes of subjects with their own transitions, from the same model |
+| `"kmeans"`, `"pam"`, `"clara"`, `"fanny"`, `"diana"`, `"ward.D2"`, … | numeric | clustered from the state sequences |
+
+The mixture models keep each observation’s posterior probabilities,
+accept `indicator_missing = "fiml"` instead of imputation, and add
+`latents`’ own evaluation to the usual one: `fit_indices()` returns
+latents’ criteria, and `plot(evaluate(fit), type = "enumeration")` or
+`type = "diagnostics"` draws latents’ plots. A model fitted directly
+with `latents` can be passed as `engine`. See `vignette("engines")`.
 
 ## Interactive app
 
@@ -114,11 +136,12 @@ VaSSTra::launch_app()
 
 ## Dependencies
 
-`mclust` powers the default LPA state estimation, base R provides
-k-means and hierarchical clustering, `cluster` provides PAM, and
-`Nestimate` provides sequence distances, trajectory clustering, and all
-sequence plots. `cograph` is suggested, not required, and renders the
-flow and transition plots.
+`latents` fits the mixture-model engines, including the default latent
+profile analysis, base R provides k-means and hierarchical clustering,
+`cluster` provides PAM, CLARA, FANNY and DIANA, and `Nestimate` provides
+sequence distances, trajectory clustering, and all sequence plots.
+`cograph` is suggested, not required, and renders the flow and
+transition plots.
 
 Method overview: [VaSSTra
 chapter](https://lamethods.org/book1/chapters/ch11-vasstra/ch11-vasstra.html).

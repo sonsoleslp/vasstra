@@ -46,7 +46,7 @@ data <- expand.grid(student = 1:12, course = 1:3)
 level <- rep(c(2, 8, 16), length.out = nrow(data))
 data$views <- level + rnorm(nrow(data), sd = 0.4)
 data$duration <- level * 3 + rnorm(nrow(data), sd = 0.4)
-states <- step1_states(data, n_states = 3)
+states <- states(data, n_states = 3)
 states <- set_labels(states, c("Low", "Average", "High"))
 summary(states)
 }

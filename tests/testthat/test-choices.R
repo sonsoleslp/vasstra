@@ -4,7 +4,7 @@ test_that("step1 state methods reproduce their direct clustering backends", {
   seed <- 73L
   n_start <- 17L
 
-  kmeans_result <- step1_states(
+  kmeans_result <- states(
     data,
     id = "student",
     time = "course",
@@ -34,7 +34,7 @@ test_that("step1 state methods reproduce their direct clustering backends", {
   expect_identical(kmeans_result$settings$method, "kmeans")
   expect_true(is.na(kmeans_result$settings$lpa_model))
 
-  pam_result <- step1_states(
+  pam_result <- states(
     data,
     id = "student",
     time = "course",
@@ -61,7 +61,7 @@ test_that("step1 state methods reproduce their direct clustering backends", {
     "single", "mcquitty", "median", "centroid"
   )
   invisible(lapply(hierarchical_methods, function(method_name) {
-    result <- step1_states(
+    result <- states(
       data,
       id = "student",
       time = "course",
@@ -97,7 +97,7 @@ test_that("LPA states reproduce mclust and expose mixture diagnostics", {
   set.seed(910L)
   random_state <- .Random.seed
 
-  result <- step1_states(
+  result <- states(
     data,
     id = "student",
     time = "course",
@@ -234,7 +234,7 @@ test_that("state choices provide transparent constrained recommendations", {
     state = "chosen_state"
   )
   expect_identical(.Random.seed, refit_random_state)
-  direct <- step1_states(
+  direct <- states(
     data,
     id = "student",
     time = "course",
@@ -436,7 +436,7 @@ test_that("LPA choices use the requested criterion within each model", {
 
 test_that("step3 supports every Nestimate distance and clustering method", {
   data <- make_vasstra_data()
-  sequences <- step2_sequences(
+  sequences <- sequences(
     data,
     id = "student",
     time = "course",
@@ -455,7 +455,7 @@ test_that("step3 supports every Nestimate distance and clustering method", {
   random_state <- .Random.seed
 
   distance_results <- lapply(distances, function(distance_name) {
-    step3_trajectories(
+    trajectories(
       sequences,
       n_trajectories = 3,
       dissimilarity = distance_name,
@@ -465,7 +465,7 @@ test_that("step3 supports every Nestimate distance and clustering method", {
     )
   })
   method_results <- lapply(methods, function(method_name) {
-    step3_trajectories(
+    trajectories(
       sequences,
       n_trajectories = 3,
       dissimilarity = "hamming",
@@ -530,7 +530,7 @@ test_that("step3 supports every Nestimate distance and clustering method", {
   }, method_results, methods))
 
   expect_error(
-    step3_trajectories(
+    trajectories(
       sequences,
       n_trajectories = 3,
       dissimilarity = "osa",
@@ -542,7 +542,7 @@ test_that("step3 supports every Nestimate distance and clustering method", {
 
 test_that("trajectory choices cover the complete Nestimate candidate grid", {
   data <- make_vasstra_data()
-  sequences <- step2_sequences(
+  sequences <- sequences(
     data,
     id = "student",
     time = "course",
@@ -629,7 +629,7 @@ test_that("trajectory choices cover the complete Nestimate candidate grid", {
 
 test_that("trajectory choices refit explicitly and enforce constraints", {
   data <- make_vasstra_data()
-  sequences <- step2_sequences(
+  sequences <- sequences(
     data,
     id = "student",
     time = "course",
@@ -659,7 +659,7 @@ test_that("trajectory choices refit explicitly and enforce constraints", {
     labels = c("First", "Second", "Third")
   )
   expect_identical(.Random.seed, random_state)
-  direct <- step3_trajectories(
+  direct <- trajectories(
     sequences,
     n_trajectories = 3,
     dissimilarity = "lcs",
@@ -732,7 +732,7 @@ test_that("vasstra passes state_method through the complete wrapper", {
       state_method = method_name,
       seed = 107L
     )
-    direct <- step1_states(
+    direct <- states(
       data,
       id = "student",
       time = "course",

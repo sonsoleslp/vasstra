@@ -26,16 +26,16 @@
 #'   )
 #' )
 #' trajectories <- long |>
-#'   step2_sequences(id = "id", time = "time", state = "state") |>
-#'   step3_trajectories(n_trajectories = 3)
-#' description <- step4_describe(
+#'   sequences(id = "id", time = "time", state = "state") |>
+#'   trajectories(n_trajectories = 3)
+#' description <- describe(
 #'   trajectories,
 #'   positive_states = "High",
 #'   negative_states = "Low"
 #' )
 #' description
 #' @export
-step4_describe <- function(
+describe <- function(
     data,
     positive_states = NULL,
     negative_states = NULL,

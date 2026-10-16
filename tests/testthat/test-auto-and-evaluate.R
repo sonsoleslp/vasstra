@@ -30,7 +30,7 @@ test_that("vasstra runs fully automatically on plain data", {
 
 test_that("automatic counts match the explicit choice workflow", {
   data <- make_vasstra_data()
-  automatic <- suppressMessages(step1_states(
+  automatic <- suppressMessages(states(
     data,
     id = "student",
     time = "course",
@@ -58,29 +58,29 @@ test_that("automatic counts match the explicit choice workflow", {
 test_that("state detection refuses ambiguous categorical columns", {
   data <- make_vasstra_data()
   expect_error(
-    suppressMessages(step2_sequences(data)),
+    suppressMessages(sequences(data)),
     "several categorical columns qualify"
   )
   single <- data[setdiff(names(data), "true_trajectory")]
-  sequences <- suppressMessages(step2_sequences(single))
+  sequences <- suppressMessages(sequences(single))
   expect_identical(sequences$settings$state, "true_state")
 })
 
 test_that("labels imply the count and vectors define the candidates", {
   data <- make_vasstra_data()
   expect_message(
-    states <- step1_states(
+    states <- allow_failed_starts(states(
       data,
       id = "student",
       time = "course",
       variables = c("views", "sessions", "duration"),
       labels = c("Low", "Rising", "High", "Peak")
-    ),
+    )),
     "Using n_states = 4 to match the supplied labels"
   )
   expect_identical(states$settings$n_states, 4L)
 
-  ranged <- suppressMessages(step1_states(
+  ranged <- suppressMessages(states(
     data,
     id = "student",
     time = "course",
@@ -93,7 +93,7 @@ test_that("labels imply the count and vectors define the candidates", {
     2:4
   )
 
-  sequences <- step2_sequences(suppressMessages(step1_states(
+  sequences <- sequences(suppressMessages(states(
     data,
     id = "student",
     time = "course",
@@ -101,7 +101,7 @@ test_that("labels imply the count and vectors define the candidates", {
     n_states = 3
   )))
   expect_message(
-    trajectories <- step3_trajectories(
+    trajectories <- trajectories(
       sequences,
       labels = c("One", "Two", "Three")
     ),
@@ -139,7 +139,7 @@ test_that("choice fits resolve by recommendation and by filters", {
     "Several candidates match"
   )
 
-  sequences <- step2_sequences(suppressMessages(step1_states(
+  sequences <- sequences(suppressMessages(states(
     data,
     id = "student",
     time = "course",
@@ -166,13 +166,15 @@ test_that("choice fits resolve by recommendation and by filters", {
 })
 
 test_that("evaluate summarizes states, trajectories, and complete fits", {
+  # Clustered states; model engines are evaluated by latents (test-engines).
   data <- make_vasstra_data()
   fit <- suppressMessages(vasstra(
     data,
     id = "student",
     time = "course",
     variables = c("views", "sessions", "duration"),
-    state_labels = c("Low", "Average", "High")
+    state_labels = c("Low", "Average", "High"),
+    engine = "kmeans"
   ))
 
   state_evaluation <- evaluate(fit$states)
@@ -206,17 +208,35 @@ test_that("evaluate summarizes states, trajectories, and complete fits", {
       "eligible", "best", "fitted")
   )
   expect_setequal(unique(combined$unit), c("states", "trajectories"))
-})
 
-test_that("evaluate accepts explicit ranges and keeps the fitted count", {
-  data <- make_vasstra_data()
-  states <- suppressMessages(step1_states(
+  lpa_fit <- allow_failed_starts(suppressMessages(vasstra(
     data,
     id = "student",
     time = "course",
     variables = c("views", "sessions", "duration"),
-    n_states = 4
-  ))
+    state_labels = c("Low", "Average", "High")
+  )))
+  mixed <- allow_failed_starts(evaluate(lpa_fit))
+  expect_s3_class(mixed$states, "vasstra_model_evaluation")
+  expect_s3_class(mixed$trajectories, "vasstra_evaluation")
+  combined <- as.data.frame(mixed)
+  expect_identical(sum(combined$fitted[combined$unit == "states"]), 1L)
+  expect_true(all(is.finite(combined$silhouette)))
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  expect_silent(plot(mixed))
+})
+
+test_that("evaluate accepts explicit ranges and keeps the fitted count", {
+  data <- make_vasstra_data()
+  states <- allow_failed_starts(suppressMessages(states(
+    data,
+    id = "student",
+    time = "course",
+    variables = c("views", "sessions", "duration"),
+    n_states = 4,
+    engine = "kmeans"
+  )))
   evaluation <- evaluate(states, n_states = 2:3)
   expect_setequal(evaluation$candidates$n_states, 2:4)
   expect_identical(
@@ -260,7 +280,7 @@ test_that("evaluation plots render and return the drawn data", {
 
 test_that("state bar and overview plots return the profile matrix", {
   data <- make_vasstra_data()
-  states <- suppressMessages(step1_states(
+  states <- suppressMessages(states(
     data,
     id = "student",
     time = "course",

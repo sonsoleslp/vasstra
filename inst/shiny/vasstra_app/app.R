@@ -176,17 +176,24 @@ ui <- fluidPage(
         selected = "auto"
       ),
       selectInput(
-        "state_method",
-        "State method",
-        choices = c(
-          "lpa", "kmeans", "pam", "clara", "fanny", "diana",
-          "ward.D2", "ward.D", "complete",
-          "average", "single", "mcquitty", "median", "centroid"
+        "engine",
+        "State engine",
+        choices = list(
+          "Mixture models (latents)" = c(
+            "lpa", "lca", "multilpa", "multilca", "lta"
+          ),
+          "Clustering" = c(
+            "kmeans", "pam", "clara", "fanny", "diana",
+            "ward.D2", "ward.D", "complete",
+            "average", "single", "mcquitty", "median", "centroid"
+          )
         ),
         selected = "lpa"
       ),
       conditionalPanel(
-        condition = "input.state_method == 'lpa'",
+        condition = paste(
+          "['lpa', 'multilpa', 'lta'].indexOf(input.engine) >= 0"
+        ),
         selectInput(
           "lpa_model",
           "LPA covariance model",
@@ -223,7 +230,8 @@ ui <- fluidPage(
         "Clustering method",
         choices = c(
           "ward.D2", "pam", "ward.D", "complete", "average",
-          "single", "mcquitty", "median", "centroid"
+          "single", "mcquitty", "median", "centroid",
+          "model (multilpa, multilca, lta)" = "model"
         ),
         selected = "ward.D2"
       ),
@@ -310,11 +318,12 @@ ui <- fluidPage(
                 )
               ),
               tags$tr(
-                tags$td("State method"),
+                tags$td("State engine"),
                 tags$td(
-                  "Latent profile analysis (default; recommended by BIC) ",
-                  "or k-means / PAM / hierarchical (recommended by ",
-                  "silhouette)."
+                  "Mixture models from latents (latent profile analysis by ",
+                  "default, latent class, two-level and latent transition ",
+                  "models; recommended by BIC) or k-means / PAM / CLARA / ",
+                  "FANNY / DIANA / hierarchical (recommended by silhouette)."
                 )
               ),
               tags$tr(
@@ -606,6 +615,17 @@ server <- function(input, output, session) {
   fit_rv <- reactiveVal(NULL)
   decisions_rv <- reactiveVal(character(0))
 
+  # A two-level engine estimates the trajectories itself; offer its classes
+  # by default and fall back to clustering for the other engines.
+  observeEvent(input$engine, {
+    two_level <- input$engine %in% c("multilpa", "multilca", "lta")
+    if (two_level) {
+      updateSelectInput(session, "cluster_method", selected = "model")
+    } else if (identical(input$cluster_method, "model")) {
+      updateSelectInput(session, "cluster_method", selected = "ward.D2")
+    }
+  })
+
   data_loaded <- reactive({
     if (identical(input$data_source, "engagement")) {
       return(engagement)
@@ -691,7 +711,7 @@ server <- function(input, output, session) {
         n_trajectories = .count_choice(input$n_trajectories),
         state_labels = .parse_labels(input$state_labels),
         trajectory_labels = .parse_labels(input$trajectory_labels),
-        state_method = input$state_method,
+        engine = input$engine,
         lpa_model = input$lpa_model,
         dissimilarity = input$dissimilarity,
         cluster_method = input$cluster_method,

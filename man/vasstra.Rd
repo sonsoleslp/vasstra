@@ -32,9 +32,9 @@ vasstra(
   omega = 1,
   n_start = 25L,
   seed = 123L,
-  state_method = c("lpa", "kmeans", "pam", "clara", "fanny", "diana", "ward.D2",
-    "ward.D", "complete", "average", "single", "mcquitty", "median", "centroid"),
-  lpa_model = "EEI"
+  engine = NULL,
+  lpa_model = "EEI",
+  state_method = NULL
 )
 }
 \arguments{
@@ -46,7 +46,7 @@ VaSSTra role metadata or use a common identifier name.}
 \item{time}{Time or ordering column. May be omitted when the data carry
 VaSSTra role metadata or use a common time name.}
 
-\item{variables}{Numeric state indicators. Use either \code{variables} or
+\item{variables}{State indicators. Use either \code{variables} or
 \code{state}, but not both. When both are omitted, the numeric non-role
 columns are used (columns ending in \verb{_z} are preferred when present).}
 
@@ -59,7 +59,8 @@ determine the count under \code{"auto"}.}
 
 \item{n_trajectories}{Number of trajectory groups: one number, a
 candidate vector to compare, or \code{"auto"} (default). Supplied
-\code{trajectory_labels} determine the count under \code{"auto"}.}
+\code{trajectory_labels} determine the count under \code{"auto"}. A two-level
+engine estimates this count together with the states.}
 
 \item{state_labels}{Optional labels ordered from low to high profile.}
 
@@ -85,7 +86,8 @@ time point), \code{"subject"} (within each subject, relative to their own
 baseline), \code{"global"}, or \code{"none"}. Analysis-ready package data may
 provide its own default.}
 
-\item{indicator_missing}{Indicator missingness policy passed to step 1.
+\item{indicator_missing}{Indicator missingness policy passed to step 1:
+\code{"error"}, \code{"median"}, or \code{"fiml"} for the model engines.
 Analysis-ready package data may provide its own default.}
 
 \item{sequence_missing}{Structural sequence-gap policy passed to step 2.}
@@ -94,9 +96,10 @@ Analysis-ready package data may provide its own default.}
 
 \item{time_levels}{Explicit chronological values when needed.}
 
-\item{dissimilarity}{Sequence distance passed to \code{\link[=step3_trajectories]{step3_trajectories()}}.}
+\item{dissimilarity}{Sequence distance passed to \code{\link[=trajectories]{trajectories()}}.}
 
-\item{cluster_method}{Trajectory clustering method.}
+\item{cluster_method}{Trajectory clustering method. With a two-level
+engine it defaults to \code{"model"}, the model's own trajectory classes.}
 
 \item{backend}{Clustering backend: \code{"Nestimate"} (default) or \code{"base"}.}
 
@@ -106,27 +109,42 @@ Analysis-ready package data may provide its own default.}
 
 \item{omega}{Later-time weighting exponent for step 4.}
 
-\item{n_start}{Number of k-means starts.}
+\item{n_start}{Number of random starts of k-means or of a model engine.}
 
 \item{seed}{Reproducible base seed.}
 
-\item{state_method}{State-clustering method passed to \code{\link[=step1_states]{step1_states()}}.
-The default \code{"lpa"} estimates Gaussian-mixture latent profiles.}
+\item{engine}{The state engine passed to \code{\link[=states]{states()}}: \code{"lpa"}
+(default), \code{"lca"}, \code{"multilpa"}, \code{"multilca"}, \code{"lta"}, a clustering
+method, or a fitted latents model.}
 
-\item{lpa_model}{mclust covariance model used when
-\code{state_method = "lpa"}. The default \code{"EEI"} is tidyLPA model 1.}
+\item{lpa_model}{Covariance structure of the numeric indicators for the
+model engines, as an mclust code. The default \code{"EEI"} is tidyLPA
+model 1.}
+
+\item{state_method}{Superseded by \code{engine}; still accepted.}
 }
 \value{
 A \code{vasstra} object containing all four fitted step objects.
 }
 \description{
-A one-call wrapper around \code{\link[=step1_states]{step1_states()}}, \code{\link[=step2_sequences]{step2_sequences()}},
-\code{\link[=step3_trajectories]{step3_trajectories()}}, and \code{\link[=step4_describe]{step4_describe()}}. Every argument has a
+A one-call wrapper around \code{\link[=states]{states()}}, \code{\link[=sequences]{sequences()}},
+\code{\link[=trajectories]{trajectories()}}, and \code{\link[=describe]{describe()}}. Every argument has a
 working default, so \code{vasstra(data)} runs a complete analysis: subject,
 time, and indicator roles come from explicit arguments, attached role
 metadata, or common column names, and the numbers of states and
 trajectories are selected automatically unless given. Every automated
 decision is reported with a message and recorded in the fit.
+}
+\details{
+The \code{engine} decides how states, and possibly trajectories, are
+estimated. With \code{"lpa"} (default), \code{"lca"} or a clustering engine, step 1
+estimates states and step 3 clusters the state sequences. With a
+two-level engine (\code{"multilpa"}, \code{"multilca"}, \code{"lta"}), one latents model
+estimates the states and the trajectory classes together, and step 3 uses
+its classes unless \code{dissimilarity} or \code{cluster_method} is given. A fitted
+latents model passed as \code{engine} supplies its states (and, for a
+two-level model, its trajectory classes) as estimated. See
+\code{\link[=states]{states()}} for the engines.
 }
 \examples{
 set.seed(1)

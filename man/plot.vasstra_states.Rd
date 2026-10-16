@@ -52,7 +52,7 @@ Plot Estimated VaSSTra States
 }
 \examples{
 data("engagement", package = "VaSSTra")
-states <- step1_states(engagement, n_states = 3)
+states <- states(engagement, n_states = 3)
 plot(states)
 plot(states, type = "sizes")
 plot(states, type = "variables")

@@ -8,6 +8,8 @@
 ^HANDOFF\.md$
 ^LEARNINGS\.md$
 ^\.claude$
+^CLAUDE\.md$
+^Rplots\.pdf$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
