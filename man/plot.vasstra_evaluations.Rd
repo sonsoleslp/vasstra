@@ -4,7 +4,7 @@
 \alias{plot.vasstra_evaluations}
 \title{Plot the Evaluations of a Complete Fit}
 \usage{
-\method{plot}{vasstra_evaluations}(x, colors = NULL, ...)
+\method{plot}{vasstra_evaluations}(x, colors = NULL, type = c("panels", "enumeration", "diagnostics"), ...)
 }
 \arguments{
 \item{x}{A \code{vasstra_evaluations} object from \code{\link[=evaluate]{evaluate()}} on a complete
@@ -16,14 +16,23 @@ default the state row reuses the palette pinned on the fit
 trajectory row keeps a distinct palette so the two groupings are not
 read as corresponding.}
 
+\item{type}{\code{"panels"} (default) for the evaluation panels of every step,
+or \code{"enumeration"} / \code{"diagnostics"} for latents' plots of the steps a
+mixture-model engine estimated.}
+
 \item{...}{Additional graphical arguments passed to the panel functions.}
 }
 \value{
-The evaluated candidate and cluster tables, invisibly.
+The evaluated candidate and cluster tables, invisibly; for
+latents' plots, the plot of each model step, visibly (one plot, or a
+list named by step).
 }
 \description{
 Draws one row of evaluation panels per clustering step: the state
-clustering on top and the trajectory clustering below.
+clustering on top and the trajectory clustering below. A step estimated
+by a mixture-model engine also carries latents' own evaluation:
+\code{type = "enumeration"} or \code{"diagnostics"} draws it for each such step
+(see \code{\link[=plot.vasstra_model_evaluation]{plot.vasstra_model_evaluation()}}).
 }
 \examples{
 data("engagement", package = "VaSSTra")

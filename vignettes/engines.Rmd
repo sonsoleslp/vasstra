@@ -48,7 +48,7 @@ the eight course-standardized indicators.
 
 ```{r lpa}
 states <- states(engagement, n_states = 3,
-                       labels = c("Disengaged", "Average", "Active"))
+                 labels = c("Disengaged", "Average", "Active"))
 states
 ```
 
@@ -62,8 +62,9 @@ head(as.data.frame(states, what = "posteriors"))
 ## Missing values without imputation
 
 The engagement data carry 24 missing values from three singleton courses,
-which the clustering engines fill with medians. A model engine can instead
-use whatever each observation has (`missing = "fiml"`):
+which are filled with within-time medians by default for every engine (the
+data's metadata asks for it). A model engine can instead use whatever each
+observation has (`missing = "fiml"`):
 
 ```{r fiml}
 states(engagement, n_states = 3, missing = "fiml")
@@ -116,25 +117,38 @@ fit_indices(by_mix)
 fit_indices(by_movement)
 ```
 
-The model without transitions has the lower BIC. These trajectories are
-about which states the students occupy, not the order in which they pass
-through them.
+The model without transitions has the lower BIC, narrowly (19368.68
+against 19373.37), while AIC and SABIC prefer the transition model. By BIC,
+these trajectories are more about which states the students occupy than
+the order in which they pass through them.
 
 ## Evaluating a model engine
 
-A model engine's states are a latents model, so latents evaluates them.
-`evaluate()` returns latents' comparison of other numbers of states and its
-classification diagnostics of the fitted model, and draws latents' plots:
+`evaluate()` compares the fitted states with other numbers of states as it
+does for every engine: silhouette and group sizes for each candidate, and
+the fitted states' sizes and silhouettes, drawn as the usual panels. A
+model engine's states are a latents model, so the evaluation also carries
+latents' own comparison (its enumeration of the candidates) and the fitted
+model's classification diagnostics, as latents returns and draws them.
 
 ```{r evaluate}
 evaluation <- evaluate(states, n_states = 2:5)
 evaluation
 ```
 
-```{r evaluate-plots, fig.height = 5}
+```{r evaluate-panels, fig.height = 4.2, fig.width = 9}
 plot(evaluation)
-plot(evaluation, what = "diagnostics")
 ```
+
+```{r evaluate-latents, fig.height = 5}
+plot(evaluation, type = "enumeration")
+plot(evaluation, type = "diagnostics")
+head(as.data.frame(evaluation, what = "enumeration"))
+```
+
+The recommended count of a model engine (`best`) is the lowest BIC among
+eligible candidates, while the curve plots silhouette. latents' plots
+number the profiles in its own order, not by the VaSSTra labels.
 
 The criteria of the fitted model are latents' table as it is:
 
@@ -145,7 +159,7 @@ fit_indices(states)
 ## Categorical indicators
 
 Latent class analysis takes categorical indicators. Here, three of the raw
-counts are cut into thirds:
+counts are cut into three equal-width bands:
 
 ```{r lca}
 levels_data <- within(engagement, {

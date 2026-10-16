@@ -82,8 +82,8 @@ fit
 
 `state_colors` pins the state palette on the fit, so every plot below is
 drawn on the chapter's colours. A companion argument, `state_order`, fixes
-the order states read in every plot; here the discovery order is already
-low-to-high, so it is left at its default. Both are optional.
+the order states read in every plot; the default order is already
+low-to-high, so it is left as it is. Both are optional.
 
 The one remaining automated decision, the number of trajectories, is
 reported in the message and stored with its full comparison table in the
@@ -110,48 +110,62 @@ evaluation
 plot(evaluation)
 ```
 
-The two parts answer different questions. The states are a latent
-profile model, so latents evaluates them: its enumeration compares two
-to six profiles, and BIC keeps falling through all six (from 21679 to
-18600), with no elbow. The count was fixed by the three labels, and the
-table makes that substantive choice visible instead of hiding it. The
-fitted model's classification is sharp: relative entropy 0.894, and even
-the least certain profile assigns its members with an average posterior
-of 0.945. The trajectories are clustered, so they are judged by
-silhouette: the selection curve peaks at the fitted three groups (0.52
+The two rows of panels answer different questions. The trajectory
+selection curve peaks at the fitted three groups (silhouette 0.52
 against 0.46 and 0.38 for two and four), so the automated choice is also
 the local optimum, the strongest position a selection can be in. The
-silhouette-by-group bars then locate where cohesion comes from: the two
-flanking groups are the most compact (0.62 and 0.70), while the large
-middle trajectory (0.41) is the first place to look when judging whether
-three groups over-merge distinct journeys.
+state curve instead *declines* from two: with LPA the count was fixed by
+the three labels, and the panel makes the cost of that substantive
+choice visible (0.26 at three against 0.35 at two) instead of hiding it.
+The silhouette-by-group bars then locate where cohesion comes from: the
+two flanking groups are the most compact (0.62 and 0.70), while the
+large middle trajectory (0.41) is the first place to look when judging
+whether three groups over-merge distinct journeys.
+
+The states are a latent profile model fitted with latents, so their
+evaluation also carries latents' own view of the same comparison: its
+information criteria across the candidate numbers of profiles, and the
+classification diagnostics of the fitted model.
+
+```{r evaluate-latents, fig.height = 4, fig.width = 9}
+plot(evaluation, type = "enumeration")
+```
+
+BIC keeps falling through all five candidates (two to six profiles, from
+21679 to 18600), with no elbow, and the fitted model classifies sharply: relative entropy
+0.894, and even the least certain profile assigns its members with an
+average posterior of 0.945.
 
 For the model-based evidence reviewers expect, `fit_indices()` returns
-latents' complete information-criterion family as one tidy row, with
-the observations and the subjects as sample size.
+latents' complete information-criterion family as one tidy row: the same
+content as tidyLPA's fit table, under latents' `_groups` and `_individual`
+conventions (the same BIC here, since this single-level model counts the
+1136 observations either way).
 
 ```{r fit-indices}
 fit_indices(fit)
 ```
 
-With `compare = TRUE` it returns latents' candidate table, which adds
-the classification quality of every candidate. Two of its columns carry
-the interpretation. `profile_entropy` (0.89 at three profiles) says the
+With `compare = TRUE` it returns latents' candidate table, which adds the
+classification-quality columns that usually have to be assembled by hand.
+Two of them carry the interpretation. `profile_entropy` (0.89) says the
 posterior classification is sharp overall. `avepp_min` (0.94) says even
 the *worst* class assigns its members with high confidence. Entropy
 summarizes the whole matrix and `avepp_min` guards its weakest class, so
-reporting both prevents a good average from hiding a bad class:
+reporting both prevents a good average from hiding a bad class. The
+criterion family (AIC through CLC) is there for the comparison:
 
 ```{r fit-indices-compare}
 fit_indices(fit, compare = TRUE)
 ```
 
-Every criterion keeps falling through six classes, a nearly linear
-decline with no elbow. This is precisely why the chapter's three
+Every criterion keeps falling through six classes, steeply at first and
+then more slowly, but never reaching a minimum. This is precisely why the chapter's three
 profiles rest on interpretability and the classification-quality
-columns rather than on a BIC minimum. latents marks no candidate as
-best: the table reports the evidence, and the choice stays with the
-analyst.
+columns rather than on a BIC minimum. The evaluation's candidate table
+makes that argument honest: the `best` flag marks what the criterion picks among eligible solutions
+(five profiles here; six fails the five-percent floor), `fitted` marks
+what was chosen, and the two need not agree.
 
 ## 3. Understanding what the states are
 
@@ -189,7 +203,8 @@ plot(fit, which = "sequences")
 Two further views split the temporal question the heatmap compresses.
 The distribution answers the *aggregate* question (does the
 composition of the cohort drift over the eight positions), while the
-index plot answers the *individual* one on a fixed subject order. The
+index plot answers the *individual* one, row by row in the heatmap's
+similarity order. The
 distinction matters because a flat distribution can hide heavy
 individual churn.
 
@@ -201,7 +216,7 @@ plot(fit, which = "sequences", type = "index")
 ## 5. Trajectories: groups of similar journeys
 
 Grouping the sequences (LCS distance, Ward linkage) yields three
-trajectories of 41, 73, and 28 students. The grouped index plot is the
+trajectories of 41, 78, and 23 students. The grouped index plot is the
 core evidence that the groups mean something: one group is dominated by
 Active rows throughout, one by Disengaged, and the largest mixes Average
 with excursions. These are visibly different journeys, not arbitrary
@@ -300,7 +315,8 @@ needed, when states come from another method (enter at
 under comparison:
 
 ```{r steps, eval = FALSE}
-states <- states(engagement, n_states = 3)
+states <- states(engagement,
+                 labels = c("Disengaged", "Average", "Active"))
 sequences <- sequences(states)
 trajectories <- trajectories(sequences, dissimilarity = "lcs",
                                    method = "ward.D2")
@@ -310,7 +326,8 @@ description <- describe(trajectories, positive_states = "Active",
 
 When the clustering method is itself in question, `state_choices()` and
 `trajectory_choices()` fit the full grid and return one tidy row per
-candidate. Nothing is selected silently. Recommendations are marked
+candidate (the print lists the recommended ones; `summary()` gives the
+full table). Nothing is selected silently. Recommendations are marked
 within each method (silhouette for hard clustering, BIC for LPA, since
 model-based criteria only compare within LPA), and the inspected
 candidate is fitted with `fit_state_choice()`:

@@ -2,7 +2,7 @@
 #'
 #' Fits a tidy grid of state solutions. No solution is silently selected.
 #' Hard-clustering recommendations maximize silhouette within each method;
-#' LPA recommendations use the explicit `lpa_criterion`, subject to the
+#' model-engine recommendations use the explicit `lpa_criterion`, subject to the
 #' requested size constraints. Use [fit_state_choice()] with a `candidate_id`
 #' after inspecting the table.
 #'

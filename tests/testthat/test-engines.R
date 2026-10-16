@@ -239,7 +239,7 @@ test_that("a fitted latents model passed as engine supplies its states", {
   analysis <- suppressMessages(vasstra(data, engine = fit))
   expect_identical(analysis$settings$engine, "multilpa")
   expect_true(analysis$states$settings$supplied_fit)
-  expect_null(evaluate(analysis$states)$enumeration)
+  expect_null(allow_failed_starts(evaluate(analysis$states))$enumeration)
   expect_true(same_partition(analysis$states$model$vasstra_assignments,
                              fit$subject_profiles))
   expect_identical(analysis$trajectories$settings$method, "model")
@@ -266,32 +266,36 @@ test_that("a single-level fit passed as engine leaves trajectories to step 3", {
   expect_identical(analysis$trajectories$settings$method, "pam")
 })
 
-test_that("evaluate hands a model engine to latents", {
+test_that("evaluate keeps VaSSTra's panels for a model engine and adds latents'", {
   states <- fit_states("lpa", n_states = 3)
   evaluation <- allow_failed_starts(evaluate(states, n_states = 2:4))
+  # VaSSTra's evaluation, as for any engine ...
+  expect_s3_class(evaluation, "vasstra_evaluation")
+  expect_setequal(evaluation$candidates$n_states, 2:4)
+  expect_identical(sum(evaluation$candidates$fitted), 1L)
+  expect_true(all(is.finite(evaluation$candidates$silhouette)))
+  expect_identical(nrow(evaluation$clusters), 3L)
+  expect_identical(as.data.frame(evaluation), evaluation$candidates)
+  # ... plus latents' own tables, unchanged.
   expect_s3_class(evaluation, "vasstra_model_evaluation")
   expect_s3_class(evaluation$enumeration, "multilpa_enumeration")
-  expect_s3_class(evaluation$diagnostics, "multilpa_diagnostics")
-  # latents' candidate table, unchanged.
-  candidates <- as.data.frame(evaluation)
-  direct <- latents::get_results(evaluation$enumeration, "candidates")
-  expect_identical(candidates, direct)
-  expect_setequal(candidates$n_profiles, 2:4)
-  expect_identical(
-    summary(evaluation),
-    latents::get_results(latents::diagnostics(states$model, plots = FALSE),
-                         "classification")
-  )
-  # The fitted candidate of the enumeration is the fitted model.
+  enumerated <- as.data.frame(evaluation, what = "enumeration")
+  expect_identical(enumerated,
+                   latents::get_results(evaluation$enumeration, "candidates"))
   expect_equal(
-    candidates$log_likelihood[candidates$n_profiles == 3],
+    enumerated$log_likelihood[enumerated$n_profiles == 3],
     states$model$log_likelihood,
     tolerance = 1e-8
+  )
+  expect_identical(
+    as.data.frame(evaluation, what = "classification"),
+    latents::get_results(latents::diagnostics(states$model, plots = FALSE),
+                         "classification")
   )
 
   kmeans_evaluation <- evaluate(fit_states("kmeans", n_states = 3),
                                 n_states = 2:4)
-  expect_s3_class(kmeans_evaluation, "vasstra_evaluation")
+  expect_false(inherits(kmeans_evaluation, "vasstra_model_evaluation"))
 
   multilevel <- fit_states("multilpa", n_states = 3, n_trajectories = 2,
                            data = make_composition_data())
@@ -300,7 +304,13 @@ test_that("evaluate hands a model engine to latents", {
     evaluate(trajectories, n_trajectories = 2:3)
   )
   expect_s3_class(trajectory_evaluation, "vasstra_model_evaluation")
-  expect_setequal(as.data.frame(trajectory_evaluation)$n_group_classes, 2:3)
+  expect_setequal(trajectory_evaluation$candidates$n_trajectories, 2:3)
+  expect_identical(sum(trajectory_evaluation$candidates$fitted), 1L)
+  expect_true(all(is.finite(trajectory_evaluation$candidates$silhouette)))
+  expect_setequal(
+    as.data.frame(trajectory_evaluation, what = "enumeration")$n_group_classes,
+    2:3
+  )
 })
 
 test_that("fit_indices of a model engine are latents' tables unchanged", {
@@ -316,13 +326,17 @@ test_that("fit_indices of a model engine are latents' tables unchanged", {
   expect_setequal(compared$n_profiles, 2:4)
 })
 
-test_that("a model evaluation plots with latents", {
+test_that("a model evaluation draws VaSSTra's panels and latents' plots", {
   skip_if_not_installed("ggplot2")
   evaluation <- allow_failed_starts(
     evaluate(fit_states("lpa", n_states = 3), n_states = 2:4)
   )
-  expect_s3_class(plot(evaluation), "ggplot")
-  expect_s3_class(plot(evaluation, what = "diagnostics"), "latents_plots")
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  # VaSSTra's panels by default, latents' plots on request.
+  expect_false(inherits(plot(evaluation), "ggplot"))
+  expect_s3_class(plot(evaluation, type = "enumeration"), "ggplot")
+  expect_s3_class(plot(evaluation, type = "diagnostics"), "latents_plots")
 })
 
 test_that("set_labels relabels the posteriors with the states", {

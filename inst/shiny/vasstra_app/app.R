@@ -318,11 +318,12 @@ ui <- fluidPage(
                 )
               ),
               tags$tr(
-                tags$td("State method"),
+                tags$td("State engine"),
                 tags$td(
-                  "Latent profile analysis (default; recommended by BIC) ",
-                  "or k-means / PAM / hierarchical (recommended by ",
-                  "silhouette)."
+                  "Mixture models from latents (latent profile analysis by ",
+                  "default, latent class, two-level and latent transition ",
+                  "models; recommended by BIC) or k-means / PAM / CLARA / ",
+                  "FANNY / DIANA / hierarchical (recommended by silhouette)."
                 )
               ),
               tags$tr(

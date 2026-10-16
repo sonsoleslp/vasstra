@@ -28,8 +28,9 @@ automatic comparison when one exists, otherwise 2 through 6.}
 the stored automatic comparison when one exists, otherwise 2 through 6.}
 }
 \value{
-A \code{vasstra_evaluation} object, or a \code{vasstra_model_evaluation} for
-a model engine (or a \code{vasstra_evaluations} pair for a complete fit). \code{as.data.frame()} returns the candidate comparison;
+A \code{vasstra_evaluation} object, or a \code{vasstra_model_evaluation}
+(which is also one) for a model engine, or a \code{vasstra_evaluations} pair
+for a complete fit. \code{as.data.frame()} returns the candidate comparison;
 \code{summary()} returns the per-cluster quality table.
 }
 \description{
@@ -41,14 +42,13 @@ fitted cluster with its size and mean silhouette width.
 }
 \details{
 States from a model engine, and the trajectories of a two-level engine,
-are a latents model, and their evaluation is latents' own: the compared
-counts come from \code{\link[latents:enumerate_lpa]{latents::enumerate_lpa()}}, \code{\link[latents:enumerate_lca]{latents::enumerate_lca()}}
-or \code{\link[latents:enumerate_classes]{latents::enumerate_classes()}}, and the fitted model's classification
-quality from \code{\link[latents:diagnostics]{latents::diagnostics()}}. The result is then a
-\code{vasstra_model_evaluation}: \code{print()} shows both, \code{as.data.frame()} returns
-latents' candidate table (\code{what = "classification"} for the
-classification table), and \code{plot()} draws latents' plots (see
-\code{\link[=plot.vasstra_model_evaluation]{plot.vasstra_model_evaluation()}}).
+are evaluated the same way and also carry latents' own evaluation: the
+enumeration of the compared counts (\code{\link[latents:enumerate_lpa]{latents::enumerate_lpa()}},
+\code{\link[latents:enumerate_lca]{latents::enumerate_lca()}} or \code{\link[latents:enumerate_classes]{latents::enumerate_classes()}}) and the
+fitted model's classification diagnostics (\code{\link[latents:diagnostics]{latents::diagnostics()}}). The
+result is then a \code{vasstra_model_evaluation}: \code{as.data.frame(x, what = "enumeration")} and \code{what = "classification"} return latents' tables, and
+\code{plot(x, type = "enumeration")} or \code{type = "diagnostics"} draws latents'
+plots (see \code{\link[=plot.vasstra_model_evaluation]{plot.vasstra_model_evaluation()}}).
 }
 \examples{
 set.seed(1)

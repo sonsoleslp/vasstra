@@ -93,15 +93,15 @@ fit <- vasstra(
 
 ## What you get
 
-One fit describes each trajectory three ways at once: the transition
-network it follows, the sequences it groups, and how its state
-composition unfolds over time, all on a shared palette and state order.
+One fit describes each trajectory three ways at once: the sequences it
+groups, how its state composition unfolds over time, and the transition
+network it follows, all on a shared palette and state order.
 
 ``` r
-plot(fit, type = c( "index", "distribution", "transition"))
+plot(fit, type = c("index", "distribution", "transition"))
 ```
 
-<img src="man/figures/README-overview-1.png" alt="Per-trajectory grid of transition networks, sequence index plots, and state distributions." width="100%" />
+<img src="man/figures/README-overview-1.png" alt="Per-trajectory grid of sequence index plots, state distributions, and transition networks." width="100%" />
 
 ## Engines
 
@@ -117,10 +117,11 @@ estimated:
 | `"kmeans"`, `"pam"`, `"clara"`, `"fanny"`, `"diana"`, `"ward.D2"`, … | numeric | clustered from the state sequences |
 
 The mixture models keep each observation’s posterior probabilities,
-accept `indicator_missing = "fiml"` instead of imputation, and are
-evaluated by `latents` itself: `evaluate()`, `fit_indices()` and their
-plots are latents’ own. A model fitted directly with `latents` can be
-passed as `engine`. See `vignette("engines")`.
+accept `indicator_missing = "fiml"` instead of imputation, and add
+`latents`’ own evaluation to the usual one: `fit_indices()` returns
+latents’ criteria, and `plot(evaluate(fit), type = "enumeration")` or
+`type = "diagnostics"` draws latents’ plots. A model fitted directly
+with `latents` can be passed as `engine`. See `vignette("engines")`.
 
 ## Interactive app
 

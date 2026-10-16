@@ -37,8 +37,9 @@ exists, otherwise 2 through 6.}
 }
 \value{
 A \code{vasstra_fit_indices} data frame: one row for the fitted
-solution, or one row per candidate (with \code{best} and \code{fitted} markers)
-when \code{compare = TRUE}.
+solution, or one row per candidate when \code{compare = TRUE} (with \code{best}
+and \code{fitted} markers for a clustering engine; latents' candidate table,
+unmarked, for a model engine).
 }
 \description{
 Returns the fit statistics of the selected clustering as one tidy row,

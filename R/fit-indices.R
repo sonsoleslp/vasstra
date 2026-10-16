@@ -18,8 +18,9 @@
 #' @param ... Method-specific arguments.
 #'
 #' @return A `vasstra_fit_indices` data frame: one row for the fitted
-#'   solution, or one row per candidate (with `best` and `fitted` markers)
-#'   when `compare = TRUE`.
+#'   solution, or one row per candidate when `compare = TRUE` (with `best`
+#'   and `fitted` markers for a clustering engine; latents' candidate table,
+#'   unmarked, for a model engine).
 #'
 #' @examples
 #' set.seed(1)

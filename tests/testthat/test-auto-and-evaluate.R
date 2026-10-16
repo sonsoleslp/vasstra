@@ -204,7 +204,7 @@ test_that("evaluate summarizes states, trajectories, and complete fits", {
   combined <- as.data.frame(both)
   expect_identical(
     names(combined),
-    c("unit", "k", "silhouette", "bic", "min_size", "max_size", "size_ratio",
+    c("unit", "k", "silhouette", "min_size", "max_size", "size_ratio",
       "eligible", "best", "fitted")
   )
   expect_setequal(unique(combined$unit), c("states", "trajectories"))
@@ -221,7 +221,10 @@ test_that("evaluate summarizes states, trajectories, and complete fits", {
   expect_s3_class(mixed$trajectories, "vasstra_evaluation")
   combined <- as.data.frame(mixed)
   expect_identical(sum(combined$fitted[combined$unit == "states"]), 1L)
-  expect_true(all(is.finite(combined$bic[combined$unit == "states"])))
+  expect_true(all(is.finite(combined$silhouette)))
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  expect_silent(plot(mixed))
 })
 
 test_that("evaluate accepts explicit ranges and keeps the fitted count", {

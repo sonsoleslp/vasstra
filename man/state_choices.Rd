@@ -76,7 +76,7 @@ rather than printed once per candidate.
 \description{
 Fits a tidy grid of state solutions. No solution is silently selected.
 Hard-clustering recommendations maximize silhouette within each method;
-LPA recommendations use the explicit \code{lpa_criterion}, subject to the
+model-engine recommendations use the explicit \code{lpa_criterion}, subject to the
 requested size constraints. Use \code{\link[=fit_state_choice]{fit_state_choice()}} with a \code{candidate_id}
 after inspecting the table.
 }

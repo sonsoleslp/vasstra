@@ -46,7 +46,7 @@ for them, and how the automated selection chooses.
 
 `states()` (and `vasstra(..., variables = )`) turns the
 standardized indicator matrix into `n_states` profiles. The
-`state_method` argument picks the algorithm; states are then ordered
+`engine` argument picks the algorithm; states are then ordered
 from the lowest to the highest average standardized profile, so the
 labels read low-to-high.
 
@@ -58,11 +58,12 @@ each state is a multivariate Gaussian, and every observation gets a
 *posterior probability* of belonging to each state rather than a hard
 assignment. `lpa_model` selects the covariance structure. The default
 `"EEI"` (equal variances, zero covariances, tidyLPA model 1) is diagonal
-and equal across states, the most parsimonious choice. Because it is a
+and equal across states, a parsimonious choice. Because it is a
 probability model, the number of states can be compared by **BIC**, and
-classification quality by entropy and the posterior probabilities;
-`evaluate()` and `fit_indices()` return latents' own tables and plots.
-`latents` also supplies latent class analysis (`"lca"`) and the two-level
+classification quality by entropy and the posterior probabilities
+(`fit_indices(fit, compare = TRUE)`); `evaluate()` adds latents' own
+enumeration and classification diagnostics to the usual panels. `latents`
+also supplies latent class analysis (`"lca"`) and the two-level
 and transition models (`"multilpa"`, `"multilca"`, `"lta"`), which estimate
 the trajectories together with the states (`vignette("engines")`).
 
@@ -82,7 +83,7 @@ fit_indices(fit)
 
 ## k-means
 
-`method = "kmeans"` minimises the total within-cluster sum of squared
+`engine = "kmeans"` minimises the total within-cluster sum of squared
 Euclidean distances to cluster centroids (Hartigan–Wong). It is fast and
 familiar, gives hard assignments, and assumes roughly spherical,
 equal-spread clusters. It has no likelihood, so counts are compared by
@@ -93,7 +94,7 @@ profiles are compact and similarly sized.
 
 ## Partitioning around medoids (PAM)
 
-`method = "pam"` (from `cluster`) is the medoid analogue of k-means:
+`engine = "pam"` (from `cluster`) is the medoid analogue of k-means:
 each cluster is represented by an actual observation (its medoid), and
 the algorithm minimises total distance to medoids. It is more robust to
 outliers than k-means and works from pairwise distances (here Euclidean
@@ -105,9 +106,9 @@ to outliers, or a representative real profile per state.
 ## CLARA and fuzzy clustering
 
 Two more `cluster` partitioning methods sit alongside PAM.
-`method = "clara"` runs PAM on repeated samples of the data and keeps
+`engine = "clara"` runs PAM on repeated samples of the data and keeps
 the best medoids, so it reaches PAM-like partitions on many more
-observations than PAM can handle directly. `method = "fanny"` is
+observations than PAM can handle directly. `engine = "fanny"` is
 *fuzzy*: it assigns every observation a membership in each cluster
 rather than a single hard label, and VaSSTra then hardens those
 memberships to each observation's nearest cluster so the rest of the
@@ -120,7 +121,7 @@ comfortable collapsing it to hard states.
 ## Hierarchical clustering
 
 VaSSTra offers both directions of hierarchical clustering. The divisive
-method `method = "diana"` (from `cluster`) starts with all observations
+method `engine = "diana"` (from `cluster`) starts with all observations
 in one cluster and splits recursively, which can separate a few large,
 clearly distinct groups more naturally than agglomeration. The
 agglomerative linkages `"ward.D2"`, `"ward.D"`, `"complete"`,
@@ -138,7 +139,7 @@ choice and `diana` the divisive alternative.
 ## What automation does
 
 Under `n_states = "auto"`, VaSSTra compares two through six states and
-selects a recommendation (by **BIC** for LPA, by **average silhouette**
+selects a recommendation (by **BIC** for the model engines, by **average silhouette**
 for the hard methods). It never selects a solution whose smallest class
 holds under **5%** of observations, the conventional threshold below
 which a latent class is treated as spurious. Supplying `state_labels`
@@ -149,8 +150,8 @@ fixes the count directly.
 `trajectories()` (and `vasstra()`'s trajectory step) clusters the
 *aligned state sequences*. This is a two-ingredient recipe: a **sequence
 dissimilarity** turns every pair of sequences into a distance, and a
-**clustering method** groups the resulting distance matrix. Both are
-chosen explicitly.
+**clustering method** groups the resulting distance matrix. Both have
+defaults (`hamming` and `pam`) and both can be named.
 
 ## Sequence dissimilarities
 
@@ -164,7 +165,7 @@ substantive:
 | `osa`, `lv`, `dl` | Edit distances: insertions, deletions, substitutions (and transpositions for `osa`/`dl`) to turn one sequence into the other | Shape matters more than exact timing; small shifts should cost little |
 | `lcs` | Length of the longest common subsequence (the chapter's default) | Shared *ordered* sub-patterns matter, regardless of gaps between them |
 | `qgram` | Overlap of length-*q* substrings | Local motifs (short recurring patterns) matter |
-| `cosine`, `jaccard` | Token-set overlap, ignoring order | Only the *composition* of states visited matters, not their order |
+| `cosine`, `jaccard` | Overlap of the counts (cosine) or sets (jaccard) of length-*q* substrings | Which short local patterns occur matters, not where they occur |
 | `jw` | Jaro–Winkler string similarity | Prefix agreement is important |
 
 `hamming` and `lcs` sit at the two ends most analyses use: *when*
@@ -179,8 +180,8 @@ representative sequence per group), the agglomerative linkages
 `"ward.D2"` / `"ward.D"` / `"complete"` / `"average"` / `"single"` /
 `"mcquitty"` / `"median"` / `"centroid"`, cut at `n_trajectories`. As
 with states, **Ward** favours compact balanced groups and **PAM**
-favours robustness; `ward.D2` with `lcs` reproduces the worked chapter
-analysis.
+favours robustness; `ward.D2` with `lcs` follows the worked chapter's
+trajectory step.
 
 ```{r traj}
 fit <- vasstra(
@@ -195,10 +196,9 @@ fit
 ## Backend
 
 `backend = "Nestimate"` (default) computes the distances and clustering
-through [`Nestimate::build_clusters()`], which supports every distance
-and method above. `backend = "base"` is a dependency-free fallback that
-supports only `hamming` and `lcs` distances, useful for a minimal
-install.
+through `Nestimate::build_clusters()`, which supports every distance
+and method above. `backend = "base"` is a small internal equivalence
+backend that supports only the `hamming` and `lcs` distances.
 
 # Choosing among the candidates
 
@@ -206,8 +206,8 @@ Two verbs make the comparison explicit rather than automatic.
 `state_choices()` and `trajectory_choices()` fit a full grid of methods
 and counts and return one tidy row per candidate, with the
 recommendation marked within each method: **silhouette** for the hard
-clusterings and **BIC** for LPA (model-based criteria only compare
-within LPA). Nothing is selected silently; you fit the inspected
+clusterings and **BIC** for the model engines (compared within each
+engine and covariance structure). Nothing is selected silently; you fit the inspected
 candidate by its id.
 
 ```{r choices, fig.height = 4.5}
@@ -226,13 +226,20 @@ the nearest other group, so higher is better-separated. **BIC**
 only meaningful for the likelihood-based LPA. `evaluate()` and
 `plot(evaluate(fit))` show the same silhouette on the same scale, so the
 method comparison here and the count comparison there compose into one
-argument.
+argument. For the mixture-model engines the evaluation also carries
+latents' own information criteria and classification diagnostics
+(`plot(evaluate(fit), type = "enumeration")`).
 
 # When to use what: a short guide
 
 -   **Continuous indicators, want soft assignments and information
-    criteria** → LPA (default). Compare counts by BIC; check entropy and
-    `prob_min`.
+    criteria** → LPA (default). Compare counts by BIC; check the relative
+    entropy and the lowest average posterior probability (`avepp_min`).
+-   **Categorical indicators** → LCA (`engine = "lca"`).
+-   **States and trajectories in one model, with each trajectory's
+    classification certainty reported** → `"multilpa"` (trajectories differ in
+    their mix of states) or `"lta"` (they differ in how students move
+    between states); see `vignette("engines")`.
 -   **Quick hard partition, compact profiles** → k-means.
 -   **Robustness to outliers / a representative profile** → PAM.
 -   **Want a dendrogram or a deterministic rule** → hierarchical
@@ -243,29 +250,25 @@ argument.
     `dissimilarity = "lcs"` (the chapter default), with `ward.D2` or
     `pam`.
 -   **Unsure** → run `state_choices()` / `trajectory_choices()` across a
-    few methods and let the silhouette (and BIC, for LPA) guide you.
+    few methods and let the silhouette (and BIC, for the model engines)
+    guide you.
 
 # References
 
 The clustering is carried out by the packages VaSSTra depends on:
-`latents` (whose covariance structures follow `mclust`'s
-parameterization), `cluster`, and `Nestimate`, together with base R's `kmeans()`
+`latents`, `cluster`, and `Nestimate`, together with base R's `kmeans()`
 and `hclust()`. Their canonical citations (from `citation()`) and the
 original method papers (from the corresponding help pages) are below,
-followed by two packages whose conventions VaSSTra follows without
+followed by the packages whose conventions VaSSTra follows without
 importing them.
 
 **Packages VaSSTra uses**
 
--   Scrucca, L., Fraley, C., Murphy, T. B., & Raftery, A. E. (2023).
-    *Model-Based Clustering, Classification, and Density Estimation
-    Using mclust in R.* Chapman & Hall/CRC, ISBN 978-1032234953.
-    [doi:10.1201/9781003277965](https://doi.org/10.1201/9781003277965).
-    LPA state estimation. See also Scrucca, L., Fop, M., Murphy, T. B.,
-    & Raftery, A. E. (2016). *mclust 5: Clustering, Classification and
-    Density Estimation Using Gaussian Finite Mixture Models.* The R
-    Journal, 8(1), 289–317.
-    [doi:10.32614/RJ-2016-021](https://doi.org/10.32614/RJ-2016-021).
+-   Saqr, M., & López-Pernas, S. (2026). *latents: Multilevel Latent
+    Profile, Class and Transition Models.* R package version 0.9.36.
+    <https://pak.dynasite.org/latents/>. State estimation by the
+    mixture-model engines (latent profile, latent class, two-level and
+    latent transition models).
 -   Maechler, M., Rousseeuw, P., Struyf, A., Hubert, M., & Hornik, K.
     (2026). *cluster: Cluster Analysis Basics and Extensions.* R package
     version 2.1.8.3. <https://CRAN.R-project.org/package=cluster>. PAM,
@@ -314,6 +317,15 @@ importing them.
 
 **Conventions VaSSTra follows (not dependencies)**
 
+-   Scrucca, L., Fraley, C., Murphy, T. B., & Raftery, A. E. (2023).
+    *Model-Based Clustering, Classification, and Density Estimation
+    Using mclust in R.* Chapman & Hall/CRC, ISBN 978-1032234953.
+    [doi:10.1201/9781003277965](https://doi.org/10.1201/9781003277965).
+    See also Scrucca, L., Fop, M., Murphy, T. B., & Raftery, A. E.
+    (2016). *mclust 5: Clustering, Classification and Density Estimation
+    Using Gaussian Finite Mixture Models.* The R Journal, 8(1), 289–317.
+    [doi:10.32614/RJ-2016-021](https://doi.org/10.32614/RJ-2016-021).
+    The covariance-structure codes (`"EEI"`, `"VVV"`, ...).
 -   van der Loo, M. (2014). *The stringdist package for approximate
     string matching.* The R Journal, 6(1), 111–122.
     [doi:10.32614/RJ-2014-011](https://doi.org/10.32614/RJ-2014-011).

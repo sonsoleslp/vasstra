@@ -1441,7 +1441,8 @@ plot.vasstra_trajectories <- function(
 #'
 #' Draws the selection curve, per-cluster silhouette widths, and cluster
 #' sizes for one [evaluate()] result. The default `"summary"` layout places
-#' the three panels side by side.
+#' the three panels side by side. The evaluation of a mixture-model engine
+#' adds latents' own plots; see [plot.vasstra_model_evaluation()].
 #'
 #' @param x A `vasstra_evaluation` object from [evaluate()].
 #' @param type One of `"summary"` (default), `"curve"`, `"silhouette"`, or
@@ -1517,7 +1518,10 @@ plot.vasstra_evaluation <- function(
 #' Plot the Evaluations of a Complete Fit
 #'
 #' Draws one row of evaluation panels per clustering step: the state
-#' clustering on top and the trajectory clustering below.
+#' clustering on top and the trajectory clustering below. A step estimated
+#' by a mixture-model engine also carries latents' own evaluation:
+#' `type = "enumeration"` or `"diagnostics"` draws it for each such step
+#' (see [plot.vasstra_model_evaluation()]).
 #'
 #' @param x A `vasstra_evaluations` object from [evaluate()] on a complete
 #'   `vasstra` fit.
@@ -1526,29 +1530,37 @@ plot.vasstra_evaluation <- function(
 #'   (`state_colors`), so it matches every other state plot, while the
 #'   trajectory row keeps a distinct palette so the two groupings are not
 #'   read as corresponding.
+#' @param type `"panels"` (default) for the evaluation panels of every step,
+#'   or `"enumeration"` / `"diagnostics"` for latents' plots of the steps a
+#'   mixture-model engine estimated.
 #' @param ... Additional graphical arguments passed to the panel functions.
 #'
-#' @return The evaluated candidate and cluster tables, invisibly.
+#' @return The evaluated candidate and cluster tables, invisibly; for
+#'   latents' plots, the plot of each model step, visibly (one plot, or a
+#'   list named by step).
 #'
 #' @examples
 #' data("engagement", package = "VaSSTra")
 #' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3, n_start = 5L)
 #' plot(evaluate(fit))
 #' @export
-plot.vasstra_evaluations <- function(x, colors = NULL, ...) {
+plot.vasstra_evaluations <- function(
+    x,
+    colors = NULL,
+    type = c("panels", "enumeration", "diagnostics"),
+    ...) {
   stopifnot(inherits(x, "vasstra_evaluations"))
-  # A model engine's evaluation is drawn by latents; each evaluation then
-  # draws on its own page instead of sharing one panel grid.
-  model <- vapply(x, inherits, logical(1L), "vasstra_model_evaluation")
-  if (any(model)) {
-    drawn <- lapply(x, function(evaluation) {
-      if (inherits(evaluation, "vasstra_model_evaluation")) {
-        print(plot(evaluation))
-      } else {
-        plot(evaluation, colors = colors, ...)
-      }
-    })
-    return(invisible(drawn))
+  type <- match.arg(type)
+  if (!identical(type, "panels")) {
+    model <- vapply(x, inherits, logical(1L), "vasstra_model_evaluation")
+    if (!any(model)) {
+      stop(
+        "latents' plots need a step estimated by a mixture-model engine.",
+        call. = FALSE
+      )
+    }
+    drawn <- lapply(x[model], plot, type = type, ...)
+    return(if (length(drawn) == 1L) drawn[[1L]] else drawn)
   }
   old_par <- .vasstra_style_par()
   on.exit(graphics::par(old_par), add = TRUE)

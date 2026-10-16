@@ -18,10 +18,10 @@ reference:
 - title: Explicit steps
   desc: The four steps `vasstra()` runs, for full control over each stage.
   contents:
-  - step1_states
-  - step2_sequences
-  - step3_trajectories
-  - step4_describe
+  - states
+  - sequences
+  - trajectories
+  - describe
 
 - title: Choosing and evaluating a model
   desc: Compare cluster counts and methods, and read fit statistics.
@@ -44,6 +44,7 @@ reference:
   - plot.vasstra_trajectories
   - plot.vasstra_evaluation
   - plot.vasstra_evaluations
+  - plot.vasstra_model_evaluation
   - plot.vasstra_state_choices
   - plot.vasstra_trajectory_choices
   - transition_plot
@@ -66,12 +67,18 @@ reference:
   contents:
   - engagement
 
+- title: Former names
+  desc: The step functions' names before VaSSTra 0.5.0, kept for one release.
+  contents:
+  - vasstra-former-names
+
 articles:
 - title: Get started
   navbar: ~
   contents:
   - get-started
   - vasstra-tutorial
+  - engines
   - flow-plots
   - plot-review
   - clustering-algorithms

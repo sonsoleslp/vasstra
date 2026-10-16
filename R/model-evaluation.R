@@ -1,10 +1,10 @@
 # Evaluation of a model engine.
 #
-# A model engine's states (and a two-level engine's trajectories) are a
-# latents model, so its evaluation is latents': the candidate counts come
-# from latents' enumeration and the classification diagnostics from
-# latents::diagnostics(), returned and drawn as latents returns and draws
-# them. VaSSTra adds only which candidate it fitted.
+# A model engine's states (and a two-level engine's trajectories) are
+# evaluated like any others, by silhouette and group sizes, and the
+# evaluation also carries latents' own: the enumeration behind the compared
+# counts and latents::diagnostics() of the fitted model, returned and drawn
+# as latents returns and draws them.
 
 # The latents enumeration that compares the fitted model with other counts:
 # the comparison stored by automatic selection, or a new one over `counts`
@@ -56,52 +56,120 @@
   )
 }
 
-.vasstra_model_evaluation <- function(states, unit, counts = NULL) {
-  stopifnot(inherits(states, "vasstra_states"))
+# Add latents' own evaluation to a VaSSTra evaluation of model-engine states
+# or trajectories: the enumeration behind the compared counts and the fitted
+# model's classification diagnostics. VaSSTra's own tables and panels stay as
+# they are.
+.vasstra_attach_latents <- function(evaluation, states, enumeration) {
+  stopifnot(inherits(evaluation, "vasstra_evaluation"),
+            inherits(states, "vasstra_states"))
+  evaluation$enumeration <- enumeration
+  evaluation$diagnostics <- latents::diagnostics(states$model, plots = FALSE)
+  evaluation$engine <- states$settings$engine
+  class(evaluation) <- c("vasstra_model_evaluation", class(evaluation))
+  evaluation
+}
+
+# The evaluation of a two-level engine's trajectory classes, in the same form
+# as a clustering's: each candidate number of classes (refitted by latents at
+# the fitted number of states) with the silhouette and within-trajectory
+# distance of its classes on the Hamming distance, and the fitted classes'
+# sizes and silhouettes. The recommended count is the lowest BIC among
+# candidates that leave no class under 5 percent of the subjects.
+.vasstra_model_trajectory_evaluation <- function(x, n_trajectories = NULL) {
+  stopifnot(inherits(x, "vasstra_trajectories"))
+  states <- x$source$source
   settings <- states$settings
-  structure(
-    list(
-      enumeration = .vasstra_model_enumeration(states, unit, counts),
-      diagnostics = latents::diagnostics(states$model, plots = FALSE),
-      unit = unit,
-      engine = settings$engine,
-      fitted = list(
-        n_states = settings$n_states,
-        n_trajectories = settings$n_trajectories
-      )
-    ),
-    class = c("vasstra_model_evaluation", "list")
+  enumeration <- .vasstra_model_enumeration(states, "trajectories",
+                                            n_trajectories)
+  ids <- x$source$meta_data[[x$source$settings$id]]
+  distance_matrix <- as.matrix(x$distance)
+  describe_classes <- function(classes) {
+    sizes <- tabulate(classes, nbins = max(classes))
+    sizes <- sizes[sizes > 0L]
+    occupied <- sort(unique(classes))
+    within <- vapply(occupied, function(class_id) {
+      members <- which(classes == class_id)
+      if (length(members) <= 1L) {
+        return(0)
+      }
+      block <- distance_matrix[members, members, drop = FALSE]
+      mean(block[lower.tri(block)])
+    }, numeric(1L))
+    data.frame(
+      silhouette = .vasstra_silhouette(as.numeric(classes), x$distance),
+      mean_within_distance = stats::weighted.mean(within, sizes),
+      min_size = min(sizes),
+      max_size = max(sizes),
+      size_ratio = max(sizes) / min(sizes)
+    )
+  }
+  candidates <- if (is.null(enumeration)) {
+    fitted <- describe_classes(as.integer(x$assignments))
+    cbind(data.frame(n_trajectories = settings$n_trajectories,
+                     bic = states$diagnostics$bic), fitted,
+          data.frame(eligible = TRUE, is_recommended = TRUE))
+  } else {
+    rows <- .vasstra_enumeration_rows(enumeration, settings$engine,
+                                      settings$lpa_model)
+    rows <- rows[rows$n_states == settings$n_states & rows$status == "ok", ,
+                 drop = FALSE]
+    described <- do.call(rbind, lapply(seq_len(nrow(rows)), function(index) {
+      fit <- .vasstra_enumerated_fit(enumeration, rows$n_states[[index]],
+                                     rows$n_trajectories[[index]])
+      classes <- .vasstra_fit_trajectory_classes(fit, ids)$classes
+      describe_classes(classes)
+    }))
+    table <- cbind(rows[c("n_trajectories", "bic")], described)
+    table$eligible <- rows$min_trajectory_proportion >= 0.05
+    best <- which(table$eligible)
+    best <- best[which.min(table$bic[best])]
+    table$is_recommended <- seq_len(nrow(table)) %in% best
+    table
+  }
+  candidates$dissimilarity <- "hamming"
+  candidates$method <- "model"
+  candidates$best <- candidates$is_recommended
+  candidates$fitted <- candidates$n_trajectories == settings$n_trajectories
+  candidates <- candidates[c(
+    "n_trajectories", "dissimilarity", "method", "silhouette",
+    "mean_within_distance", "min_size", "max_size", "size_ratio",
+    "eligible", "best", "fitted"
+  )]
+  rownames(candidates) <- NULL
+  assignments <- as.numeric(as.integer(x$assignments))
+  widths <- .vasstra_silhouette_widths(assignments, x$distance)
+  clusters <- x$cluster_summary
+  clusters$silhouette <- vapply(
+    seq_along(x$settings$labels),
+    function(cluster_id) mean(widths[assignments == cluster_id]),
+    numeric(1L)
   )
+  evaluation <- .vasstra_evaluation(
+    candidates = candidates,
+    clusters = clusters,
+    unit = "trajectories",
+    size_column = "n_trajectories",
+    fitted_size = settings$n_trajectories,
+    fitted_silhouette = x$silhouette,
+    method_label = sprintf("%s model; silhouette on hamming", settings$engine)
+  )
+  .vasstra_attach_latents(evaluation, states, enumeration)
 }
 
 #' @export
 print.vasstra_model_evaluation <- function(x, ...) {
   stopifnot(inherits(x, "vasstra_model_evaluation"))
-  cat(sprintf("VaSSTra model evaluation: %s (%s, from latents)\n",
-              x$unit, x$engine))
+  NextMethod()
   cat(sprintf(
-    "  Fitted: %d states%s\n\n",
-    x$fitted$n_states,
-    if (is.na(x$fitted$n_trajectories)) {
-      ""
-    } else {
-      sprintf(", %d trajectory classes", x$fitted$n_trajectories)
-    }
+    paste0(
+      "  latents' own evaluation of the %s model: ",
+      "as.data.frame(x, what = \"enumeration\" | \"classification\"), ",
+      "plot(x, type = \"enumeration\" | \"diagnostics\").\n"
+    ),
+    x$engine
   ))
-  if (is.null(x$enumeration)) {
-    cat("  A fitted latents model was supplied, so no other counts were fitted.\n\n")
-  } else {
-    print(x$enumeration)
-    cat("\n")
-  }
-  print(x$diagnostics)
   invisible(x)
-}
-
-#' @export
-summary.vasstra_model_evaluation <- function(object, ...) {
-  stopifnot(inherits(object, "vasstra_model_evaluation"))
-  latents::get_results(object$diagnostics, "classification")
 }
 
 #' @export
@@ -110,66 +178,79 @@ as.data.frame.vasstra_model_evaluation <- function(
     row.names = NULL,
     optional = FALSE,
     ...,
-    what = c("candidates", "classification")) {
+    what = c("candidates", "enumeration", "classification")) {
   stopifnot(inherits(x, "vasstra_model_evaluation"))
   what <- match.arg(what)
-  table <- if (identical(what, "classification")) {
-    latents::get_results(x$diagnostics, "classification")
-  } else if (is.null(x$enumeration)) {
-    stop(
-      "A fitted latents model was supplied, so there are no candidates; use `what = \"classification\"`.",
-      call. = FALSE
-    )
-  } else {
-    latents::get_results(x$enumeration, "candidates")
-  }
+  table <- switch(
+    what,
+    candidates = x$candidates,
+    classification = latents::get_results(x$diagnostics, "classification"),
+    enumeration = if (is.null(x$enumeration)) {
+      stop(
+        "A fitted latents model was supplied, so latents compared no other counts.",
+        call. = FALSE
+      )
+    } else {
+      latents::get_results(x$enumeration, "candidates")
+    }
+  )
   as.data.frame(table, row.names = row.names, optional = optional, ...)
 }
 
 #' Plot the Evaluation of a Model Engine
 #'
-#' Draws latents' own plots of a model engine's evaluation: the information
-#' criteria across the compared counts ([latents::plot_enumeration()], or the
-#' criterion plot of a latent transition grid), or the classification
-#' diagnostics of the fitted model ([latents::diagnostics()]). Requires the
-#' suggested ggplot2 package.
+#' A model engine's evaluation is drawn like any other: the selection curve,
+#' per-group silhouette widths, and group sizes ([plot.vasstra_evaluation()],
+#' the default). It also carries latents' own evaluation, drawn by latents:
+#' `type = "enumeration"` plots the information criteria across the compared
+#' counts ([latents::plot_enumeration()], or the criterion plot of a latent
+#' transition grid), and `type = "diagnostics"` the fitted model's
+#' classification diagnostics ([latents::diagnostics()]). The latents plots
+#' need the suggested ggplot2 package.
 #'
 #' @param x A `vasstra_model_evaluation` from [evaluate()] on states or
 #'   trajectories estimated by a model engine.
-#' @param what `"enumeration"` (default) for the comparison of counts, or
-#'   `"diagnostics"` for the fitted model's classification diagnostics.
-#' @param ... Passed to the latents plot.
+#' @param type One of the panels of [plot.vasstra_evaluation()] (`"summary"`,
+#'   the default, `"curve"`, `"silhouette"`, `"sizes"`), or `"enumeration"`
+#'   or `"diagnostics"` for latents' plots.
+#' @param ... Passed to the panel or latents plot.
 #'
-#' @return The latents plot object, visibly: a ggplot for `"enumeration"`, a
+#' @return For the panels, what [plot.vasstra_evaluation()] returns. For
+#'   latents' plots, the plot object visibly: a ggplot for `"enumeration"`, a
 #'   `latents_plots` list for `"diagnostics"`.
 #'
 #' @examples
 #' \donttest{
+#' data("engagement", package = "VaSSTra")
+#' states <- states(engagement, n_states = 3, n_start = 5L)
+#' evaluation <- evaluate(states, n_states = 2:4)
+#' plot(evaluation)
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
-#'   data("engagement", package = "VaSSTra")
-#'   states <- states(engagement, n_states = 3, n_start = 5L)
-#'   evaluation <- evaluate(states, n_states = 2:4)
-#'   plot(evaluation)
-#'   plot(evaluation, what = "diagnostics")
+#'   plot(evaluation, type = "enumeration")
+#'   plot(evaluation, type = "diagnostics")
 #' }
 #' }
 #' @export
 plot.vasstra_model_evaluation <- function(
     x,
-    what = c("enumeration", "diagnostics"),
+    type = c("summary", "curve", "silhouette", "sizes", "enumeration",
+             "diagnostics"),
     ...) {
   stopifnot(inherits(x, "vasstra_model_evaluation"))
-  what <- match.arg(what)
+  type <- match.arg(type)
+  if (!type %in% c("enumeration", "diagnostics")) {
+    return(NextMethod())
+  }
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
-    stop("Plotting a model evaluation needs the ggplot2 package.",
+    stop("latents' evaluation plots need the ggplot2 package.",
          call. = FALSE)
   }
-  if (identical(what, "diagnostics")) {
+  if (identical(type, "diagnostics")) {
     return(plot(x$diagnostics, ...))
   }
   if (is.null(x$enumeration)) {
     stop(
-      "A fitted latents model was supplied, so there are no candidates; use `what = \"diagnostics\"`.",
+      "A fitted latents model was supplied, so latents compared no other counts; use `type = \"diagnostics\"`.",
       call. = FALSE
     )
   }
@@ -177,39 +258,4 @@ plot.vasstra_model_evaluation <- function(
     return(plot(x$enumeration, what = "bic", ...))
   }
   latents::plot_enumeration(x$enumeration, ...)
-}
-
-# A model evaluation's candidates in the columns a complete fit's evaluations
-# share: the count, latents' BIC, and which candidate was fitted.
-.vasstra_model_evaluation_rows <- function(evaluation, columns) {
-  stopifnot(inherits(evaluation, "vasstra_model_evaluation"))
-  if (is.null(evaluation$enumeration)) {
-    return(NULL)
-  }
-  candidates <- latents::get_results(evaluation$enumeration, "candidates")
-  states_unit <- identical(evaluation$unit, "states")
-  counts <- if (states_unit) {
-    candidates$n_profiles
-  } else {
-    candidates$n_group_classes
-  }
-  bic <- if ("bic_groups" %in% names(candidates)) {
-    candidates$bic_groups
-  } else {
-    candidates$bic
-  }
-  fitted <- candidates$n_profiles == evaluation$fitted$n_states
-  if (!is.na(evaluation$fitted$n_trajectories)) {
-    fitted <- fitted &
-      candidates$n_group_classes == evaluation$fitted$n_trajectories
-  }
-  rows <- data.frame(
-    unit = evaluation$unit,
-    k = as.integer(counts),
-    bic = bic,
-    fitted = fitted,
-    stringsAsFactors = FALSE
-  )
-  rows[setdiff(columns, names(rows))] <- NA
-  rows[columns]
 }
