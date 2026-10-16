@@ -1,4 +1,4 @@
-^VaSStra\.Rproj$
+^VaSSTra\.Rproj$
 ^\.Rproj\.user$
 ^\.git$
 ^\.github$
@@ -11,3 +11,12 @@
 ^CLAUDE\.md$
 ^Rplots\.pdf$
 ^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^logo\.png$
+^vasstra\.Rproj$
+^README\.Rmd$
+^vignettes/plot-review\.Rmd$
+^vignettes/clustering-algorithms\.Rmd$
+^vignettes/standardization\.Rmd$
+^vignettes/images$

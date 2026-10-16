@@ -74,7 +74,7 @@ test_that("size = 'none' draws one uniform node size", {
 
 test_that("sequence colors are realigned to Nestimate's state order", {
   # Nestimate sorts states alphabetically and assigns state_colors
-  # positionally, ignoring factor levels, so colors supplied in VaSStra's
+  # positionally, ignoring factor levels, so colors supplied in VaSSTra's
   # state order must be remapped by name.
   states <- c("Zeta", "Mid", "Alpha")
   colors <- c("#FF0000", "#00FF00", "#0000FF")
@@ -224,6 +224,38 @@ test_that("transition_plot draws sequences beside the network", {
   # Pairing changes only the layout, never the numbers.
   expect_equal(paired$value, draw_transition_plot(fit)$value)
   expect_error(draw_transition_plot(fit, sequences = 3), "TRUE, FALSE")
+})
+
+test_that("transition_table returns aggregated and per-time-step counts", {
+  fit <- vasstra_test_fit()
+  states <- fit$trajectories$source$states
+  n_times <- ncol(fit$sequences$data)
+
+  agg <- transition_table(fit)
+  expect_named(agg, c("from", "to", "count", "probability"))
+  expect_setequal(unique(agg$from), states)
+  # Aggregated counts equal the table stored on the sequences object.
+  expect_equal(agg$count, fit$sequences$transitions$count)
+  # Probabilities are row-normalized within `from`.
+  totals <- tapply(agg$probability, agg$from, sum)
+  expect_true(all(abs(totals - 1) < 1e-8))
+
+  timed <- transition_table(fit, by_time = TRUE)
+  expect_true(all(c("from_time", "to_time") %in% names(timed)))
+  # One block per consecutive time pair.
+  expect_equal(
+    length(unique(paste(timed$from_time, timed$to_time))),
+    n_times - 1L
+  )
+  # Summing the per-step counts recovers the aggregated total.
+  expect_equal(sum(timed$count), sum(agg$count))
+
+  # A group restricts to one trajectory's subjects.
+  label <- fit$trajectories$settings$labels[[1L]]
+  grouped <- transition_table(fit, group = label)
+  expect_lt(sum(grouped$count), sum(agg$count))
+
+  expect_error(transition_table(fit, by_time = NA), "TRUE or FALSE")
 })
 
 test_that("transition_plot validates its arguments", {

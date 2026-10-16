@@ -1,11 +1,12 @@
-Package: VaSStra
+Package: VaSSTra
 Title: Simple Variables to States to Sequences to Trajectories
-Version: 0.4.0
+Version: 0.5.0
 Authors@R: c(
     person("Mohammed", "Saqr",
            email = "saqr@saqr.me",
            role = c("aut", "cre", "cph")),
-    person("Sonsoles", "López-Pernas", role = "aut")
+    person("Sonsoles", "López-Pernas",
+           email = "sonsoles.lopez@uef.fi", role = "aut")
     )
 Description: A small, pipe-friendly implementation of the VaSSTra workflow
     for longitudinal multivariate data. It provides explicit steps to turn
@@ -19,10 +20,10 @@ Description: A small, pipe-friendly implementation of the VaSSTra workflow
     hard clustering. 'Nestimate' provides the default sequence-clustering
     backend and all sequence plots. No 'TraMineR' dependency is required.
 License: MIT + file LICENSE
-URL: https://pak.dynasite.org/VaSStra,
-    https://github.com/mohsaqr/VaSStra,
+URL: https://sonsoles.me/vasstra/,
+    https://github.com/sonsoleslp/vasstra,
     https://lamethods.org/book1/chapters/ch11-vasstra/ch11-vasstra.html
-BugReports: https://github.com/mohsaqr/VaSStra/issues
+BugReports: https://github.com/sonsoleslp/vasstra/issues
 Encoding: UTF-8
 Language: en-US
 LazyData: true
@@ -38,6 +39,7 @@ Imports:
     stats,
     utils
 Suggests:
+    bslib,
     cograph (>= 2.4.0),
     DT,
     ggplot2,

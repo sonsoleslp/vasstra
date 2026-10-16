@@ -1,4 +1,4 @@
 library(testthat)
-library(VaSStra)
+library(VaSSTra)
 
-test_check("VaSStra")
+test_check("VaSSTra")

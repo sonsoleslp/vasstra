@@ -24,8 +24,8 @@ What the renamed function returns.
 }
 \description{
 The four steps were called \code{step1_states()}, \code{step2_sequences()},
-\code{step3_trajectories()} and \code{step4_describe()} before VaSStra 0.4.0. The old
-names call \code{\link[=states]{states()}}, \code{\link[=sequences]{sequences()}}, \code{\link[=trajectories]{trajectories()}} and \code{\link[testthat:describe]{testthat::describe()}}
+\code{step3_trajectories()} and \code{step4_describe()} before VaSSTra 0.5.0. The old
+names call \code{\link[=states]{states()}}, \code{\link[=sequences]{sequences()}}, \code{\link[=trajectories]{trajectories()}} and \code{\link[=describe]{describe()}}
 unchanged, so existing code keeps working; they will be removed in the
 next release.
 }

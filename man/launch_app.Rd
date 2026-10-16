@@ -2,7 +2,7 @@
 % Please edit documentation in R/launch_app.R
 \name{launch_app}
 \alias{launch_app}
-\title{Launch the Interactive VaSStra App}
+\title{Launch the Interactive VaSSTra App}
 \usage{
 launch_app(...)
 }
@@ -13,7 +13,7 @@ launch_app(...)
 Called for its side effect of running the app.
 }
 \description{
-Opens a Shiny application that runs the complete VaSStra workflow
+Opens a Shiny application that runs the complete VaSSTra workflow
 interactively: load data, map the subject, time, and indicator roles,
 fit states and trajectories with automated or explicit counts, inspect
 evaluation panels and tidy fit indices, rename groups, and export every

@@ -1,12 +1,12 @@
-# VaSStra interactive app: variables -> states -> sequences -> trajectories.
-# Launched through VaSStra::launch_app(); shiny and DT are suggested packages.
+# VaSSTra interactive app: variables -> states -> sequences -> trajectories.
+# Launched through VaSSTra::launch_app(); shiny and DT are suggested packages.
 
 library(shiny)
-library(VaSStra)
+library(VaSSTra)
 
 options(shiny.maxRequestSize = 100 * 1024^2)
 
-data("engagement", package = "VaSStra", envir = environment())
+data("engagement", package = "VaSSTra", envir = environment())
 
 .parse_labels <- function(text) {
   values <- trimws(strsplit(text, ",", fixed = TRUE)[[1L]])
@@ -18,56 +18,116 @@ data("engagement", package = "VaSStra", envir = environment())
   if (identical(value, "auto")) "auto" else as.integer(value)
 }
 
+# A Bootstrap 5 theme (via bslib, which ships with shiny) modernizes the
+# typography, form controls, and spacing; the CSS below layers on soft cards
+# and brand accents. Falls back to the default Bootstrap if bslib is absent.
+app_theme <- if (requireNamespace("bslib", quietly = TRUE)) {
+  bslib::bs_theme(
+    version = 5,
+    primary = "#2c7be5",
+    "body-bg" = "#f6f8fb",
+    "body-color" = "#1e293b",
+    base_font = bslib::font_collection(
+      "system-ui", "Segoe UI", "Roboto", "Helvetica Neue", "Arial",
+      "sans-serif"
+    ),
+    # Bootstrap 5 defaults run large; scale the base type and control padding
+    # down for a denser, less oversized layout.
+    font_size_base = "0.85rem",
+    "border-radius" = "0.5rem",
+    "input-btn-padding-y" = "0.3rem",
+    "input-btn-padding-x" = "0.6rem",
+    spacer = "0.9rem"
+  )
+} else {
+  NULL
+}
+
 app_css <- "
-  body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+  :root { --brand: #2c7be5; --brand-dark: #1a56db; --line: #e6ebf2; }
   .app-title {
-    background: linear-gradient(90deg, #1a56db, #2c7be5, #4facfe);
-    color: white; padding: 18px 24px; border-radius: 8px;
-    margin-bottom: 16px;
+    background: #ffffff; color: #0f172a; padding: 12px 4px 10px;
+    margin-bottom: 14px; border-bottom: 2px solid var(--brand);
   }
-  .app-title h2 { margin: 0; font-weight: 600; }
-  .app-title .subtitle { margin: 4px 0 0; opacity: 0.92; font-size: 14.5px; }
-  .sidebar-panel { background: #f8fafc; border: 1px solid #e2e8f0;
-    border-radius: 8px; }
+  .app-title h2 { margin: 0; font-weight: 700; letter-spacing: -0.4px;
+    font-size: 22px; color: #0f172a; }
+  .app-title .subtitle { margin: 3px 0 0; color: #64748b; font-size: 13px;
+    font-weight: 400; }
+  /* Card-style panels: white with a soft shadow instead of flat borders. */
+  .sidebar-panel, .well {
+    background: #ffffff; border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  }
   .section-header {
-    color: #1a56db; font-weight: 600; font-size: 13px;
-    text-transform: uppercase; letter-spacing: 0.4px;
-    border-bottom: 1px solid #dbeafe; margin: 16px 0 8px; padding-bottom: 3px;
+    color: var(--brand-dark); font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    margin: 12px 0 6px; padding-bottom: 3px;
+    border-bottom: 1px solid var(--line);
   }
-  .btn-primary, .btn-primary:focus {
-    background: #2c7be5; border-color: #2c7be5;
+  /* Tighten the vertical rhythm of the sidebar form. */
+  .sidebar-panel .form-group, .sidebar-panel .shiny-input-container {
+    margin-bottom: 10px;
+  }
+  label { margin-bottom: 3px; font-size: 13px; }
+  .btn-primary {
+    background: var(--brand); border-color: var(--brand);
+    font-weight: 500; box-shadow: 0 2px 6px rgba(44, 123, 229, 0.25);
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+  .btn-primary:hover { background: var(--brand-dark); border-color: var(--brand-dark); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn { border-radius: 8px; }
+  .form-control, .selectize-input, .form-select {
+    border-radius: 8px; border-color: var(--line);
+  }
+  /* Pill-style tabs. */
+  .nav-tabs { border-bottom: 1px solid var(--line); gap: 4px; }
+  .nav-tabs .nav-link {
+    border: none; border-radius: 8px 8px 0 0; color: #64748b;
+    font-weight: 500; padding: 6px 12px;
+  }
+  .nav-tabs .nav-link:hover { color: var(--brand-dark); background: #eef4ff; }
+  .nav-tabs .nav-link.active {
+    color: var(--brand-dark); background: #ffffff;
+    border-bottom: 2px solid var(--brand);
   }
   .help-section {
-    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
-    padding: 14px 18px; margin-bottom: 14px;
+    background: #ffffff; border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px 16px; margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
   }
-  .help-section h4 { color: #1a56db; margin-top: 4px; }
+  .help-section h4 { color: var(--brand-dark); margin-top: 4px;
+    font-weight: 600; }
   .measure-table { width: 100%; border-collapse: collapse; margin: 8px 0; }
   .measure-table th {
-    text-align: left; color: #1a56db; border-bottom: 2px solid #dbeafe;
-    padding: 5px 10px 5px 0; font-size: 13.5px;
+    text-align: left; color: var(--brand-dark);
+    border-bottom: 2px solid #dbeafe;
+    padding: 6px 12px 6px 0; font-size: 13.5px;
   }
   .measure-table td {
-    border-bottom: 1px solid #eef2f7; padding: 5px 10px 5px 0;
+    border-bottom: 1px solid #eef2f7; padding: 6px 12px 6px 0;
     font-size: 13.5px; vertical-align: top;
   }
   .decisions-box {
-    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;
-    padding: 10px 14px; margin-bottom: 12px;
-    font-family: monospace; font-size: 12.5px; white-space: pre-wrap;
+    background: #eff6ff; border: 1px solid #cfe0fb; border-radius: 12px;
+    padding: 12px 16px; margin-bottom: 14px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px; white-space: pre-wrap;
   }
   .app-footer {
-    margin-top: 24px; padding: 14px; color: #64748b; font-size: 12.5px;
-    border-top: 1px solid #e2e8f0;
+    margin-top: 28px; padding: 16px; color: #64748b; font-size: 12.5px;
+    border-top: 1px solid var(--line);
   }
-  .app-footer a { color: #2c7be5; }
+  .app-footer a { color: var(--brand); text-decoration: none; }
+  .app-footer a:hover { text-decoration: underline; }
 "
 
 ui <- fluidPage(
+  theme = app_theme,
   tags$head(tags$style(HTML(app_css))),
   div(
     class = "app-title",
-    h2("VaSStra"),
+    h2("VaSSTra"),
     p(
       class = "subtitle",
       "Variables to States to Sequences to Trajectories — ",
@@ -101,9 +161,16 @@ ui <- fluidPage(
       uiOutput("ui_id"),
       uiOutput("ui_time"),
       uiOutput("ui_variables"),
-      div(class = "section-header", "States"),
-      selectInput(
-        "n_states",
+      checkboxInput(
+        "auto_all",
+        "Everything automatic (detect counts and methods)",
+        value = FALSE
+      ),
+      conditionalPanel(
+        condition = "!input.auto_all",
+        div(class = "section-header", "States"),
+        selectInput(
+          "n_states",
         "Number of states",
         choices = c("auto", as.character(2:8)),
         selected = "auto"
@@ -116,7 +183,8 @@ ui <- fluidPage(
             "lpa", "lca", "multilpa", "multilca", "lta"
           ),
           "Clustering" = c(
-            "kmeans", "pam", "ward.D2", "ward.D", "complete",
+            "kmeans", "pam", "clara", "fanny", "diana",
+            "ward.D2", "ward.D", "complete",
             "average", "single", "mcquitty", "median", "centroid"
           )
         ),
@@ -184,11 +252,12 @@ ui <- fluidPage(
         "Negative states",
         choices = character(0),
         multiple = TRUE
+      )
       ),
       numericInput("seed", "Seed", value = 123, min = 1, step = 1),
       actionButton(
         "run",
-        "Run VaSStra",
+        "Run VaSSTra",
         class = "btn-primary btn-block",
         icon = icon("play")
       ),
@@ -218,7 +287,7 @@ ui <- fluidPage(
                 "detected."
               ),
               tags$li(
-                strong("Run VaSStra."),
+                strong("Run VaSSTra."),
                 " Counts left on “auto” are selected by comparing ",
                 "2–6 candidates; every automated decision is reported ",
                 "in the Decisions box and recorded in the fit. Supplying ",
@@ -456,6 +525,39 @@ ui <- fluidPage(
           DT::DTOutput("subject_indices")
         ),
         tabPanel(
+          "Overview",
+          br(),
+          div(
+            class = "help-section",
+            p(
+              "One row per trajectory: its transition network, sequence ",
+              "index plot, and state distribution, drawn together on the ",
+              "shared palette and state order. The transition column needs ",
+              "the suggested ", tags$code("cograph"), " package."
+            )
+          ),
+          plotOutput("fit_grid", height = "760px")
+        ),
+        tabPanel(
+          "Transitions",
+          br(),
+          div(
+            class = "help-section",
+            p(
+              "State-to-state transition counts behind the flow and network ",
+              "views. Aggregated over time by default; the per-step view ",
+              "matches the alluvial flow bands. ", tags$code("probability"),
+              " is row-normalized within each origin state."
+            )
+          ),
+          checkboxInput(
+            "transitions_by_time",
+            "Break down by consecutive time step",
+            value = FALSE
+          ),
+          DT::DTOutput("transition_table")
+        ),
+        tabPanel(
           "Evaluation",
           br(),
           plotOutput("evaluation_plot", height = "680px"),
@@ -499,6 +601,7 @@ ui <- fluidPage(
             downloadButton("dl_observation", "Observations"),
             downloadButton("dl_state_profiles", "State profiles"),
             downloadButton("dl_trajectory", "Trajectory summary"),
+            downloadButton("dl_transitions", "Transition counts"),
             downloadButton("dl_indices", "Fit index comparison")
           )
         )
@@ -542,7 +645,7 @@ server <- function(input, output, session) {
     req(data)
     tryCatch(
       suppressMessages(
-        VaSStra:::.vasstra_auto_roles(data, NULL, NULL, NULL)
+        VaSSTra:::.vasstra_auto_roles(data, NULL, NULL, NULL)
       ),
       error = function(error) {
         list(
@@ -592,34 +695,41 @@ server <- function(input, output, session) {
       return(NULL)
     }
     messages <- character(0)
-    result <- withProgress(message = "Running VaSStra…", value = 0.4, {
+    # Fully automatic: pass only the roles and let vasstra() detect the
+    # counts and use its default methods. Otherwise pass every manual choice.
+    call_args <- list(
+      data,
+      id = input$id,
+      time = input$time,
+      variables = input$variables,
+      seed = input$seed
+    )
+    if (!isTRUE(input$auto_all)) {
+      call_args <- c(call_args, list(
+        n_states = .count_choice(input$n_states),
+        n_trajectories = .count_choice(input$n_trajectories),
+        state_labels = .parse_labels(input$state_labels),
+        trajectory_labels = .parse_labels(input$trajectory_labels),
+        engine = input$engine,
+        lpa_model = input$lpa_model,
+        dissimilarity = input$dissimilarity,
+        cluster_method = input$cluster_method,
+        positive_states = if (length(input$positive_states) > 0L) {
+          input$positive_states
+        } else {
+          NULL
+        },
+        negative_states = if (length(input$negative_states) > 0L) {
+          input$negative_states
+        } else {
+          NULL
+        }
+      ))
+    }
+    result <- withProgress(message = "Running VaSSTra…", value = 0.4, {
       tryCatch(
         withCallingHandlers(
-          vasstra(
-            data,
-            id = input$id,
-            time = input$time,
-            variables = input$variables,
-            n_states = .count_choice(input$n_states),
-            n_trajectories = .count_choice(input$n_trajectories),
-            state_labels = .parse_labels(input$state_labels),
-            trajectory_labels = .parse_labels(input$trajectory_labels),
-            engine = input$engine,
-            lpa_model = input$lpa_model,
-            dissimilarity = input$dissimilarity,
-            cluster_method = input$cluster_method,
-            positive_states = if (length(input$positive_states) > 0L) {
-              input$positive_states
-            } else {
-              NULL
-            },
-            negative_states = if (length(input$negative_states) > 0L) {
-              input$negative_states
-            } else {
-              NULL
-            },
-            seed = input$seed
-          ),
+          do.call(vasstra, call_args),
           message = function(condition) {
             messages <<- c(messages, conditionMessage(condition))
             invokeRestart("muffleMessage")
@@ -751,6 +861,19 @@ server <- function(input, output, session) {
     plot(fit, type = input$trajectory_plot_type)
   })
 
+  output$fit_grid <- renderPlot({
+    fit <- fit_rv()
+    req(fit)
+    # The transition column needs cograph; fall back to the two sequence
+    # views when it is not installed.
+    views <- if (requireNamespace("cograph", quietly = TRUE)) {
+      c("transition", "index", "distribution")
+    } else {
+      c("index", "distribution")
+    }
+    plot(fit, type = views)
+  })
+
   output$subject_indices <- DT::renderDT({
     fit <- fit_rv()
     req(fit)
@@ -796,6 +919,19 @@ server <- function(input, output, session) {
                   options = list(dom = "t", scrollX = TRUE))
   })
 
+  output$transition_table <- DT::renderDT({
+    fit <- fit_rv()
+    req(fit)
+    tbl <- transition_table(
+      fit,
+      by_time = isTRUE(input$transitions_by_time)
+    )
+    numeric_columns <- vapply(tbl, is.numeric, logical(1L))
+    tbl[numeric_columns] <- lapply(tbl[numeric_columns], round, digits = 3L)
+    DT::datatable(tbl, rownames = FALSE, filter = "top",
+                  options = list(pageLength = 12, scrollX = TRUE))
+  })
+
   .download_csv <- function(name, builder) {
     downloadHandler(
       filename = function() paste0("vasstra_", name, "_", Sys.Date(), ".csv"),
@@ -818,6 +954,9 @@ server <- function(input, output, session) {
   })
   output$dl_trajectory <- .download_csv("trajectories", function(fit) {
     as.data.frame(fit, unit = "trajectory")
+  })
+  output$dl_transitions <- .download_csv("transitions", function(fit) {
+    transition_table(fit)
   })
   output$dl_indices <- .download_csv("fit_indices", function(fit) {
     as.data.frame(fit_indices(fit, step = "states", compare = TRUE))

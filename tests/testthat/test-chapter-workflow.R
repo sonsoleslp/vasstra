@@ -2,7 +2,7 @@ test_that("chapter data runs through the complete Nestimate workflow", {
   data_environment <- new.env(parent = emptyenv())
   utils::data(
     "engagement",
-    package = "VaSStra",
+    package = "VaSSTra",
     envir = data_environment
   )
   data <- data_environment$engagement

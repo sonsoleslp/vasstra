@@ -1,6 +1,6 @@
-#' Launch the Interactive VaSStra App
+#' Launch the Interactive VaSSTra App
 #'
-#' Opens a Shiny application that runs the complete VaSStra workflow
+#' Opens a Shiny application that runs the complete VaSSTra workflow
 #' interactively: load data, map the subject, time, and indicator roles,
 #' fit states and trajectories with automated or explicit counts, inspect
 #' evaluation panels and tidy fit indices, rename groups, and export every
@@ -25,9 +25,9 @@ launch_app <- function(...) {
       ), call. = FALSE)
     }
   }
-  app_dir <- system.file("shiny", "vasstra_app", package = "VaSStra")
+  app_dir <- system.file("shiny", "vasstra_app", package = "VaSSTra")
   if (!nzchar(app_dir)) {
-    stop("Could not find the Shiny app directory. Re-install VaSStra.",
+    stop("Could not find the Shiny app directory. Re-install VaSSTra.",
          call. = FALSE)
   }
   shiny::runApp(app_dir, ...)

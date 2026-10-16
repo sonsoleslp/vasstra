@@ -8,11 +8,11 @@
 #'
 #' @param data A data frame with one row per subject and time point.
 #' @param id Name of the subject identifier column. May be omitted when the
-#'   data carry VaSStra role metadata.
+#'   data carry VaSSTra role metadata.
 #' @param time Name of the time or ordering column. May be omitted when the
-#'   data carry VaSStra role metadata.
+#'   data carry VaSSTra role metadata.
 #' @param variables Character vector naming numeric state indicators. May be
-#'   omitted when the data carry VaSStra role metadata.
+#'   omitted when the data carry VaSSTra role metadata.
 #' @param n_states Whole-number candidate state counts.
 #' @param n_trajectories Whole-number candidate trajectory counts for the
 #'   two-level engines (`"multilpa"`, `"multilca"`, `"lta"`), which are
@@ -92,7 +92,7 @@ state_choices <- function(
   variables <- data_specification$variables
   standardize <- match.arg(
     data_specification$standardize,
-    c("time", "global", "none")
+    c("time", "global", "subject", "none")
   )
   missing <- match.arg(
     data_specification$missing,
@@ -685,7 +685,7 @@ fit_state_choice <- function(
 #' @export
 print.vasstra_state_choices <- function(x, ...) {
   stopifnot(inherits(x, "vasstra_state_choices"))
-  cat("VaSStra state choices\n")
+  cat("VaSSTra state choices\n")
   cat(sprintf(
     "  %d candidates | %d successful | %d recommended\n",
     nrow(x$candidates),
@@ -970,7 +970,7 @@ fit_trajectory_choice <- function(
 #' @export
 print.vasstra_trajectory_choices <- function(x, ...) {
   stopifnot(inherits(x, "vasstra_trajectory_choices"))
-  cat("VaSStra trajectory choices (Nestimate)\n")
+  cat("VaSSTra trajectory choices (Nestimate)\n")
   cat(sprintf(
     "  %d candidates | %d recommended distance-method solutions\n",
     nrow(x$candidates),

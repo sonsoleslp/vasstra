@@ -1,7 +1,7 @@
 #' Former Names of the Steps
 #'
 #' The four steps were called `step1_states()`, `step2_sequences()`,
-#' `step3_trajectories()` and `step4_describe()` before VaSStra 0.4.0. The old
+#' `step3_trajectories()` and `step4_describe()` before VaSSTra 0.5.0. The old
 #' names call [states()], [sequences()], [trajectories()] and [describe()]
 #' unchanged, so existing code keeps working; they will be removed in the
 #' next release.

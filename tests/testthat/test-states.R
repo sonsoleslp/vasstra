@@ -26,7 +26,8 @@ test_that("states returns tidy reproducible state results", {
   expect_named(
     first,
     c(
-      "data", "profiles", "standardized", "posteriors", "model",
+      "data", "profiles", "state_colors", "standardized", "posteriors",
+      "model",
       "settings", "diagnostics"
     )
   )
@@ -136,6 +137,51 @@ test_that("states handles missing and zero-variance indicators explicitly", {
     "Zero-variance"
   )
   expect_true(all(constant$standardized$constant == 0))
+})
+
+test_that("standardize supports time, subject, global, and none", {
+  set.seed(3)
+  data <- expand.grid(person = 1:20, t = 1:5)
+  baseline <- data$person
+  data$a <- baseline * 4 + (data$t %% 2) + rnorm(nrow(data), sd = 0.1)
+  data$b <- baseline * 2 + (data$t %% 2) + rnorm(nrow(data), sd = 0.1)
+
+  for (s in c("time", "subject", "global", "none")) {
+    states <- states(
+      data, "person", "t", c("a", "b"),
+      n_states = 3, method = "kmeans", standardize = s
+    )
+    expect_equal(states$settings$standardize, s)
+    expect_false(anyNA(states$standardized))
+  }
+
+  # "none" keeps the raw scale; the standardizing options shrink it.
+  raw <- states(data, "person", "t", c("a", "b"), n_states = 3,
+                      method = "kmeans", standardize = "none")
+  subject <- states(data, "person", "t", c("a", "b"), n_states = 3,
+                          method = "kmeans", standardize = "subject")
+  expect_gt(stats::sd(raw$standardized$a), stats::sd(subject$standardized$a))
+})
+
+test_that("clara, fanny, and diana produce valid state clusterings", {
+  data <- make_vasstra_data()
+  variables <- c("views", "sessions", "duration")
+
+  for (m in c("clara", "fanny", "diana")) {
+    states <- states(
+      data, "student", "course", variables,
+      n_states = 3, method = m,
+      labels = c("Low", "Average", "High")
+    )
+    expect_s3_class(states, "vasstra_states")
+    # Every observation is assigned to exactly one of the three states.
+    assigned <- states$data[[states$settings$state]]
+    expect_setequal(levels(assigned), c("Low", "Average", "High"))
+    expect_equal(sum(states$diagnostics$state_sizes), nrow(data))
+    # Silhouette-based diagnostics are populated for the non-LPA methods.
+    expect_true(is.finite(states$diagnostics$silhouette))
+    expect_equal(states$settings$method, m)
+  }
 })
 
 test_that("character time requires explicit chronology", {

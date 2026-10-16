@@ -11,6 +11,8 @@ states(
   variables = NULL,
   n_states = "auto",
   labels = NULL,
+  state_order = NULL,
+  state_colors = NULL,
   state = "state",
   standardize = NULL,
   missing = NULL,
@@ -27,14 +29,14 @@ states(
 \item{data}{A data frame with one row per subject and time point.}
 
 \item{id}{Name of the subject identifier column. May be omitted when the
-data carry VaSStra role metadata.}
+data carry VaSSTra role metadata.}
 
 \item{time}{Name of the time or ordering column. May be omitted when the
-data carry VaSStra role metadata.}
+data carry VaSSTra role metadata.}
 
 \item{variables}{Character vector naming the state indicators: numeric for
 the clustering engines, numeric or categorical for the model engines.
-May be omitted when the data carry VaSStra role metadata.}
+May be omitted when the data carry VaSSTra role metadata.}
 
 \item{n_states}{Number of states to estimate. One number fits exactly
 that count, several numbers (for example \code{2:4}) compare those
@@ -49,11 +51,24 @@ message.}
 \item{labels}{Optional unique labels, ordered from the lowest to the highest
 average standardized profile.}
 
+\item{state_order}{Optional character vector giving the order the states
+should appear in every plot. It must list the same labels rearranged;
+the state column is stored as a factor in this order. Defaults to the
+profile (discovery) order.}
+
+\item{state_colors}{Optional state palette stored on the result and reused
+by every plot. A named vector (matched by state) or one colour per state
+in state order.}
+
 \item{state}{Name of the state column created in the returned data.}
 
-\item{standardize}{One of \code{"time"} (default for ordinary data),
-\code{"global"}, or \code{"none"}. Applies to numeric indicators. Analysis-ready
-package data may provide its own default through metadata.}
+\item{standardize}{How to z-score the numeric indicators before
+estimation: \code{"time"} (default for ordinary data) standardizes within
+each time point, \code{"subject"} within each subject (removing every
+person's own mean and scale, so states reflect deviations from their
+baseline), \code{"global"} across the whole sample, and \code{"none"} leaves the
+raw values. Analysis-ready package data may provide its own default
+through metadata.}
 
 \item{missing}{One of \code{"error"} (default for ordinary data), \code{"median"},
 or, for the model engines, \code{"fiml"}. Median imputation is performed
@@ -71,11 +86,15 @@ of a model engine.}
 \item{seed}{Reproducible random seed.}
 
 \item{engine}{The state engine: \code{"lpa"} (default), \code{"lca"},
-\code{"multilpa"}, \code{"multilca"}, \code{"lta"}, \code{"kmeans"}, \code{"pam"}, or a
-hierarchical method (\code{"ward.D2"}, \code{"ward.D"}, \code{"complete"},
-\code{"average"}, \code{"single"}, \code{"mcquitty"}, \code{"median"}, \code{"centroid"}).
-Or a fitted latents model, whose states are used as estimated. See
-\emph{Engines}.}
+\code{"multilpa"}, \code{"multilca"}, \code{"lta"}; a partitioning method — \code{"kmeans"},
+\code{"pam"}, \code{"clara"} (a sampling-based PAM that scales to many
+observations), or \code{"fanny"} (fuzzy clustering, hardened to its nearest
+partition); or a hierarchical method — \code{"diana"} (divisive) and the
+agglomerative linkages \code{"ward.D2"}, \code{"ward.D"}, \code{"complete"},
+\code{"average"}, \code{"single"}, \code{"mcquitty"}, \code{"median"}, \code{"centroid"}. Or a
+fitted latents model, whose states are used as estimated. See
+\emph{Engines}. The clustering engines are compared by average silhouette,
+the model engines by BIC.}
 
 \item{lpa_model}{Covariance structure of the numeric indicators for the
 model engines, as an mclust code. The default \code{"EEI"} corresponds to
@@ -126,8 +145,8 @@ each state.}
 \item{\code{"lta"}}{Latent transition analysis (\code{\link[latents:lta]{latents::lta()}}) with classes
 of subjects: each class has its own transitions between states, so a
 trajectory is how a subject moves between them.}
-\item{\code{"kmeans"}, \code{"pam"}, \code{"ward.D2"}, ...}{Hard clustering of the
-standardized indicators.}
+\item{\code{"kmeans"}, \code{"pam"}, \code{"clara"}, \code{"fanny"}, \code{"diana"}, \code{"ward.D2"},
+...}{Hard clustering of the standardized indicators.}
 }
 The model engines keep each observation's posterior probabilities, read
 with \code{as.data.frame(x, what = "posteriors")}, and report the model's

@@ -64,7 +64,7 @@ persistent state scores highly merely because its members stay put,
 which is a different claim from attracting movement.
 }
 \examples{
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 transition_centrality(fit)
 transition_centrality(fit, weights = "count")

@@ -1,4 +1,4 @@
-# VaSStra 0.4.0
+# VaSSTra 0.5.0
 
 ## Plain step names
 
@@ -8,7 +8,7 @@
   release and will be removed in the next.
 - `describe()` shares its name with `psych::describe()` and
   `Hmisc::describe()`; whichever package is attached last is found first,
-  and `VaSStra::describe()` always reaches this one.
+  and `VaSSTra::describe()` always reaches this one.
 
 ## Engines
 
@@ -36,7 +36,7 @@
   indicators (`"lca"`, `"multilca"`, or non-numeric columns with the other
   model engines), and accept `missing = "fiml"` instead of median
   imputation.
-- A model engine is evaluated by latents, not by VaSStra: `evaluate()`
+- A model engine is evaluated by latents, not by VaSSTra: `evaluate()`
   returns latents' enumeration of the other counts
   (`enumerate_lpa()`, `enumerate_lca()`, `enumerate_classes()`) and
   `latents::diagnostics()` of the fitted model, `plot()` draws latents'
@@ -56,8 +56,69 @@
   `Remotes:` until that version is on CRAN, which has 0.9.21); mclust moves
   to Suggests and ggplot2 joins Suggests for latents' plots.
 
-# VaSStra 0.3.0
+# VaSSTra 0.4.0
 
+- `plot()` on states gains `type = "variables"`: grouped boxplots of the
+  clustering indicators split by state, one panel per time point, so each
+  indicator's separation of the states is visible at every point rather than
+  only on average. `by_time = FALSE` pools the time points into a single
+  panel, the boxplot counterpart of the profile plot.
+- Added `state_descriptives()`: the numeric companion to that plot, a tidy
+  per-state, per-indicator table of count, mean, standard deviation, median,
+  and range. `scale = "original"` reports the raw indicators and
+  `by_time = TRUE` breaks the summary out per time point.
+- `plot()` on an `evaluate()` result now colours the state row with the
+  palette pinned on the fit (`state_colors`), so it matches the other state
+  plots; the trajectory row keeps its distinct palette.
+
+# VaSSTra 0.3.0
+
+- `standardize` gains a `"subject"` option that z-scores each indicator
+  within each subject, so states reflect deviations from a person's own
+  baseline rather than absolute level. The default is unchanged (`"time"`),
+  and `"global"` and `"none"` are still available.
+- Added `transition_table()`: the transition counts behind the flow and
+  network views as a tidy `from`/`to`/`count`/`probability` data frame,
+  aggregated over time by default or broken out per consecutive time pair
+  with `by_time = TRUE`. `group` restricts a trajectory fit to one group.
+- Added three state-clustering methods, all from the already-imported
+  `cluster` package: `"clara"` (sampling-based PAM for larger data),
+  `"fanny"` (fuzzy clustering, hardened to its nearest partition), and
+  `"diana"` (divisive hierarchical clustering). They are available through
+  `state_method` in `vasstra()`, `method` in `step1_states()`, and
+  `state_choices()`, and are selected by average silhouette like the other
+  non-LPA methods.
+- `plot()` on an `evaluate()` result now draws the trajectory groups in a
+  palette distinct from the states, so the state and trajectory evaluation
+  rows are no longer coloured identically (which read as a correspondence
+  between unrelated groupings).
+- Added a `state_colors` argument to `vasstra()`, `step1_states()`, and
+  `step2_sequences()` that stores a state palette on the fit, so every plot
+  reuses it without repeating `colors`. Accepts a named vector (matched by
+  state, and preserved through `state_order` and `set_labels()`) or one
+  colour per state in state order; an explicit `colors` on a plot still
+  wins.
+- The state profile heatmap now draws the first state as the top row, so it
+  reads in the same order as the profile bars, state sizes, and legends.
+- Fixed the state-sizes plot, whose bar heights were taken in cluster
+  (discovery) order while the labels followed the display order, mislabelling
+  the bars when `state_order` reordered the states.
+- Added a `state_order` argument to `vasstra()`, `step1_states()`, and
+  `step2_sequences()` that fixes the order the states appear in **every**
+  plot -- distribution stacking, sequence and transition legends,
+  transition and flow nodes, and the combined grid -- independent of the
+  order the clusters were discovered in. Because Nestimate sorts states
+  alphabetically, the sequence views recode the states internally to force
+  the requested order and draw a matching ordered legend. Colours follow
+  the state order; pass `colors` for a fixed state-to-colour mapping.
+- `plot()` on trajectories now accepts a vector of views in `type`, for
+  example `plot(fit, type = c("transition", "index", "distribution"))`.
+  Several views (or the new `"transition"` network) lay out a grid with
+  one row per trajectory and one column per requested view, reproducing
+  the familiar per-cluster VaSSTra figure in a single call, with one
+  shared state legend along the bottom (`legend = "none"` omits it). A
+  single sequence view keeps the existing faceted whole-cohort figure, so
+  `plot(fit$trajectories)` is unchanged.
 - Added `flow_plot()`: alluvial and individual flow views of state
   movement between consecutive time points, rendered by the suggested
   `cograph` package. `type = "alluvial"` draws aggregated bands whose
@@ -102,7 +163,7 @@
   documentation, which still described the pre-redesign star and cross
   markers instead of the ring and hollow-point markers actually drawn.
 
-# VaSStra 0.2.0
+# VaSSTra 0.2.0
 
 - The sequence heatmap is now the default plot for complete sequence
   sets (`plot(sequences)` / `plot(fit, which = "sequences")`): it keeps
@@ -178,13 +239,13 @@
   supplied; when neither is given, indicator columns are resolved
   automatically.
 
-# VaSStra 0.1.0
+# VaSSTra 0.1.0
 
-- Added a four-step, pipe-friendly VaSStra workflow.
+- Added a four-step, pipe-friendly VaSSTra workflow.
 - Added a complete one-call `vasstra()` interface.
 - Added tidy S3 results and summaries.
 - Added the ready-to-load `engagement` chapter data with clear raw and
-  course-standardized indicator names plus attached VaSStra data roles.
+  course-standardized indicator names plus attached VaSSTra data roles.
 - Added metadata-aware one-call workflows and tidy complete-fit tables at the
   subject, observation, state-profile, and trajectory units.
 - Added `state_choices()` and `fit_state_choice()` for explicit comparison

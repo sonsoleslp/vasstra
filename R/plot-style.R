@@ -1,4 +1,4 @@
-# Shared palette and panel styling for VaSStra base-graphics plots.
+# Shared palette and panel styling for VaSSTra base-graphics plots.
 
 .vasstra_palette <- function(n) {
   stopifnot(is.numeric(n), length(n) == 1L, n >= 1L)
@@ -12,11 +12,46 @@
   grDevices::hcl.colors(n, "Dark 3")
 }
 
+# Group colours for an evaluation panel. Trajectory groups get a palette
+# distinct from the state palette, so the two evaluation rows are not read as
+# corresponding groupings; states keep the shared VaSSTra palette.
+.vasstra_unit_palette <- function(unit, n) {
+  stopifnot(is.numeric(n), length(n) == 1L, n >= 1L)
+  if (identical(unit, "trajectories")) {
+    base_colors <- c(
+      "#7570B3", "#E7298A", "#E6AB02", "#66A61E", "#A6761D", "#666666"
+    )
+    if (n <= length(base_colors)) {
+      return(base_colors[seq_len(n)])
+    }
+    return(grDevices::hcl.colors(n, "Dark 3"))
+  }
+  .vasstra_palette(n)
+}
+
+# Resolve the palette for a plot in `states` order: an explicit `colors`
+# argument wins; otherwise a palette stored on the fit (named by state) is
+# reused; otherwise the default VaSSTra palette.
+.vasstra_resolve_palette <- function(colors, stored, states) {
+  if (!is.null(colors)) {
+    return(colors)
+  }
+  default <- .vasstra_palette(length(states))
+  if (is.null(stored)) {
+    return(default)
+  }
+  # Fill any state the stored palette does not name (e.g. a "Missing" band)
+  # from the default palette.
+  resolved <- unname(stored[states])
+  resolved[is.na(resolved)] <- default[is.na(resolved)]
+  resolved
+}
+
 .vasstra_accent <- "#0072B2"
 .vasstra_accent_secondary <- "#D55E00"
 
 # Nestimate's sequence_plot() sorts states alphabetically and assigns
-# `state_colors` positionally to that order, ignoring factor levels. VaSStra
+# `state_colors` positionally to that order, ignoring factor levels. VaSSTra
 # takes colors in its own state order, so they must be re-aligned by name or
 # every state is drawn in another state's color.
 .vasstra_sequence_colors <- function(colors, states, sequence_data) {

@@ -29,7 +29,7 @@ suggested ggplot2 package.
 \examples{
 \donttest{
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  data("engagement", package = "VaSStra")
+  data("engagement", package = "VaSSTra")
   states <- states(engagement, n_states = 3, n_start = 5L)
   evaluation <- evaluate(states, n_states = 2:4)
   plot(evaluation)

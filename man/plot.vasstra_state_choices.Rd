@@ -41,7 +41,7 @@ eligible value of the plotted metric within each group; hollow points mark
 candidates that fail the requested size constraints.
 }
 \examples{
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 options <- state_choices(engagement, n_states = 2:4, method = "kmeans")
 plot(options)
 plot(options, metric = "silhouette")

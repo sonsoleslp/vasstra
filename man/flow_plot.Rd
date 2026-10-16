@@ -46,7 +46,7 @@ is the number of subjects making that move, or \code{"individual"} for one
 line per subject.}
 
 \item{colors}{Optional colors, one per state, in state order. Defaults to
-the shared VaSStra palette.}
+the shared VaSSTra palette.}
 
 \item{main}{Optional plot title. A type-specific title is used by default.}
 
@@ -88,7 +88,7 @@ and the state profiles.
 \examples{
 \donttest{
 if (requireNamespace("cograph", quietly = TRUE)) {
-  data("engagement", package = "VaSStra")
+  data("engagement", package = "VaSSTra")
   fit <- vasstra(
     engagement,
     state_labels = c("Disengaged", "Average", "Active")

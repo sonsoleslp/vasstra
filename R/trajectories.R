@@ -336,7 +336,7 @@ trajectories <- function(
 #' @export
 print.vasstra_trajectories <- function(x, ...) {
   stopifnot(inherits(x, "vasstra_trajectories"))
-  cat("VaSStra Step 3: Sequences -> Trajectories\n")
+  cat("VaSSTra Step 3: Sequences -> Trajectories\n")
   if (identical(x$settings$method, "model")) {
     cat(sprintf(
       paste0(

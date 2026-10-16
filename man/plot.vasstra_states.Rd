@@ -2,15 +2,16 @@
 % Please edit documentation in R/plot.R
 \name{plot.vasstra_states}
 \alias{plot.vasstra_states}
-\title{Plot Estimated VaSStra States}
+\title{Plot Estimated VaSSTra States}
 \usage{
 \method{plot}{vasstra_states}(
   x,
   colors = NULL,
   main = NULL,
   ...,
-  type = c("profile", "heatmap", "bars", "sizes", "all"),
-  scale = c("standardized", "original")
+  type = c("profile", "heatmap", "bars", "sizes", "variables", "all"),
+  scale = c("standardized", "original"),
+  by_time = TRUE
 )
 }
 \arguments{
@@ -22,26 +23,39 @@ size plots; heatmaps use a value-based sequential or diverging palette.}
 \item{main}{Optional plot title. A type-specific title is used by default.}
 
 \item{...}{Additional graphical arguments passed to \code{\link[graphics:matplot]{graphics::matplot()}},
-\code{\link[graphics:image]{graphics::image()}}, or \code{\link[graphics:barplot]{graphics::barplot()}}.}
+\code{\link[graphics:image]{graphics::image()}}, \code{\link[graphics:barplot]{graphics::barplot()}}, or \code{\link[graphics:boxplot]{graphics::boxplot()}}.}
 
 \item{type}{One of \code{"profile"} (default), \code{"heatmap"}, \code{"bars"},
-\code{"sizes"}, or \code{"all"} for a two-by-two overview of the four types.}
+\code{"sizes"}, \code{"variables"}, or \code{"all"} for a two-by-two overview of the
+first four. \code{"variables"} draws grouped boxplots of the clustering
+indicators, one panel per time point and one box per state within each
+indicator, so it shows whether each indicator keeps separating the states
+at every point rather than only on average.}
 
 \item{scale}{Show state profiles on the \code{"standardized"} (default) or
-\code{"original"} indicator scale. Ignored by \code{type = "sizes"}.}
+\code{"original"} indicator scale. Ignored by \code{type = "sizes"} and
+\code{type = "variables"} (the latter always uses the scale the states were
+clustered on).}
+
+\item{by_time}{Used only by \code{type = "variables"}: draw one panel per time
+point (\code{TRUE}, default) or pool the time points into a single panel
+(\code{FALSE}).}
 }
 \value{
 For profile, bar, heatmap, and overview plots, the plotted
 indicator-by-state matrix, invisibly. For a size plot, a tidy
-state-size data frame.
+state-size data frame. For \code{type = "variables"}, a tidy
+time-by-variable-by-state table of medians, invisibly.
 }
 \description{
-Plot Estimated VaSStra States
+Plot Estimated VaSSTra States
 }
 \examples{
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 states <- states(engagement, n_states = 3)
 plot(states)
 plot(states, type = "sizes")
+plot(states, type = "variables")
+plot(states, type = "variables", by_time = FALSE)
 plot(states, type = "all")
 }

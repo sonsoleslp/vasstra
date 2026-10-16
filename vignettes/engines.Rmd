@@ -36,8 +36,8 @@ the trajectory groups in one model.
 | `"kmeans"`, `"pam"`, `"ward.D2"`, ... | numeric | clustered from the state sequences |
 
 ```{r library}
-library(VaSStra)
-data("engagement", package = "VaSStra")
+library(VaSSTra)
+data("engagement", package = "VaSSTra")
 ```
 
 ## Latent profiles as states

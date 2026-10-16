@@ -4,7 +4,7 @@
 # latents model, so its evaluation is latents': the candidate counts come
 # from latents' enumeration and the classification diagnostics from
 # latents::diagnostics(), returned and drawn as latents returns and draws
-# them. VaSStra adds only which candidate it fitted.
+# them. VaSSTra adds only which candidate it fitted.
 
 # The latents enumeration that compares the fitted model with other counts:
 # the comparison stored by automatic selection, or a new one over `counts`
@@ -77,7 +77,7 @@
 #' @export
 print.vasstra_model_evaluation <- function(x, ...) {
   stopifnot(inherits(x, "vasstra_model_evaluation"))
-  cat(sprintf("VaSStra model evaluation: %s (%s, from latents)\n",
+  cat(sprintf("VaSSTra model evaluation: %s (%s, from latents)\n",
               x$unit, x$engine))
   cat(sprintf(
     "  Fitted: %d states%s\n\n",
@@ -146,7 +146,7 @@ as.data.frame.vasstra_model_evaluation <- function(
 #' @examples
 #' \donttest{
 #' if (requireNamespace("ggplot2", quietly = TRUE)) {
-#'   data("engagement", package = "VaSStra")
+#'   data("engagement", package = "VaSSTra")
 #'   states <- states(engagement, n_states = 3, n_start = 5L)
 #'   evaluation <- evaluate(states, n_states = 2:4)
 #'   plot(evaluation)

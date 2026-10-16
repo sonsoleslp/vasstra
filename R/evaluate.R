@@ -51,7 +51,8 @@ evaluate <- function(x, ...) {
     size_column,
     fitted_size,
     fitted_silhouette,
-    method_label) {
+    method_label,
+    group_colors = NULL) {
   stopifnot(
     is.data.frame(candidates),
     is.data.frame(clusters),
@@ -64,6 +65,10 @@ evaluate <- function(x, ...) {
       clusters = clusters,
       unit = unit,
       size_column = size_column,
+      # A per-group palette in cluster order, when the caller has one to
+      # supply (states reuse the fit's `state_colors`); NULL lets the plot
+      # fall back to the distinct evaluation palette.
+      group_colors = group_colors,
       fitted = list(
         size = as.integer(fitted_size),
         silhouette = as.numeric(fitted_silhouette),
@@ -182,7 +187,12 @@ evaluate.vasstra_states <- function(x, n_states = NULL, ...) {
     size_column = "n_states",
     fitted_size = settings$n_states,
     fitted_silhouette = x$diagnostics$silhouette,
-    method_label = settings$method
+    method_label = settings$method,
+    # Colour the state bars with the palette pinned on the fit, so the
+    # evaluation matches every other state plot; NULL `state_colors` falls
+    # back to the default VaSSTra palette.
+    group_colors = .vasstra_resolve_palette(NULL, x$state_colors,
+                                            settings$labels)
   )
 }
 
@@ -239,7 +249,7 @@ evaluate.vasstra <- function(x, ...) {
 #' @export
 print.vasstra_evaluation <- function(x, digits = 3L, ...) {
   stopifnot(inherits(x, "vasstra_evaluation"))
-  cat(sprintf("VaSStra clustering evaluation: %s (%s)\n",
+  cat(sprintf("VaSSTra clustering evaluation: %s (%s)\n",
               x$unit, x$fitted$method))
   cat(sprintf(
     "  Fitted: %d %s | silhouette %.3f\n",

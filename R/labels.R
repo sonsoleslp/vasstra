@@ -82,6 +82,9 @@ set_labels.vasstra_states <- function(x, labels, ...) {
   if (!is.null(x$posteriors)) {
     levels(x$posteriors[[x$settings$state]]) <- new
   }
+  if (!is.null(x$state_colors)) {
+    names(x$state_colors) <- new[match(names(x$state_colors), old)]
+  }
   x
 }
 
@@ -152,6 +155,10 @@ set_labels.vasstra <- function(x, states = NULL, trajectories = NULL, ...) {
       new
     )
     x$sequences$states <- .vasstra_apply_labels(x$sequences$states, old, new)
+    if (!is.null(x$sequences$state_colors)) {
+      names(x$sequences$state_colors) <-
+        new[match(names(x$sequences$state_colors), old)]
+    }
     x$sequences$distribution$state <- .vasstra_apply_labels(
       x$sequences$distribution$state,
       old,

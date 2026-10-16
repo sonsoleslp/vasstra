@@ -21,7 +21,8 @@
 .vasstra_cluster_engines <- function() {
   stopifnot(TRUE)
   c(
-    "kmeans", "pam", "ward.D2", "ward.D", "complete", "average",
+    "kmeans", "pam", "clara", "fanny", "diana",
+    "ward.D2", "ward.D", "complete", "average",
     "single", "mcquitty", "median", "centroid"
   )
 }
@@ -512,6 +513,8 @@
   working_data[variables] <- indicator_data
   grouping <- if (standardize == "time") {
     working_data[[time]]
+  } else if (standardize == "subject") {
+    working_data[[id]]
   } else {
     rep.int(1L, nrow(working_data))
   }
@@ -539,7 +542,8 @@
       working_data,
       numeric_set,
       time,
-      standardize
+      standardize,
+      id = id
     )
   }
   numeric_values <- as.matrix(standardized[numeric_set])
@@ -631,14 +635,14 @@
   )
 }
 
-# One row per enumerated candidate in the columns VaSStra compares engines
+# One row per enumerated candidate in the columns VaSSTra compares engines
 # by. Every number is read from latents' candidate table or its stored
 # candidate fit: a single-level grid reports the individual-level criteria,
 # a two-level grid the group-level ones, as latents' own `bic` does.
 .vasstra_enumeration_rows <- function(enumeration, engine, lpa_model,
                                       values = NULL) {
   candidates <- latents::get_results(enumeration, "candidates")
-  # Silhouette is VaSStra's own yardstick across engines; it is taken on the
+  # Silhouette is VaSSTra's own yardstick across engines; it is taken on the
   # standardized indicators when they are complete and numeric.
   distance <- if (!is.null(values) && all(vapply(values, is.numeric,
                                                  logical(1L))) &&

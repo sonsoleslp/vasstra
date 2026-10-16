@@ -10,7 +10,11 @@
 \item{x}{A \code{vasstra_evaluations} object from \code{\link[=evaluate]{evaluate()}} on a complete
 \code{vasstra} fit.}
 
-\item{colors}{Optional colors recycled within each evaluation row.}
+\item{colors}{Optional colors recycled within each evaluation row. By
+default the state row reuses the palette pinned on the fit
+(\code{state_colors}), so it matches every other state plot, while the
+trajectory row keeps a distinct palette so the two groupings are not
+read as corresponding.}
 
 \item{...}{Additional graphical arguments passed to the panel functions.}
 }
@@ -22,7 +26,7 @@ Draws one row of evaluation panels per clustering step: the state
 clustering on top and the trajectory clustering below.
 }
 \examples{
-data("engagement", package = "VaSStra")
+data("engagement", package = "VaSSTra")
 fit <- vasstra(engagement, n_states = 3, n_trajectories = 3, n_start = 5L)
 plot(evaluate(fit))
 }

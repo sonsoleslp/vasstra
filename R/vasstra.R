@@ -1,4 +1,4 @@
-#' Run the Complete VaSStra Workflow
+#' Run the Complete VaSSTra Workflow
 #'
 #' A one-call wrapper around [states()], [sequences()],
 #' [trajectories()], and [describe()]. Every argument has a
@@ -20,9 +20,9 @@
 #'
 #' @param data A longitudinal data frame.
 #' @param id Subject identifier column. May be omitted when the data carry
-#'   VaSStra role metadata or use a common identifier name.
+#'   VaSSTra role metadata or use a common identifier name.
 #' @param time Time or ordering column. May be omitted when the data carry
-#'   VaSStra role metadata or use a common time name.
+#'   VaSSTra role metadata or use a common time name.
 #' @param variables State indicators. Use either `variables` or
 #'   `state`, but not both. When both are omitted, the numeric non-role
 #'   columns are used (columns ending in `_z` are preferred when present).
@@ -36,10 +36,23 @@
 #'   `trajectory_labels` determine the count under `"auto"`. A two-level
 #'   engine estimates this count together with the states.
 #' @param state_labels Optional labels ordered from low to high profile.
+#' @param state_order Optional character vector giving the order the states
+#'   should appear in every plot (stacking, legends, transition nodes, flow
+#'   nodes). It must list exactly the same states as `state_labels` (or the
+#'   observed states, for precomputed input), rearranged. When supplied, the
+#'   state column becomes a factor in this order. Useful when the cluster
+#'   discovery order does not match the order that reads best.
+#' @param state_colors Optional state palette stored on the fit and reused by
+#'   every plot without repeating `colors`. Either a named vector
+#'   (`c(Low = "grey", High = "red", ...)`, matched by state name and robust to
+#'   `state_order` and renaming) or one colour per state in state order. An
+#'   explicit `colors` argument to a plot still overrides it.
 #' @param trajectory_labels Optional labels for stable trajectory groups.
 #' @param state_name Output column name when states are estimated.
-#' @param standardize State-indicator standardization: `"time"`, `"global"`,
-#'   or `"none"`. Analysis-ready package data may provide its own default.
+#' @param standardize State-indicator standardization: `"time"` (within each
+#'   time point), `"subject"` (within each subject, relative to their own
+#'   baseline), `"global"`, or `"none"`. Analysis-ready package data may
+#'   provide its own default.
 #' @param indicator_missing Indicator missingness policy passed to step 1:
 #'   `"error"`, `"median"`, or `"fiml"` for the model engines.
 #'   Analysis-ready package data may provide its own default.
@@ -94,6 +107,8 @@ vasstra <- function(
     n_states = "auto",
     n_trajectories = "auto",
     state_labels = NULL,
+    state_order = NULL,
+    state_colors = NULL,
     trajectory_labels = NULL,
     state_name = "state",
     standardize = NULL,
@@ -176,7 +191,7 @@ vasstra <- function(
       indicator_missing <- "error"
     }
   }
-  standardize <- match.arg(standardize, c("time", "global", "none"))
+  standardize <- match.arg(standardize, c("time", "global", "subject", "none"))
   indicator_missing <- match.arg(
     indicator_missing,
     c("error", "median", "fiml")
@@ -197,6 +212,8 @@ vasstra <- function(
       id = id,
       time = time,
       labels = state_labels,
+      state_order = state_order,
+      state_colors = state_colors,
       state = state_name,
       time_levels = time_levels,
       engine = engine
@@ -214,6 +231,8 @@ vasstra <- function(
       variables = variables,
       n_states = n_states,
       labels = state_labels,
+      state_order = state_order,
+      state_colors = state_colors,
       state = state_name,
       standardize = standardize,
       missing = indicator_missing,
@@ -236,6 +255,8 @@ vasstra <- function(
       id = id,
       time = time,
       state = state,
+      state_order = state_order,
+      state_colors = state_colors,
       time_levels = time_levels,
       missing = sequence_missing,
       missing_label = missing_label
@@ -308,7 +329,7 @@ vasstra <- function(
 #' @export
 print.vasstra <- function(x, ...) {
   stopifnot(inherits(x, "vasstra"))
-  cat("VaSStra Analysis\n")
+  cat("VaSSTra Analysis\n")
   cat(sprintf(
     "  %d subjects | %d times | %d states | %d trajectories\n",
     x$diagnostics$n_subjects,
@@ -341,7 +362,7 @@ summary.vasstra <- function(object, ...) {
   summary(object$description)
 }
 
-#' Convert a VaSStra Analysis to a Tidy Table
+#' Convert a VaSSTra Analysis to a Tidy Table
 #'
 #' @param x A `vasstra` analysis.
 #' @param row.names,optional Passed to [base::as.data.frame()].
@@ -352,7 +373,7 @@ summary.vasstra <- function(object, ...) {
 #' @return A data frame at the requested analysis unit.
 #'
 #' @examples
-#' data("engagement", package = "VaSStra")
+#' data("engagement", package = "VaSSTra")
 #' fit <- vasstra(engagement, n_states = 3, n_trajectories = 3)
 #' head(as.data.frame(fit))
 #' as.data.frame(fit, unit = "trajectory")

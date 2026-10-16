@@ -1,8 +1,8 @@
 ---
-title: "VaSStra in Four Simple Steps"
+title: "Getting started with VaSSTra"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{VaSStra in Four Simple Steps}
+  %\VignetteIndexEntry{Getting started with VaSSTra}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,81 +14,112 @@ knitr::opts_chunk$set(
   fig.width = 7,
   fig.height = 5
 )
+options(digits = 2)
 ```
 
-VaSStra turns repeated multivariate measurements into states, state
+VaSSTra turns repeated multivariate measurements into states, state
 sequences, and groups of similar trajectories. The whole analysis is one
 call, and every part of it can also be run as an explicit step.
 
-```{r data}
-library(VaSStra)
+This guide uses the built-in `engagement` data: 142 students measured on
+eight indicators at eight course positions, from the
+[VaSSTra chapter](https://lamethods.org/book1/chapters/ch11-vasstra/ch11-vasstra.html)
+of *Learning Analytics Methods and Tutorials*. It ships analysis-ready with
+attached role metadata, so no column plumbing is needed.
 
-set.seed(2026)
-data <- expand.grid(
-  student = seq_len(36),
-  course = seq_len(6)
-)
-trajectory <- ceiling(data$student / 12)
-# Three groups of twelve students climb the same three-phase ladder,
-# each starting one phase further along, so the groups differ in timing
-# rather than in level.
-phase <- ceiling(data$course / 2)
-latent_state <- (phase + trajectory - 2) %% 3 + 1
-data$views <- latent_state * 6 + rnorm(nrow(data), sd = 0.08)
-data$sessions <- latent_state * 3 + rnorm(nrow(data), sd = 0.08)
-data$duration <- latent_state * 12 + rnorm(nrow(data), sd = 0.08)
+```{r data}
+library(VaSSTra)
+data("engagement", package = "VaSSTra")
 ```
+
+## Using your own data
+
+`vasstra()` needs three roles: the **subject** (`id`), the **time** column
+(`time`), and the numeric **indicators** (`variables`). The `engagement`
+data carry these as attached metadata, so they are found automatically; your
+own data frame will not, so you name the subject and time columns. On
+`engagement` this is redundant, but it is exactly the call you would write
+for data with different column names:
+
+```{r roles}
+fit <- vasstra(
+  engagement,
+  id   = "user_id",            # one row per subject and time point
+  time = "sequence_position",  # the ordering column
+  state_labels = c("Disengaged", "Average", "Active")
+)
+```
+
+`variables` was left out on purpose: the numeric columns that are not the
+`id` or `time` become the indicators (columns ending in `"_z"` are preferred
+when present, so a mix of raw and standardized columns picks the
+standardized set, as it does here). Name them to fit a specific subset. Here
+we keep only the three activity-volume indicators:
+
+```{r variables}
+fit <- vasstra(
+  engagement,
+  id        = "user_id",
+  time      = "sequence_position",
+  variables = c("session_count_z", "total_duration_z", "active_days_z"),
+  state_labels = c("Disengaged", "Average", "Active")
+)
+```
+
+Columns that follow a common convention are detected even without `id` and
+`time` (`id`: `id`, `student`, `subject`, `actor`, …; `time`: `time`,
+`week`, `wave`, `session`, …); anything else raises a clear error asking you
+to supply that role. Two more notes: pass `time_levels` when `time` is a
+character or unordered factor so the chronology is explicit, and use `state`
+instead of `variables` when the data already carry a categorical state
+column (the analysis then starts at `sequences()`).
 
 ## One call
 
-`vasstra()` detects the subject, time, and indicator roles from common
-column names (or attached role metadata), compares two through six states
-and trajectories, and fits the recommended counts. Every automated decision
-is reported as it is made and recorded inside the fit.
+`vasstra()` detects the subject, time, and indicator roles from the attached
+role metadata (or common column names), compares two through six states and
+trajectories, and fits the recommended counts. Every automated decision is
+reported as it is made and recorded inside the fit. Here three state labels
+fix three states; omit them and the state count is selected too.
 
 ```{r one-call}
-fit <- vasstra(data)
+fit <- vasstra(engagement, state_labels = c("Disengaged", "Average", "Active"))
 fit
 ```
 
-Tidy tables come straight from the fit at the analysis unit you need:
-
-```{r tidy-units}
-head(as.data.frame(fit))
-head(as.data.frame(fit, unit = "observation"))
-as.data.frame(fit, unit = "trajectory")
-```
 
 Name any decision to take it over; automation only fills what you omit.
-Labels are the shortest way to fix a count — three labels mean three
-states — and a candidate vector such as `n_states = 2:4` compares exactly
-those counts and fits the recommended one.
+Labels are the shortest way to fix a count (three labels mean three
+states), and a candidate vector such as `n_states = 2:4` compares exactly
+those counts and fits the recommended one. Two more arguments control how
+states display everywhere: `state_order` fixes the order states appear in
+across every plot, and `state_colors` sets a state palette that is stored on
+the fit and reused by every plot.
 
 ```{r explicit-call, eval = FALSE}
 fit <- vasstra(
-  data,
-  state_labels = c("Low", "Average", "High"),
-  trajectory_labels = c("Stable low", "Moving", "Stable high"),
+  engagement,
+  state_labels = c("Disengaged", "Average", "Active"),
+  trajectory_labels = c("Mostly active", "Mostly average", "Mostly disengaged"),
   dissimilarity = "lcs",
   cluster_method = "ward.D2",
-  positive_states = "High",
-  negative_states = "Low"
+  positive_states = "Active",
+  negative_states = "Disengaged"
 )
 ```
 
 ## Evaluate the clustering
 
 `evaluate()` compares the fitted numbers of states and trajectories against
-the neighboring counts and reports per-cluster quality. Printing shows both
+the alternative counts and reports per-cluster quality. Printing shows both
 tables; plotting draws the selection curve, per-cluster silhouette widths,
 and group sizes.
 
 ```{r evaluate}
 evaluation <- evaluate(fit)
-evaluation
 ```
 
-```{r evaluate-plot, fig.height = 6}
+```{r evaluate-plot, fig.height = 5, fig.width=8.15}
 plot(evaluation)
 ```
 
@@ -96,7 +127,6 @@ The same verb works on a single step, with any candidate range:
 
 ```{r evaluate-states}
 state_evaluation <- evaluate(fit$states, n_states = 2:5)
-as.data.frame(state_evaluation)
 summary(state_evaluation)
 ```
 
@@ -117,16 +147,15 @@ fit_indices(fit, step = "trajectories", compare = TRUE)
 
 ## Name groups after inspecting them
 
-`set_labels()` renames fitted states or trajectories in place — nothing
-is refitted, no value changes — and the new names flow through every
+`set_labels()` renames fitted states or trajectories in place (nothing
+is refitted, no value changes), and the new names flow through every
 table, sequence, and plot. Rename everything with a full vector, or only
 some groups by name.
 
 ```{r set-labels}
 fit <- set_labels(
   fit,
-  states = c("Low", "Average", "High"),
-  trajectories = c("Mostly high", "Mixed", "Mostly low")
+  trajectories = c("Mostly active", "Mostly average", "Mostly disengaged")
 )
 summary(fit)
 ```
@@ -138,20 +167,21 @@ the same automated defaults. Use the steps when intermediate results are
 needed, or when states come from another method.
 
 ```{r steps}
-states <- states(data, n_states = 3,
-                       labels = c("Low", "Average", "High"))
+states <- states(engagement,
+                 labels = c("Disengaged", "Average", "Active"))
 sequences <- sequences(states)
 trajectories <- trajectories(sequences, n_trajectories = 3)
 description <- describe(
   trajectories,
-  positive_states = "High",
-  negative_states = "Low"
+  positive_states = "Active",
+  negative_states = "Disengaged"
 )
 summary(description)
 ```
 
 Existing states from LPA, LCA, or any other source enter at step 2: pass a
-data frame whose state column is detected (or named with `state`).
+data frame whose state column is detected automatically (or named with the
+`state` argument).
 
 ## State plots
 
@@ -184,7 +214,7 @@ pass the inspected `candidate_id` to fit.
 
 ```{r state-choices}
 state_options <- state_choices(
-  data,
+  engagement,
   n_states = 2:4,
   method = c("kmeans", "pam", "ward.D2")
 )
@@ -194,7 +224,7 @@ chosen_states <- fit_state_choice(
   state_options,
   n_states = 3,
   method = "kmeans",
-  labels = c("Low", "Average", "High")
+  labels = c("Disengaged", "Average", "Active")
 )
 ```
 
@@ -222,9 +252,11 @@ plot(trajectory_options, metric = "silhouette")
 Recommendations are made within each distance-method pair because mean
 within-trajectory distances are only comparable within one dissimilarity.
 
-States default to latent profiles fitted with the latents package
+States default to latent profiles fitted with the `latents` package
 (`"EEI"`, tidyLPA model 1), which also supplies the other mixture-model
 engines (see `vignette("engines")`); base R supplies k-means and
-hierarchical clustering, `cluster` supplies PAM, and Nestimate supplies
-sequence distances, trajectory clustering, and plots. No TraMineR plotting
-path or dependency is required.
+hierarchical clustering, `cluster` supplies PAM, CLARA, FANNY, and DIANA,
+and `Nestimate` supplies sequence distances, trajectory clustering, and
+plots. No `TraMineR` plotting path or dependency is required. See
+`vignette("clustering-algorithms")` for the full list of state and
+trajectory methods.
